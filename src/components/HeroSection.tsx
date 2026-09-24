@@ -1,3 +1,5 @@
+import { Trophy, Shield, Zap, ArrowRight, Eye, Gamepad2, Calendar, Crown } from 'lucide-react'
+
 interface HeroSectionProps {
   onJoinClick: () => void
   onViewAllClick: () => void
@@ -55,8 +57,8 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
                 
                 {/* Fair Play */}
                 <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-3 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0 text-base">
-                    🏆
+                  <div className="w-8 h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
+                    <Trophy className="w-4 h-4" />
                   </div>
                   <div>
                     <span className="text-xs font-bold text-white block leading-none mb-0.5">Fair Play</span>
@@ -66,8 +68,8 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
 
                 {/* Secure Payment */}
                 <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-3 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0 text-base">
-                    🛡️
+                  <div className="w-8 h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
+                    <Shield className="w-4 h-4" />
                   </div>
                   <div>
                     <span className="text-xs font-bold text-white block leading-none mb-0.5">Secure Payment</span>
@@ -77,8 +79,8 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
 
                 {/* Fast Support */}
                 <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-3 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0 text-base">
-                    ⚡
+                  <div className="w-8 h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
+                    <Zap className="w-4 h-4" />
                   </div>
                   <div>
                     <span className="text-xs font-bold text-white block leading-none mb-0.5">Fast Support</span>
@@ -95,7 +97,7 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
                   className="btn-kong-red px-6 py-3 rounded-xl text-sm font-bold flex items-center gap-2 group"
                 >
                   <span>Join Tournament</span>
-                  <span className="group-hover:translate-x-1 transition-transform">➔</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
 
                 <button
@@ -120,21 +122,25 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
                     </span>
                     <span className="text-xs font-bold text-white">Tournament Ongoing</span>
                   </div>
-                  <span className="text-[11px] text-gray-400 font-medium">👁️ 128 Players Active</span>
+                  <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1">
+                    <Eye className="w-3.5 h-3.5 text-gray-400" /> 128 Players Active
+                  </span>
                 </div>
-                <div className="text-2xl">🎮</div>
+                <div className="p-2 bg-red-600/10 border border-red-600/20 rounded-lg text-red-500">
+                  <Gamepad2 className="w-6 h-6" />
+                </div>
               </div>
 
               {/* Widget 2: Next Match Timer */}
               <div className="bg-[#10131a]/90 backdrop-blur-md border border-white/10 rounded-xl p-4">
                 <div className="flex items-center gap-2 text-xs font-bold text-gray-300 mb-1">
-                  <span>📅</span> <span>Next Match</span>
+                  <Calendar className="w-3.5 h-3.5 text-red-500" /> <span>Next Match</span>
                 </div>
                 <div className="text-sm font-extrabold text-white">
                   Today • 10:00 PM
                 </div>
-                <div className="text-[11px] text-gray-400 font-medium mt-0.5">
-                  🛡️ Erangel / Asia
+                <div className="text-[11px] text-gray-400 font-medium mt-0.5 flex items-center gap-1">
+                  <Shield className="w-3 h-3 text-red-500" /> Erangel / Asia
                 </div>
               </div>
 
@@ -143,8 +149,9 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
                 <div className="text-xs font-extrabold tracking-widest text-gray-300 uppercase mb-1">
                   PLAY • COMPETE • WIN
                 </div>
-                <div className="font-display text-3xl font-black text-[#e50914] italic uppercase tracking-wide">
-                  BE THE NEXT CHAMPION 👑
+                <div className="font-display text-3xl font-black text-[#e50914] italic uppercase tracking-wide flex items-center justify-center gap-2">
+                  <span>BE THE NEXT CHAMPION</span>
+                  <Crown className="w-7 h-7 text-amber-400 fill-amber-400 shrink-0" />
                 </div>
               </div>
 

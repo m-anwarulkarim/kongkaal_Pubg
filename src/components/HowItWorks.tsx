@@ -1,28 +1,30 @@
+import { Target, CreditCard, Lock, Trophy } from 'lucide-react'
+
 export default function HowItWorks() {
   const steps = [
     {
       num: '01',
       title: 'ম্যাচ সিলেক্ট করুন',
       desc: 'আপনার পছন্দের গেম মোড Solo, Duo বা Squad থেকে যেকোনো একটি আসন্ন ম্যাচ বেছে নিন।',
-      icon: '🎯',
+      icon: Target,
     },
     {
       num: '02',
       title: 'পেমেন্ট ও TrxID জমা দিন',
       desc: 'bKash, Nagad বা Rocket দিয়ে সেন্ড মানি করে Transaction ID দিয়ে স্লট কনফার্ম করুন।',
-      icon: '💳',
+      icon: CreditCard,
     },
     {
       num: '03',
       title: 'Room ID & Password পাবেন',
       desc: 'ম্যাচ শুরু হওয়ার ঠিক ১৫ মিনিট আগে আপনার নিবন্ধিত WhatsApp নাম্বারে রুম আইডি দেওয়া হবে।',
-      icon: '🔐',
+      icon: Lock,
     },
     {
       num: '04',
       title: 'চিকেন ডিনার ও ক্যাশ প্রাইজ!',
       desc: 'গেম জিতে বা কিল করে প্রতি কিলের বিনিময়ে সাথে সাথে বিকাশ/নগদে প্রাইজ মানি বুঝে নিন।',
-      icon: '🏆',
+      icon: Trophy,
     },
   ]
 
@@ -42,23 +44,26 @@ export default function HowItWorks() {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {steps.map((step) => (
-            <div key={step.num} className="pubg-card p-6 relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute top-2 right-4 font-display text-6xl font-black text-amber-500/10 select-none">
-                {step.num}
-              </div>
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-2xl mb-4 shadow-lg shadow-amber-500/20">
-                  {step.icon}
+          {steps.map((step) => {
+            const IconComponent = step.icon
+            return (
+              <div key={step.num} className="pubg-card p-6 relative overflow-hidden flex flex-col justify-between">
+                <div className="absolute top-2 right-4 font-display text-6xl font-black text-amber-500/10 select-none">
+                  {step.num}
                 </div>
-                <h3 className="font-gaming text-xl font-bold text-white mb-2">{step.title}</h3>
-                <p className="text-xs text-gray-400 leading-relaxed">{step.desc}</p>
+                <div>
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white mb-4 shadow-lg shadow-amber-500/20">
+                    <IconComponent className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-gaming text-xl font-bold text-white mb-2">{step.title}</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed">{step.desc}</p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-gray-800 text-[11px] font-bold text-amber-400 uppercase">
+                  STEP {step.num} COMPLETE
+                </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-gray-800 text-[11px] font-bold text-amber-400 uppercase">
-                STEP {step.num} COMPLETE
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>

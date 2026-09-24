@@ -1,10 +1,12 @@
+import { Crown, Trophy, ArrowRight } from 'lucide-react'
+
 export default function RightSidebar() {
   const leaderboardData = [
-    { rank: 1, name: 'RIYAD', kills: 187, wins: 6, prize: '৳8,450', avatar: '/solo_match.jpg' },
-    { rank: 2, name: 'SHAKIB*BD', kills: 164, wins: 5, prize: '৳6,200', avatar: '/squad_match.jpg' },
-    { rank: 3, name: 'xXLegendXx', kills: 152, wins: 4, prize: '৳5,750', avatar: '/hero_banner.jpg' },
-    { rank: 4, name: 'TuhinPlayz', kills: 141, wins: 4, prize: '৳4,900', avatar: '/solo_match.jpg' },
-    { rank: 5, name: 'ZihadGaming', kills: 132, wins: 3, prize: '৳3,800', avatar: '/squad_match.jpg' },
+    { rank: 1, name: 'RIYAD', kills: 187, wins: 6, prize: '৳8,450', avatar: '/solo_battle.jpg' },
+    { rank: 2, name: 'SHAKIB*BD', kills: 164, wins: 5, prize: '৳6,200', avatar: '/duo_battle.jpg' },
+    { rank: 3, name: 'xXLegendXx', kills: 152, wins: 4, prize: '৳5,750', avatar: '/squad_showdown.jpg' },
+    { rank: 4, name: 'TuhinPlayz', kills: 141, wins: 4, prize: '৳4,900', avatar: '/solo_battle.jpg' },
+    { rank: 5, name: 'ZihadGaming', kills: 132, wins: 3, prize: '৳3,800', avatar: '/duo_battle.jpg' },
   ]
 
   return (
@@ -16,13 +18,13 @@ export default function RightSidebar() {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-red-500 text-lg">👑</span>
+            <Crown className="w-5 h-5 text-amber-400 fill-amber-400" />
             <h3 className="font-display text-xl font-bold text-white uppercase leading-none">
               Leaderboard
             </h3>
           </div>
-          <a href="#" className="text-[11px] font-bold text-gray-400 hover:text-white no-underline">
-            View All ➔
+          <a href="#" className="text-[11px] font-bold text-gray-400 hover:text-white no-underline flex items-center gap-1">
+            View All <ArrowRight className="w-3 h-3" />
           </a>
         </div>
 
@@ -61,8 +63,8 @@ export default function RightSidebar() {
                       <div className="w-6 h-6 rounded-full overflow-hidden shrink-0 border border-white/20">
                         <img src={row.avatar} alt={row.name} className="w-full h-full object-cover" />
                       </div>
-                      <span className="font-bold text-white tracking-wide">
-                        🇧🇩 {row.name}
+                      <span className="font-bold text-white tracking-wide flex items-center gap-1">
+                        <span className="font-bold text-[9px] text-emerald-400 bg-emerald-950/80 px-1 rounded border border-emerald-500/30">BD</span> {row.name}
                       </span>
                     </div>
                   </td>
@@ -85,13 +87,13 @@ export default function RightSidebar() {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-red-500 text-lg">🏆</span>
+            <Trophy className="w-5 h-5 text-red-500" />
             <h3 className="font-display text-xl font-bold text-white uppercase leading-none">
               Top Players
             </h3>
           </div>
-          <a href="#" className="text-[11px] font-bold text-gray-400 hover:text-white no-underline">
-            View All ➔
+          <a href="#" className="text-[11px] font-bold text-gray-400 hover:text-white no-underline flex items-center gap-1">
+            View All <ArrowRight className="w-3 h-3" />
           </a>
         </div>
 

@@ -1,4 +1,5 @@
 import type { MatchItem } from '@/types/match'
+import { Shield, Clock, ArrowRight } from 'lucide-react'
 
 interface MatchCardProps {
   match: MatchItem
@@ -53,10 +54,10 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
           {/* Map & Time Row */}
           <div className="flex items-center justify-between text-[11px] text-gray-400 font-semibold mb-3">
             <span className="flex items-center gap-1">
-              🛡️ Map: <strong className="text-gray-200">{match.map} / Asia</strong>
+              <Shield className="w-3.5 h-3.5 text-red-500" /> Map: <strong className="text-gray-200">{match.map} / Asia</strong>
             </span>
             <span className="flex items-center gap-1">
-              ⏰ Time: <strong className="text-gray-200">{match.time.includes('at') ? match.time.split('at')[1] : '10:00 PM'}</strong>
+              <Clock className="w-3.5 h-3.5 text-[#e50914]" /> Time: <strong className="text-gray-200">{match.time.includes('at') ? match.time.split('at')[1] : '10:00 PM'}</strong>
             </span>
           </div>
 
@@ -95,7 +96,7 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
             className={`w-full py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-colors ${btnBg}`}
           >
             <span>Register Now</span>
-            <span>➔</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 

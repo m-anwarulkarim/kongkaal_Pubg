@@ -6,6 +6,20 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import {
+  ClipboardList,
+  CreditCard,
+  ArrowRight,
+  ChevronLeft,
+  Heart,
+  Flame,
+  Rocket,
+  CheckCircle2,
+  Copy,
+  Loader2,
+  Gamepad2,
+  MessageCircle,
+} from 'lucide-react'
 
 interface SlotBookingModalProps {
   match: MatchItem | null
@@ -138,7 +152,8 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
               </div>
 
               <h4 className="font-gaming text-lg font-bold text-white mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
-                <span>📋</span> <span>১. খেলোয়াড় ও টিম সংক্রান্ত তথ্য পূরণ করুন</span>
+                <ClipboardList className="w-5 h-5 text-red-500" />
+                <span>১. খেলোয়াড় ও টিম সংক্রান্ত তথ্য পূরণ করুন</span>
               </h4>
 
               {match.mode !== 'SOLO' && (
@@ -251,9 +266,10 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
               <Button
                 type="submit"
-                className="w-full btn-kong-red py-3.5 rounded-xl font-gaming text-base font-extrabold flex items-center justify-center gap-2"
+                className="w-full btn-kong-red py-3.5 rounded-xl font-gaming text-base font-extrabold flex items-center justify-center gap-2 group"
               >
-                পেমেন্ট ধাপে যান (PAYMENT STEP) ➔
+                <span>পেমেন্ট ধাপে যান (PAYMENT STEP)</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </form>
           )}
@@ -263,14 +279,16 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
             <form onSubmit={handleConfirmPayment}>
               <div className="flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
                 <h4 className="font-gaming text-lg font-bold text-white flex items-center gap-2">
-                  <span>💳</span> <span>২. বিকাশ / নগদ / রকেট এ পেমেন্ট সম্পন্ন করুন</span>
+                  <CreditCard className="w-5 h-5 text-red-500" />
+                  <span>২. বিকাশ / নগদ / রকেট এ পেমেন্ট সম্পন্ন করুন</span>
                 </h4>
                 <button
                   type="button"
                   onClick={() => setStep('DETAILS')}
-                  className="text-xs font-bold text-red-400 underline hover:text-white"
+                  className="text-xs font-bold text-red-400 underline hover:text-white flex items-center gap-1"
                 >
-                  ◀ পরিবর্তন
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>পরিবর্তন</span>
                 </button>
               </div>
 
@@ -285,7 +303,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                       : 'bg-[#0b0e14] border-gray-800 text-gray-400 hover:border-gray-700'
                   }`}
                 >
-                  <span className="text-xl">💖</span>
+                  <Heart className="w-5 h-5 text-pink-500" />
                   <span className="text-sm">bKash</span>
                 </button>
 
@@ -298,7 +316,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                       : 'bg-[#0b0e14] border-gray-800 text-gray-400 hover:border-gray-700'
                   }`}
                 >
-                  <span className="text-xl">🟠</span>
+                  <Flame className="w-5 h-5 text-orange-500" />
                   <span className="text-sm">Nagad</span>
                 </button>
 
@@ -311,7 +329,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                       : 'bg-[#0b0e14] border-gray-800 text-gray-400 hover:border-gray-700'
                   }`}
                 >
-                  <span className="text-xl">🚀</span>
+                  <Rocket className="w-5 h-5 text-purple-400" />
                   <span className="text-sm">Rocket</span>
                 </button>
               </div>
@@ -330,7 +348,17 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                     onClick={() => handleCopy(paymentNumbers[paymentMethod], paymentMethod)}
                     className="btn-kong-outline px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-1"
                   >
-                    {copiedNumber === paymentMethod ? '✅ COPIED!' : '📋 COPY NUMBER'}
+                    {copiedNumber === paymentMethod ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>COPIED!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>COPY NUMBER</span>
+                      </>
+                    )}
                   </Button>
                 </div>
 
@@ -360,7 +388,17 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                 disabled={isSubmitting}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-gaming text-base font-extrabold flex items-center justify-center gap-2"
               >
-                {isSubmitting ? '⏳ SAVING TO DATABASE...' : '✅ SUBMIT & SAVE TO DATABASE'}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>SAVING TO DATABASE...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span>SUBMIT & SAVE TO DATABASE</span>
+                  </>
+                )}
               </Button>
             </form>
           )}
@@ -378,8 +416,9 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                 SAVED TO DATABASE • PENDING ADMIN VERIFICATION
               </Badge>
 
-              <h3 className="font-display text-3xl font-black text-white uppercase mb-2">
-                SLOT RESERVED SUCCESSFULLY! 🎮
+              <h3 className="font-display text-3xl font-black text-white uppercase mb-2 flex items-center justify-center gap-2">
+                <span>SLOT RESERVED SUCCESSFULLY!</span>
+                <Gamepad2 className="w-7 h-7 text-red-500" />
               </h3>
               <p className="text-sm text-gray-300 max-w-md mx-auto mb-6">
                 আপনার স্লট বুকিং ও ট্রানজেকশন তথ্য সুপাবেস (Supabase) ডাটাবেজে সংরক্ষণ করা হয়েছে। এডমিন ভেরিফাই করার পর আপনার WhatsApp নাম্বারে গেম শুরুর ১৫ মিনিট আগে <strong>Room ID & Password</strong> পাঠাবেন।
@@ -397,7 +436,8 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                 rel="noopener noreferrer"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 px-6 rounded-xl font-gaming text-sm font-extrabold inline-flex items-center gap-2 no-underline shadow-lg mb-3"
               >
-                💬 INSTANT CONFIRM ON WHATSAPP
+                <MessageCircle className="w-4 h-4" />
+                <span>INSTANT CONFIRM ON WHATSAPP</span>
               </a>
             </div>
           )}

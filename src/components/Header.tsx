@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Home } from 'lucide-react'
 
 interface HeaderProps {
   onRegisterClick?: () => void
@@ -45,13 +46,13 @@ export default function Header({ onRegisterClick }: HeaderProps) {
                 key={item.label}
                 href={item.href}
                 onClick={() => setActiveTab(item.label)}
-                className={`px-3.5 py-1.5 rounded-full transition-all no-underline ${
+                className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full transition-all no-underline ${
                   isActive
                     ? 'bg-[#e50914] text-white font-bold shadow-md shadow-red-600/30'
                     : 'text-gray-300 hover:text-white hover:bg-white/5'
                 }`}
               >
-                {isActive && <span className="mr-1">🏠</span>}
+                {isActive && <Home className="w-3.5 h-3.5" />}
                 {item.label}
               </a>
             )
@@ -90,7 +91,7 @@ export default function Header({ onRegisterClick }: HeaderProps) {
 
           {/* BD Country Selector */}
           <div className="hidden sm:flex items-center gap-1.5 bg-[#12151e] border border-white/10 rounded-full px-2.5 py-1 text-xs text-gray-300">
-            <span className="text-sm">🇧🇩</span>
+            <span className="font-bold text-[10px] text-emerald-400 bg-emerald-950/80 px-1 rounded border border-emerald-500/30">BD</span>
             <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
             </svg>

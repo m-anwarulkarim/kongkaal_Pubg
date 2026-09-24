@@ -15,7 +15,7 @@ export const MOCK_MATCHES: MatchItem[] = [
     perKillPrize: 20,
     joinedSlots: 88,
     maxSlots: 100,
-    image: '/solo_match.jpg',
+    image: '/solo_battle.jpg',
     status: 'FILLING_FAST',
   },
   {
@@ -29,7 +29,7 @@ export const MOCK_MATCHES: MatchItem[] = [
     perKillPrize: 40,
     joinedSlots: 38,
     maxSlots: 50,
-    image: '/squad_match.jpg',
+    image: '/duo_battle.jpg',
     status: 'OPEN',
   },
   {
@@ -43,7 +43,7 @@ export const MOCK_MATCHES: MatchItem[] = [
     perKillPrize: 80,
     joinedSlots: 18,
     maxSlots: 25,
-    image: '/hero_banner.jpg',
+    image: '/squad_showdown.jpg',
     status: 'LIVE_SOON',
   },
   {
@@ -57,7 +57,7 @@ export const MOCK_MATCHES: MatchItem[] = [
     perKillPrize: 15,
     joinedSlots: 45,
     maxSlots: 100,
-    image: '/solo_match.jpg',
+    image: '/solo_battle.jpg',
     status: 'OPEN',
   },
   {
@@ -71,7 +71,7 @@ export const MOCK_MATCHES: MatchItem[] = [
     perKillPrize: 50,
     joinedSlots: 22,
     maxSlots: 50,
-    image: '/squad_match.jpg',
+    image: '/duo_battle.jpg',
     status: 'OPEN',
   },
   {
@@ -85,7 +85,7 @@ export const MOCK_MATCHES: MatchItem[] = [
     perKillPrize: 100,
     joinedSlots: 10,
     maxSlots: 25,
-    image: '/hero_banner.jpg',
+    image: '/squad_showdown.jpg',
     status: 'OPEN',
   },
 ]
@@ -106,7 +106,7 @@ export default function MatchList({ onSelectMatch }: MatchListProps) {
     <section id="matches" className="py-16 bg-[#080b10] border-b border-amber-500/20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
-        {/* Section Title */}
+        {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
           <span className="px-4 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 font-gaming text-xs font-bold uppercase tracking-widest inline-block mb-3">
             UPCOMING CUSTOM ROOM MATCHES
@@ -119,7 +119,7 @@ export default function MatchList({ onSelectMatch }: MatchListProps) {
           </p>
         </div>
 
-        {/* Shadcn UI Tabs Filter */}
+        {/* Tab Filters */}
         <div id="modes" className="flex justify-center mb-10">
           <Tabs defaultValue="ALL" value={activeTab} onValueChange={setActiveTab} className="w-auto">
             <TabsList className="bg-[#0e1420] border border-amber-500/30 p-1 rounded-2xl h-auto">
@@ -127,25 +127,25 @@ export default function MatchList({ onSelectMatch }: MatchListProps) {
                 value="ALL"
                 className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-black font-gaming font-extrabold px-5 py-2.5 rounded-xl text-xs uppercase"
               >
-                🔥 ALL MATCHES ({MOCK_MATCHES.length})
+                ALL MATCHES ({MOCK_MATCHES.length})
               </TabsTrigger>
               <TabsTrigger
                 value="SOLO"
                 className="data-[state=active]:bg-blue-600 data-[state=active]:text-white font-gaming font-extrabold px-5 py-2.5 rounded-xl text-xs uppercase"
               >
-                👤 SOLO (1v1)
+                SOLO (1v1)
               </TabsTrigger>
               <TabsTrigger
                 value="DUO"
                 className="data-[state=active]:bg-purple-600 data-[state=active]:text-white font-gaming font-extrabold px-5 py-2.5 rounded-xl text-xs uppercase"
               >
-                👥 DUO (2v2)
+                DUO (2v2)
               </TabsTrigger>
               <TabsTrigger
                 value="SQUAD"
                 className="data-[state=active]:bg-red-600 data-[state=active]:text-white font-gaming font-extrabold px-5 py-2.5 rounded-xl text-xs uppercase"
               >
-                🛡️ SQUAD (4v4)
+                SQUAD (4v4)
               </TabsTrigger>
             </TabsList>
           </Tabs>

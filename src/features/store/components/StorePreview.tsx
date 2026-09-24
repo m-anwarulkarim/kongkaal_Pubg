@@ -2,6 +2,7 @@ import type { StoreProduct } from '@/types/store'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Zap } from 'lucide-react'
 
 export const STORE_PRODUCTS: StoreProduct[] = [
   {
@@ -10,7 +11,7 @@ export const STORE_PRODUCTS: StoreProduct[] = [
     category: 'UC_TOPUP',
     priceBDT: 115,
     originalPriceBDT: 130,
-    image: '/solo_match.jpg',
+    image: '/solo_battle.jpg',
     rating: 4.9,
     stock: 50,
     inStock: true,
@@ -22,7 +23,7 @@ export const STORE_PRODUCTS: StoreProduct[] = [
     category: 'UC_TOPUP',
     priceBDT: 570,
     originalPriceBDT: 620,
-    image: '/squad_match.jpg',
+    image: '/duo_battle.jpg',
     rating: 5.0,
     stock: 35,
     inStock: true,
@@ -34,7 +35,7 @@ export const STORE_PRODUCTS: StoreProduct[] = [
     category: 'ROYALE_PASS',
     priceBDT: 720,
     originalPriceBDT: 800,
-    image: '/hero_banner.jpg',
+    image: '/squad_showdown.jpg',
     rating: 4.8,
     stock: 20,
     inStock: true,
@@ -46,7 +47,7 @@ export const STORE_PRODUCTS: StoreProduct[] = [
     category: 'UC_TOPUP',
     priceBDT: 1140,
     originalPriceBDT: 1250,
-    image: '/solo_match.jpg',
+    image: '/solo_battle.jpg',
     rating: 5.0,
     stock: 40,
     inStock: true,
@@ -99,8 +100,9 @@ export default function StorePreview() {
               </CardContent>
 
               <CardFooter className="p-4 pt-0">
-                <Button className="w-full pubg-btn-green py-2.5 rounded-lg text-xs font-extrabold">
-                  ⚡ BUY NOW (৳{product.priceBDT})
+                <Button className="w-full pubg-btn-green py-2.5 rounded-lg text-xs font-extrabold flex items-center justify-center gap-1">
+                  <Zap className="w-4 h-4" />
+                  <span>BUY NOW (৳{product.priceBDT})</span>
                 </Button>
               </CardFooter>
             </Card>

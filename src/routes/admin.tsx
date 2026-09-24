@@ -11,6 +11,19 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Crown,
+  Globe,
+  CreditCard,
+  Gamepad2,
+  RefreshCw,
+  Smartphone,
+  CheckCircle2,
+  XCircle,
+  MessageSquare,
+  Plus,
+  Trash2,
+} from 'lucide-react'
 
 export const Route = createFileRoute('/admin')({ component: AdminDashboard })
 
@@ -150,8 +163,8 @@ function AdminDashboard() {
       <div className="min-h-screen bg-[#07080b] flex items-center justify-center p-4">
         <Card className="w-full max-w-md bg-[#10131a] border-2 border-red-900/50 text-gray-100 p-6 shadow-2xl">
           <CardHeader className="text-center pb-4">
-            <div className="w-12 h-12 rounded-2xl bg-red-600/20 border border-red-600/40 flex items-center justify-center text-red-500 mx-auto mb-2 text-2xl">
-              👑
+            <div className="w-12 h-12 rounded-2xl bg-red-600/20 border border-red-600/40 flex items-center justify-center text-red-500 mx-auto mb-2">
+              <Crown className="w-6 h-6" />
             </div>
             <CardTitle className="font-display text-3xl font-black text-white uppercase">
               KONGKAAL ADMIN LOGIN
@@ -204,7 +217,7 @@ function AdminDashboard() {
       <header className="bg-[#0b0d14] border-b border-white/10 px-6 py-4 sticky top-0 z-40">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-red-500 text-2xl">👑</span>
+            <Crown className="w-7 h-7 text-red-500 shrink-0" />
             <div>
               <h1 className="font-display text-2xl font-black text-white uppercase leading-none">
                 KONGKAAL <span className="text-red-500 italic">ADMIN DASHBOARD</span>
@@ -214,8 +227,9 @@ function AdminDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            <a href="/" target="_blank" className="btn-kong-outline px-3.5 py-1.5 rounded-lg text-xs font-bold no-underline">
-              🌐 View Main Website
+            <a href="/" target="_blank" className="btn-kong-outline px-3.5 py-1.5 rounded-lg text-xs font-bold no-underline flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5" />
+              <span>View Main Website</span>
             </a>
             <Button onClick={handleLogout} variant="outline" className="bg-red-950/40 border-red-600 text-red-400 hover:bg-red-900/60 text-xs font-bold">
               Logout
@@ -253,11 +267,13 @@ function AdminDashboard() {
         {/* Tabs for Admin Management */}
         <Tabs defaultValue="PAYMENTS" className="w-full">
           <TabsList className="bg-[#10131a] border border-white/10 p-1 rounded-xl mb-6">
-            <TabsTrigger value="PAYMENTS" className="data-[state=active]:bg-[#e50914] data-[state=active]:text-white font-gaming font-extrabold text-xs uppercase px-4 py-2">
-              💳 Payment Approvals ({pendingCount} Pending)
+            <TabsTrigger value="PAYMENTS" className="data-[state=active]:bg-[#e50914] data-[state=active]:text-white font-gaming font-extrabold text-xs uppercase px-4 py-2 flex items-center gap-1.5">
+              <CreditCard className="w-4 h-4" />
+              <span>Payment Approvals ({pendingCount} Pending)</span>
             </TabsTrigger>
-            <TabsTrigger value="MATCHES" className="data-[state=active]:bg-[#e50914] data-[state=active]:text-white font-gaming font-extrabold text-xs uppercase px-4 py-2">
-              🎮 Manage Matches ({matches.length})
+            <TabsTrigger value="MATCHES" className="data-[state=active]:bg-[#e50914] data-[state=active]:text-white font-gaming font-extrabold text-xs uppercase px-4 py-2 flex items-center gap-1.5">
+              <Gamepad2 className="w-4 h-4" />
+              <span>Manage Matches ({matches.length})</span>
             </TabsTrigger>
           </TabsList>
 
@@ -266,8 +282,9 @@ function AdminDashboard() {
             <Card className="bg-[#10131a] border-white/10 p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-display text-2xl font-black text-white uppercase">Slot Booking Payments</h3>
-                <Button onClick={loadAdminData} size="sm" className="btn-kong-outline text-xs">
-                  🔄 Refresh Data
+                <Button onClick={loadAdminData} size="sm" className="btn-kong-outline text-xs flex items-center gap-1.5">
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Refresh Data</span>
                 </Button>
               </div>
 
@@ -292,7 +309,7 @@ function AdminDashboard() {
                     <tbody className="divide-y divide-white/5 font-medium">
                       {registrations.map((reg) => {
                         const whatsappMsg = encodeURIComponent(
-                          `Hello ${reg.player1Name}! Your slot booking for PUBG Match is VERIFIED! 🎉\nRoom ID: 1234567\nPassword: 8899\nMatch Starts in 15 mins. Good luck!`
+                          `Hello ${reg.player1Name}! Your slot booking for PUBG Match is VERIFIED!\nRoom ID: 1234567\nPassword: 8899\nMatch Starts in 15 mins. Good luck!`
                         )
 
                         return (
@@ -300,7 +317,10 @@ function AdminDashboard() {
                             <td className="p-3">
                               <span className="font-bold text-white block">{reg.player1Name}</span>
                               {reg.teamName && <span className="text-[10px] text-red-400 block font-bold">Team: {reg.teamName}</span>}
-                              <span className="text-[10px] text-gray-400">📱 {reg.whatsappNumber}</span>
+                              <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                                <Smartphone className="w-3 h-3" />
+                                {reg.whatsappNumber}
+                              </span>
                             </td>
                             <td className="p-3 text-gray-300 font-mono">{reg.player1Uid}</td>
                             <td className="p-3">
@@ -329,16 +349,18 @@ function AdminDashboard() {
                                   <Button
                                     onClick={() => handleStatusUpdate(reg.id, 'VERIFIED')}
                                     size="sm"
-                                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1 px-2.5 h-auto"
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1 px-2.5 h-auto inline-flex items-center gap-1"
                                   >
-                                    ✅ Approve
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <span>Approve</span>
                                   </Button>
                                   <Button
                                     onClick={() => handleStatusUpdate(reg.id, 'REJECTED')}
                                     size="sm"
-                                    className="bg-red-950 hover:bg-red-900 border border-red-600 text-red-400 text-xs font-bold py-1 px-2.5 h-auto"
+                                    className="bg-red-950 hover:bg-red-900 border border-red-600 text-red-400 text-xs font-bold py-1 px-2.5 h-auto inline-flex items-center gap-1"
                                   >
-                                    ❌ Reject
+                                    <XCircle className="w-3.5 h-3.5" />
+                                    <span>Reject</span>
                                   </Button>
                                 </>
                               )}
@@ -350,7 +372,8 @@ function AdminDashboard() {
                                   rel="noopener noreferrer"
                                   className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1 px-2.5 rounded-md inline-flex items-center gap-1 no-underline"
                                 >
-                                  💬 Send Room ID
+                                  <MessageSquare className="w-3.5 h-3.5" />
+                                  <span>Send Room ID</span>
                                 </a>
                               )}
                             </td>
@@ -373,8 +396,9 @@ function AdminDashboard() {
                 {/* Create Match Modal */}
                 <Dialog open={newMatchOpen} onOpenChange={setNewMatchOpen}>
                   <DialogTrigger asChild>
-                    <Button className="btn-kong-red font-gaming text-xs font-bold">
-                      ➕ Create New Match
+                    <Button className="btn-kong-red font-gaming text-xs font-bold flex items-center gap-1.5">
+                      <Plus className="w-4 h-4" />
+                      <span>Create New Match</span>
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="bg-[#10131a] text-white border-2 border-red-900/50 max-w-lg">
@@ -480,8 +504,9 @@ function AdminDashboard() {
                         <td className="p-3 font-bold text-emerald-400">৳{m.winnerPrize}</td>
                         <td className="p-3 text-amber-400 font-bold">{m.joinedSlots}/{m.maxSlots}</td>
                         <td className="p-3 text-right">
-                          <Button onClick={() => handleDeleteMatch(m.id)} size="sm" variant="outline" className="bg-red-950 text-red-400 border-red-800 text-xs font-bold py-1 px-2.5 h-auto">
-                            🗑 Delete
+                          <Button onClick={() => handleDeleteMatch(m.id)} size="sm" variant="outline" className="bg-red-950 text-red-400 border-red-800 text-xs font-bold py-1 px-2.5 h-auto inline-flex items-center gap-1">
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
                           </Button>
                         </td>
                       </tr>

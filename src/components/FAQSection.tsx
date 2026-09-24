@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { HelpCircle } from 'lucide-react'
 
 export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0)
@@ -51,7 +52,10 @@ export default function FAQSection() {
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
                   className="w-full p-5 text-left font-gaming text-lg font-bold text-white flex justify-between items-center gap-4 hover:text-amber-400 transition-colors"
                 >
-                  <span>❓ {faq.q}</span>
+                  <div className="flex items-center gap-3">
+                    <HelpCircle className="w-5 h-5 text-amber-400 shrink-0" />
+                    <span>{faq.q}</span>
+                  </div>
                   <span className="font-display text-2xl text-amber-400">{isOpen ? '−' : '+'}</span>
                 </button>
 

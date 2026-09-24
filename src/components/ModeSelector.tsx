@@ -1,3 +1,5 @@
+import { User, Users, Shield } from 'lucide-react'
+
 interface ModeSelectorProps {
   selectedMode: 'SOLO' | 'DUO' | 'SQUAD'
   onSelectMode: (mode: 'SOLO' | 'DUO' | 'SQUAD') => void
@@ -18,11 +20,11 @@ export default function ModeSelector({ selectedMode, onSelectMode }: ModeSelecto
           }`}
         >
           <div
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl shrink-0 ${
+            className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${
               selectedMode === 'SOLO' ? 'bg-[#e50914] text-white' : 'bg-[#161a24] text-gray-400'
             }`}
           >
-            👤
+            <User className="w-6 h-6" />
           </div>
           <div>
             <h3 className="font-display text-2xl font-bold text-white uppercase leading-none mb-1">
@@ -42,11 +44,11 @@ export default function ModeSelector({ selectedMode, onSelectMode }: ModeSelecto
           }`}
         >
           <div
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl shrink-0 ${
+            className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${
               selectedMode === 'DUO' ? 'bg-blue-600 text-white' : 'bg-[#161a24] text-gray-400'
             }`}
           >
-            👥
+            <Users className="w-6 h-6" />
           </div>
           <div>
             <h3 className="font-display text-2xl font-bold text-white uppercase leading-none mb-1">
@@ -66,11 +68,11 @@ export default function ModeSelector({ selectedMode, onSelectMode }: ModeSelecto
           }`}
         >
           <div
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl shrink-0 ${
+            className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${
               selectedMode === 'SQUAD' ? 'bg-purple-600 text-white' : 'bg-[#161a24] text-gray-400'
             }`}
           >
-            🛡️
+            <Shield className="w-6 h-6" />
           </div>
           <div>
             <h3 className="font-display text-2xl font-bold text-white uppercase leading-none mb-1">
