@@ -1,7 +1,4 @@
 import type { MatchItem } from '@/types/match'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 
 interface MatchCardProps {
   match: MatchItem
@@ -11,107 +8,96 @@ interface MatchCardProps {
 export default function MatchCard({ match, onSelect }: MatchCardProps) {
   const fillPercentage = Math.round((match.joinedSlots / match.maxSlots) * 100)
 
+  const isSolo = match.mode === 'SOLO'
+  const isDuo = match.mode === 'DUO'
+
+  const btnBg = isSolo
+    ? 'bg-[#e50914] hover:bg-red-600 text-white shadow-red-600/30'
+    : isDuo
+    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/30'
+    : 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-600/30'
+
+  const progressBg = isSolo
+    ? 'bg-[#e50914]'
+    : isDuo
+    ? 'bg-blue-600'
+    : 'bg-purple-600'
+
   return (
-    <Card className="pubg-card overflow-hidden flex flex-col justify-between group border-amber-500/20 bg-[#0e1420]/90">
-      {/* Image Header */}
-      <div className="relative h-48 w-full overflow-hidden">
+    <div className="kong-card overflow-hidden flex flex-col justify-between group bg-[#10131a] border border-white/10 rounded-2xl">
+      {/* Image Banner Header */}
+      <div className="relative h-44 w-full overflow-hidden">
         <img
           src={match.image}
           alt={match.title}
-          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0e1420] via-transparent to-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#10131a] via-transparent to-black/40" />
 
-        {/* Mode Badge using Shadcn Badge */}
-        <div className="absolute top-3 left-3">
-          <Badge
-            className={`font-gaming text-xs font-black uppercase shadow-md ${
-              match.mode === 'SOLO'
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : match.mode === 'DUO'
-                ? 'bg-purple-600 text-white hover:bg-purple-700'
-                : 'bg-red-600 text-white hover:bg-red-700'
-            }`}
-          >
-            {match.mode} MODE
-          </Badge>
+        {/* Date Badge Top Right */}
+        <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-md px-3 py-1 rounded-xl text-center border border-white/10">
+          <span className="font-display text-lg font-black text-white block leading-none">
+            {match.time.includes('7:00') ? '12' : match.time.includes('8:15') ? '13' : '14'}
+          </span>
+          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">
+            SEP
+          </span>
         </div>
-
-        {/* Map Tag */}
-        <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md border border-gray-700 px-3 py-1 rounded-md text-gray-200 text-xs font-bold uppercase">
-          🗺️ {match.map}
-        </div>
-
-        {/* Status Indicators */}
-        {match.status === 'FILLING_FAST' && (
-          <div className="absolute bottom-3 left-3 bg-amber-500 text-black px-2.5 py-0.5 rounded text-[11px] font-black uppercase shadow-lg animate-pulse">
-            ⚡ FILLING FAST
-          </div>
-        )}
-        {match.status === 'LIVE_SOON' && (
-          <div className="absolute bottom-3 left-3 bg-red-600 text-white px-2.5 py-0.5 rounded text-[11px] font-black uppercase shadow-lg">
-            🔴 STARTS SOON
-          </div>
-        )}
       </div>
 
-      {/* Card Content */}
-      <CardContent className="p-5 flex-1 flex flex-col justify-between pt-4">
+      {/* Card Body */}
+      <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-amber-400 mb-1">
-            <span>⏰ {match.time}</span>
+          {/* Map & Time Row */}
+          <div className="flex items-center justify-between text-[11px] text-gray-400 font-semibold mb-3">
+            <span className="flex items-center gap-1">
+              🛡️ Map: <strong className="text-gray-200">{match.map} / Asia</strong>
+            </span>
+            <span className="flex items-center gap-1">
+              ⏰ Time: <strong className="text-gray-200">{match.time.includes('at') ? match.time.split('at')[1] : '10:00 PM'}</strong>
+            </span>
           </div>
 
-          <h3 className="font-gaming text-xl font-bold text-white mb-4 line-clamp-2">
-            {match.title}
-          </h3>
-
-          {/* Prize & Fee Breakdown */}
-          <div className="grid grid-cols-3 gap-2 bg-[#0b0e14] border border-gray-800 rounded-xl p-3 mb-4 text-center">
+          {/* Prize Stats 3 Columns */}
+          <div className="grid grid-cols-3 gap-2 bg-[#0b0d14] rounded-xl p-3 mb-4 text-left border border-white/5">
             <div>
-              <span className="text-[10px] text-gray-400 uppercase font-bold block">ENTRY FEE</span>
-              <span className="font-display text-lg font-bold text-white">৳{match.entryFee}</span>
-            </div>
-            <div className="border-x border-gray-800">
-              <span className="text-[10px] text-gray-400 uppercase font-bold block">CHICKEN DINNER</span>
-              <span className="font-display text-lg font-bold text-amber-400">৳{match.winnerPrize}</span>
+              <span className="text-[10px] text-gray-400 font-medium block">Entry Fee</span>
+              <span className="font-display text-xl font-black text-white">৳{match.entryFee}</span>
             </div>
             <div>
-              <span className="text-[10px] text-gray-400 uppercase font-bold block">PER KILL</span>
-              <span className="font-display text-lg font-bold text-green-400">৳{match.perKillPrize}</span>
+              <span className="text-[10px] text-gray-400 font-medium block">Prize Pool</span>
+              <span className="font-display text-xl font-black text-white">৳{match.winnerPrize}</span>
+            </div>
+            <div>
+              <span className="text-[10px] text-gray-400 font-medium block">Per Kill</span>
+              <span className="font-display text-xl font-black text-white">৳{match.perKillPrize}</span>
             </div>
           </div>
         </div>
 
-        {/* Progress Bar */}
+        {/* Progress Bar & Register Button */}
         <div>
-          <div className="flex justify-between text-xs font-bold mb-1">
-            <span className="text-gray-400">SLOTS JOINED</span>
-            <span className="text-amber-400">
-              {match.joinedSlots} / {match.maxSlots} ({fillPercentage}%)
-            </span>
+          <div className="flex justify-between text-xs font-semibold mb-1.5">
+            <span className="text-gray-400">{match.joinedSlots}/{match.maxSlots} Slots</span>
           </div>
-          <div className="w-full h-2.5 bg-gray-900 rounded-full overflow-hidden border border-gray-800 mb-4">
+
+          <div className="w-full h-2 bg-[#0b0d14] rounded-full overflow-hidden mb-4 border border-white/5">
             <div
-              className={`h-full rounded-full ${
-                fillPercentage > 80
-                  ? 'bg-gradient-to-r from-orange-500 to-red-500'
-                  : 'bg-gradient-to-r from-amber-500 to-yellow-400'
-              }`}
+              className={`h-full rounded-full ${progressBg}`}
               style={{ width: `${fillPercentage}%` }}
             />
           </div>
-        </div>
-      </CardContent>
 
-      <CardFooter className="p-5 pt-0">
-        <Button
-          onClick={() => onSelect(match)}
-          className="w-full pubg-btn-primary py-3 rounded-xl font-gaming text-sm font-extrabold flex items-center justify-center gap-2"
-        >
-          💳 PAY ৳{match.entryFee} & BOOK SLOT
-        </Button>
-      </CardFooter>
-    </Card>
+          <button
+            onClick={() => onSelect(match)}
+            className={`w-full py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-colors ${btnBg}`}
+          >
+            <span>Register Now</span>
+            <span>➔</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
   )
 }
