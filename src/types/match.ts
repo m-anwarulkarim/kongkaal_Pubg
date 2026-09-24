@@ -1,0 +1,37 @@
+export type GameMode = 'SOLO' | 'DUO' | 'SQUAD'
+
+export type MapName = 'Erangel' | 'Miramar' | 'Sanhok' | 'Livik'
+
+export type MatchStatus = 'OPEN' | 'FILLING_FAST' | 'LIVE_SOON' | 'COMPLETED'
+
+export interface MatchItem {
+  id: string
+  title: string
+  mode: GameMode
+  map: MapName
+  time: string
+  entryFee: number
+  winnerPrize: number
+  perKillPrize: number
+  joinedSlots: number
+  maxSlots: number
+  image: string
+  status: MatchStatus
+}
+
+export interface PlayerRegistration {
+  matchId: string
+  teamName?: string
+  player1Name: string
+  player1Uid: string
+  whatsappNumber: string
+  player2Name?: string
+  player2Uid?: string
+  player3Name?: string
+  player3Uid?: string
+  player4Name?: string
+  player4Uid?: string
+  paymentMethod: 'bKash' | 'Nagad' | 'Rocket'
+  trxId: string
+  amount: number
+}

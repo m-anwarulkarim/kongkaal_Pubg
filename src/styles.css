@@ -1,0 +1,338 @@
+@import url("https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Rajdhani:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Teko", sans-serif;
+  --font-gaming: "Rajdhani", sans-serif;
+}
+
+:root {
+  --pubg-gold: #f5a623;
+  --pubg-gold-glow: rgba(245, 166, 35, 0.4);
+  --pubg-orange: #ff5722;
+  --pubg-yellow: #ffb703;
+  --pubg-green: #2ecc71;
+  --pubg-dark-bg: #0b0e14;
+  --pubg-card-bg: rgba(18, 24, 38, 0.85);
+  --pubg-card-border: rgba(245, 166, 35, 0.25);
+  --pubg-text-bright: #ffffff;
+  --pubg-text-muted: #9aa8bc;
+  --pubg-panel-border: rgba(255, 255, 255, 0.1);
+  --surface: rgba(15, 21, 32, 0.9);
+  --surface-strong: rgba(20, 29, 45, 0.95);
+  --sea-ink: #f0f4f8;
+  --sea-ink-soft: #9aa8bc;
+  --line: rgba(245, 166, 35, 0.2);
+  --bg-base: #080b10;
+  --header-bg: rgba(11, 14, 20, 0.88);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--sea-ink);
+  font-family: var(--font-sans);
+  background-color: var(--bg-base);
+  background-image:
+    radial-gradient(1200px 800px at 50% -10%, rgba(245, 166, 35, 0.15), transparent 60%),
+    radial-gradient(1000px 600px at 90% 40%, rgba(255, 87, 34, 0.1), transparent 50%),
+    radial-gradient(800px 500px at 10% 80%, rgba(46, 204, 113, 0.08), transparent 50%),
+    linear-gradient(180deg, #070a0e 0%, #0c1017 50%, #07090d 100%);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Gaming Background Mesh Overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.15;
+  background-image: linear-gradient(rgba(245, 166, 35, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 166, 35, 0.1) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.font-display {
+  font-family: "Teko", sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.font-gaming {
+  font-family: "Rajdhani", sans-serif;
+  letter-spacing: 0.02em;
+}
+
+/* PUBG Glassmorphism Cards */
+.pubg-card {
+  background: linear-gradient(145deg, rgba(22, 30, 46, 0.85), rgba(12, 17, 26, 0.92));
+  border: 1px solid var(--pubg-card-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(245, 166, 35, 0.05);
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pubg-card:hover {
+  border-color: rgba(245, 166, 35, 0.5);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(245, 166, 35, 0.18);
+  transform: translateY(-3px);
+}
+
+.pubg-card-active {
+  border-color: var(--pubg-gold);
+  box-shadow: 0 0 30px rgba(245, 166, 35, 0.3);
+}
+
+/* Glowing Buttons */
+.pubg-btn-primary {
+  background: linear-gradient(135deg, #ff9f00 0%, #ff5722 100%);
+  color: #000000;
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: none;
+  box-shadow: 0 4px 20px rgba(255, 159, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.pubg-btn-primary:hover {
+  background: linear-gradient(135deg, #ffb300 0%, #ff6e40 100%);
+  box-shadow: 0 6px 28px rgba(255, 159, 0, 0.6), 0 0 15px rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.pubg-btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(245, 166, 35, 0.3);
+  color: #f0f4f8;
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.pubg-btn-secondary:hover {
+  background: rgba(245, 166, 35, 0.15);
+  border-color: var(--pubg-gold);
+  color: #ffffff;
+}
+
+.pubg-btn-green {
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  color: #ffffff;
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  box-shadow: 0 4px 20px rgba(46, 204, 113, 0.4);
+}
+
+.pubg-btn-green:hover {
+  background: linear-gradient(135deg, #27ae60 0%, #219150 100%);
+  box-shadow: 0 6px 28px rgba(46, 204, 113, 0.6);
+  transform: translateY(-2px);
+}
+
+/* Badge Styles */
+.badge-solo {
+  background: rgba(52, 152, 219, 0.15);
+  border: 1px solid rgba(52, 152, 219, 0.5);
+  color: #3498db;
+}
+
+.badge-duo {
+  background: rgba(155, 89, 182, 0.15);
+  border: 1px solid rgba(155, 89, 182, 0.5);
+  color: #9b59b6;
+}
+
+.badge-squad {
+  background: rgba(231, 76, 60, 0.15);
+  border: 1px solid rgba(231, 76, 60, 0.5);
+  color: #e74c3c;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #070a0e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #25334a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f5a623;
+}
+
+/* Pulsing FX */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.8;
+    filter: drop-shadow(0 0 8px rgba(245, 166, 35, 0.6));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 18px rgba(245, 166, 35, 0.9));
+  }
+}
+
+.glow-pulse {
+  animation: pulse-glow 2.5s infinite ease-in-out;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  background: rgba(4, 7, 12, 0.85);
+  backdrop-filter: blur(10px);
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: 'Geist Variable', sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
