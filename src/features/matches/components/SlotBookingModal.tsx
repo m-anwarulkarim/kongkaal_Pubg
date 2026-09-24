@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { MatchItem } from '@/types/match'
+import { saveRegistration } from '@/lib/db'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,6 +37,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
   const [paymentMethod, setPaymentMethod] = useState<'bKash' | 'Nagad' | 'Rocket'>('bKash')
   const [trxId, setTrxId] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [dbBookingId, setDbBookingId] = useState<string | null>(null)
 
   const paymentNumbers = {
     bKash: '01712-345678',
@@ -58,17 +60,41 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
     setStep('PAYMENT')
   }
 
-  const handleConfirmPayment = (e: React.FormEvent) => {
+  const handleConfirmPayment = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!trxId || trxId.length < 6) {
       alert('দয়া করে সঠিক Transaction ID (TrxID) লিখুন!')
       return
     }
+
     setIsSubmitting(true)
-    setTimeout(() => {
-      setIsSubmitting(false)
+
+    // Send to Supabase Database Service
+    const result = await saveRegistration({
+      matchId: match.id,
+      teamName: teamName || undefined,
+      player1Name,
+      player1Uid,
+      whatsappNumber,
+      player2Name: player2Name || undefined,
+      player2Uid: player2Uid || undefined,
+      player3Name: player3Name || undefined,
+      player3Uid: player3Uid || undefined,
+      player4Name: player4Name || undefined,
+      player4Uid: player4Uid || undefined,
+      paymentMethod,
+      trxId,
+      amount: match.entryFee,
+    })
+
+    setIsSubmitting(false)
+
+    if (result.success) {
+      if (result.id) setDbBookingId(result.id)
       setStep('SUCCESS')
-    }, 1200)
+    } else {
+      alert(`Error saving registration: ${result.message}`)
+    }
   }
 
   const whatsappMessage = encodeURIComponent(
@@ -77,11 +103,11 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="pubg-card max-w-2xl bg-[#0e1420] text-gray-100 border-2 border-amber-500/50 max-h-[90vh] overflow-y-auto p-0">
+      <DialogContent className="kong-card max-w-2xl bg-[#0e1420] text-gray-100 border-2 border-red-900/50 max-h-[90vh] overflow-y-auto p-0">
         
         {/* Modal Header */}
-        <DialogHeader className="bg-gradient-to-r from-[#121826] via-[#1a2336] to-[#121826] px-6 py-4 border-b border-amber-500/30">
-          <Badge className="bg-amber-500/20 text-amber-400 font-gaming text-[10px] uppercase font-bold tracking-widest border border-amber-500/30 w-fit mb-1">
+        <DialogHeader className="bg-gradient-to-r from-[#121826] via-[#1a2336] to-[#121826] px-6 py-4 border-b border-red-900/30">
+          <Badge className="bg-red-600/20 text-red-500 font-gaming text-[10px] uppercase font-bold tracking-widest border border-red-600/30 w-fit mb-1">
             SLOT REGISTRATION & PAYMENT
           </Badge>
           <DialogTitle className="font-display text-2xl font-bold text-white uppercase leading-none">
@@ -96,10 +122,10 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
           {step === 'DETAILS' && (
             <form onSubmit={handleProceedToPayment}>
               {/* Match Summary Pill */}
-              <div className="bg-[#0b0e14] border border-amber-500/20 rounded-xl p-4 mb-6 flex flex-wrap justify-between items-center gap-4">
+              <div className="bg-[#0b0e14] border border-red-900/20 rounded-xl p-4 mb-6 flex flex-wrap justify-between items-center gap-4">
                 <div>
                   <span className="text-xs text-gray-400 font-bold block uppercase">SELECTED MODE</span>
-                  <span className="font-gaming text-lg font-black text-amber-400">{match.mode} (1v{match.mode === 'SOLO' ? '1' : match.mode === 'DUO' ? '2' : '4'})</span>
+                  <span className="font-gaming text-lg font-black text-red-500">{match.mode} (1v{match.mode === 'SOLO' ? '1' : match.mode === 'DUO' ? '2' : '4'})</span>
                 </div>
                 <div>
                   <span className="text-xs text-gray-400 font-bold block uppercase">ENTRY FEE</span>
@@ -176,7 +202,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
               {/* Duo Teammate */}
               {match.mode === 'DUO' && (
                 <div className="bg-[#0b0e14] p-4 rounded-xl border border-gray-800 mb-6">
-                  <h5 className="text-xs font-bold text-amber-400 uppercase mb-3">PLAYER 2 DETAILS</h5>
+                  <h5 className="text-xs font-bold text-red-400 uppercase mb-3">PLAYER 2 DETAILS</h5>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <Input
                       placeholder="Player 2 IGN"
@@ -197,7 +223,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
               {/* Squad Teammates */}
               {match.mode === 'SQUAD' && (
                 <div className="bg-[#0b0e14] p-4 rounded-xl border border-gray-800 mb-6 space-y-3">
-                  <h5 className="text-xs font-bold text-amber-400 uppercase mb-2">TEAM MEMBERS DETAILS</h5>
+                  <h5 className="text-xs font-bold text-red-400 uppercase mb-2">TEAM MEMBERS DETAILS</h5>
                   <div className="grid sm:grid-cols-2 gap-3">
                     <Input
                       placeholder="Player 2 IGN & UID"
@@ -225,7 +251,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
               <Button
                 type="submit"
-                className="w-full pubg-btn-primary py-3.5 rounded-xl font-gaming text-base font-extrabold flex items-center justify-center gap-2"
+                className="w-full btn-kong-red py-3.5 rounded-xl font-gaming text-base font-extrabold flex items-center justify-center gap-2"
               >
                 পেমেন্ট ধাপে যান (PAYMENT STEP) ➔
               </Button>
@@ -242,7 +268,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                 <button
                   type="button"
                   onClick={() => setStep('DETAILS')}
-                  className="text-xs font-bold text-amber-400 underline hover:text-white"
+                  className="text-xs font-bold text-red-400 underline hover:text-white"
                 >
                   ◀ পরিবর্তন
                 </button>
@@ -291,18 +317,18 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
               </div>
 
               {/* Instructions Box */}
-              <div className="bg-[#0b0e14] border border-amber-500/30 rounded-xl p-5 mb-6">
+              <div className="bg-[#0b0e14] border border-red-900/30 rounded-xl p-5 mb-6">
                 <div className="flex justify-between items-center border-b border-gray-800 pb-3 mb-3">
                   <div>
                     <span className="text-xs text-gray-400 font-bold block">SEND MONEY NUMBER ({paymentMethod})</span>
-                    <span className="font-display text-2xl font-black text-amber-400 tracking-wider">
+                    <span className="font-display text-2xl font-black text-red-500 tracking-wider">
                       {paymentNumbers[paymentMethod]}
                     </span>
                   </div>
                   <Button
                     type="button"
                     onClick={() => handleCopy(paymentNumbers[paymentMethod], paymentMethod)}
-                    className="pubg-btn-secondary px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-1"
+                    className="btn-kong-outline px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-1"
                   >
                     {copiedNumber === paymentMethod ? '✅ COPIED!' : '📋 COPY NUMBER'}
                   </Button>
@@ -317,7 +343,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
               {/* Transaction ID Input */}
               <div className="mb-6">
-                <Label className="text-xs font-bold text-amber-400 uppercase mb-1 block">
+                <Label className="text-xs font-bold text-red-400 uppercase mb-1 block">
                   TRANSACTION ID (TrxID) দিন <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -325,16 +351,16 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                   value={trxId}
                   onChange={(e) => setTrxId(e.target.value.toUpperCase())}
                   placeholder="e.g. BAX8912K9L"
-                  className="bg-[#0b0e14] border-2 border-amber-500/60 text-lg font-mono font-bold text-amber-300 text-center tracking-widest uppercase"
+                  className="bg-[#0b0e14] border-2 border-red-600/60 text-lg font-mono font-bold text-red-400 text-center tracking-widest uppercase"
                 />
               </div>
 
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full pubg-btn-green py-3.5 rounded-xl font-gaming text-base font-extrabold flex items-center justify-center gap-2"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-gaming text-base font-extrabold flex items-center justify-center gap-2"
               >
-                {isSubmitting ? '⏳ VERIFYING PAYMENT...' : '✅ SUBMIT & CONFIRM SLOT BOOKING'}
+                {isSubmitting ? '⏳ SAVING TO DATABASE...' : '✅ SUBMIT & SAVE TO DATABASE'}
               </Button>
             </form>
           )}
@@ -348,22 +374,28 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                 </svg>
               </div>
 
-              <Badge className="bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold uppercase mb-2">
-                ORDER RECEIVED • PENDING VERIFICATION
+              <Badge className="bg-red-600/20 border border-red-600/40 text-red-400 text-xs font-bold uppercase mb-2">
+                SAVED TO DATABASE • PENDING ADMIN VERIFICATION
               </Badge>
 
               <h3 className="font-display text-3xl font-black text-white uppercase mb-2">
                 SLOT RESERVED SUCCESSFULLY! 🎮
               </h3>
               <p className="text-sm text-gray-300 max-w-md mx-auto mb-6">
-                আপনার স্লট বুকিং এর অনুরোধ পেয়েছি। এডমিন TrxID মিলিয়ে ভেরিফাই করার পর আপনার WhatsApp নাম্বারে গেম শুরুর ১৫ মিনিট আগে <strong>Room ID & Password</strong> পেয়ে যাবেন।
+                আপনার স্লট বুকিং ও ট্রানজেকশন তথ্য সুপাবেস (Supabase) ডাটাবেজে সংরক্ষণ করা হয়েছে। এডমিন ভেরিফাই করার পর আপনার WhatsApp নাম্বারে গেম শুরুর ১৫ মিনিট আগে <strong>Room ID & Password</strong> পাঠাবেন।
               </p>
+
+              {dbBookingId && (
+                <div className="mb-4 text-xs font-mono text-gray-400">
+                  BOOKING DB ID: <span className="text-red-400">{dbBookingId}</span>
+                </div>
+              )}
 
               <a
                 href={`https://wa.me/8801700000000?text=${whatsappMessage}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="pubg-btn-green py-3.5 px-6 rounded-xl font-gaming text-sm font-extrabold inline-flex items-center gap-2 text-white no-underline shadow-lg mb-3"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 px-6 rounded-xl font-gaming text-sm font-extrabold inline-flex items-center gap-2 no-underline shadow-lg mb-3"
               >
                 💬 INSTANT CONFIRM ON WHATSAPP
               </a>
