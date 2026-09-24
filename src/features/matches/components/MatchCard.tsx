@@ -30,6 +30,8 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
         <img
           src={match.image}
           alt={match.title}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#10131a] via-transparent to-black/40" />

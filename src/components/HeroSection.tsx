@@ -16,6 +16,10 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
             <img
               src="/kongkaal_hero.jpg"
               alt="KongKaaL Gaming PUBG Warrior"
+              loading="eager"
+              decoding="async"
+              // @ts-ignore
+              fetchpriority="high"
               className="w-full h-full object-cover object-right opacity-60"
             />
             {/* Gradient Overlays */}

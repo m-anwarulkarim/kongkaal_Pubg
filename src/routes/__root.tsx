@@ -9,20 +9,38 @@ export const Route = createRootRoute({
       },
       {
         name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
+        content: 'width=device-width, initial-scale=1, maximum-scale=5',
       },
       {
-        title: 'PUBG Mobile Custom Tournament - Official BD Esports Arena',
+        title: 'KongKaaL Gaming - Bangladesh PUBG Mobile Tournament Platform',
       },
       {
         name: 'description',
-        content: 'Join official PUBG Mobile Custom Tournament matches in Bangladesh. Solo, Duo, Squad modes available with guaranteed instant bKash & Nagad prize payouts!',
+        content: 'Play, Compete & Win PUBG Mobile Custom Tournaments in Bangladesh. Solo, Duo, Squad matches with instant bKash & Nagad cash prize payouts!',
+      },
+      {
+        name: 'theme-color',
+        content: '#07080b',
       },
     ],
     links: [
       {
+        rel: 'preconnect',
+        href: 'https://fonts.googleapis.com',
+      },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossOrigin: 'anonymous',
+      },
+      {
         rel: 'stylesheet',
         href: appCss,
+      },
+      {
+        rel: 'preload',
+        href: '/kongkaal_hero.jpg',
+        as: 'image',
       },
     ],
   }),
@@ -35,7 +53,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="font-sans antialiased bg-[#080b10] text-gray-100 selection:bg-amber-500/30 selection:text-amber-200">
+      <body className="font-sans antialiased bg-[#07080b] text-gray-100 selection:bg-red-600/30 selection:text-red-200">
         {children}
         <Scripts />
       </body>
