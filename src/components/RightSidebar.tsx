@@ -1,4 +1,6 @@
 import { Crown, Trophy, ArrowRight } from 'lucide-react'
+import Image from '@/components/ui/Image'
+import Link from '@/components/ui/Link'
 
 export default function RightSidebar() {
   const leaderboardData = [
@@ -23,9 +25,9 @@ export default function RightSidebar() {
               Leaderboard
             </h3>
           </div>
-          <a href="#" className="text-[11px] font-bold text-gray-400 hover:text-white no-underline flex items-center gap-1">
+          <Link href="#" className="text-[11px] font-bold text-gray-400 hover:text-white no-underline flex items-center gap-1">
             View All <ArrowRight className="w-3 h-3" />
-          </a>
+          </Link>
         </div>
 
         {/* Table */}
@@ -61,7 +63,7 @@ export default function RightSidebar() {
                   <td className="py-2.5">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full overflow-hidden shrink-0 border border-white/20">
-                        <img src={row.avatar} alt={row.name} className="w-full h-full object-cover" />
+                        <Image src={row.avatar} alt={row.name} fill className="object-cover" />
                       </div>
                       <span className="font-bold text-white tracking-wide flex items-center gap-1">
                         <span className="font-bold text-[9px] text-emerald-400 bg-emerald-950/80 px-1 rounded border border-emerald-500/30">BD</span> {row.name}
@@ -92,9 +94,9 @@ export default function RightSidebar() {
               Top Players
             </h3>
           </div>
-          <a href="#" className="text-[11px] font-bold text-gray-400 hover:text-white no-underline flex items-center gap-1">
+          <Link href="#" className="text-[11px] font-bold text-gray-400 hover:text-white no-underline flex items-center gap-1">
             View All <ArrowRight className="w-3 h-3" />
-          </a>
+          </Link>
         </div>
 
         {/* Player Avatars Row */}
@@ -103,7 +105,7 @@ export default function RightSidebar() {
             <div key={player.rank} className="flex flex-col items-center">
               <div className="relative mb-1">
                 <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-red-600 p-0.5 shadow-md">
-                  <img src={player.avatar} alt={player.name} className="w-full h-full object-cover rounded-full" />
+                  <Image src={player.avatar} alt={player.name} fill className="object-cover rounded-full" />
                 </div>
               </div>
               <span className="text-[10px] font-bold text-white truncate max-w-[50px]">

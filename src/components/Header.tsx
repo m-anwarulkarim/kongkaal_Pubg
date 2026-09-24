@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Home } from 'lucide-react'
+import Link from '@/components/ui/Link'
 
 interface HeaderProps {
   onRegisterClick?: () => void
@@ -23,7 +24,7 @@ export default function Header({ onRegisterClick }: HeaderProps) {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
         
         {/* KongKaaL GAMING Logo */}
-        <a href="#" className="flex items-center gap-2.5 no-underline group">
+        <Link href="#" className="flex items-center gap-2.5 no-underline group">
           <div className="relative flex items-center justify-center">
             {/* Crown Icon */}
             <svg className="w-8 h-8 text-red-600 fill-current drop-shadow-[0_0_10px_rgba(229,9,20,0.6)]" viewBox="0 0 24 24">
@@ -35,14 +36,14 @@ export default function Header({ onRegisterClick }: HeaderProps) {
               KONGKAAL <span className="text-[#e50914] italic font-extrabold tracking-normal">GAMING</span>
             </span>
           </div>
-        </a>
+        </Link>
 
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-1 font-sans text-xs font-semibold">
           {navItems.map((item) => {
             const isActive = activeTab === item.label
             return (
-              <a
+              <Link
                 key={item.label}
                 href={item.href}
                 onClick={() => setActiveTab(item.label)}
@@ -54,7 +55,7 @@ export default function Header({ onRegisterClick }: HeaderProps) {
               >
                 {isActive && <Home className="w-3.5 h-3.5" />}
                 {item.label}
-              </a>
+              </Link>
             )
           })}
         </nav>
@@ -115,14 +116,14 @@ export default function Header({ onRegisterClick }: HeaderProps) {
         <div className="md:hidden border-t border-white/10 bg-[#0c0e14] px-4 py-3 mt-2 font-sans text-xs font-semibold">
           <div className="flex flex-col gap-2">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.label}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className="py-1.5 text-gray-300 hover:text-red-500 no-underline"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </div>
         </div>

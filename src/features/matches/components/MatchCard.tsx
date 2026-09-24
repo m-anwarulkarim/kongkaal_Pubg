@@ -1,5 +1,6 @@
 import type { MatchItem } from '@/types/match'
 import { Shield, Clock, ArrowRight } from 'lucide-react'
+import Image from '@/components/ui/Image'
 
 interface MatchCardProps {
   match: MatchItem
@@ -28,17 +29,16 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
     <div className="kong-card overflow-hidden flex flex-col justify-between group bg-[#10131a] border border-white/10 rounded-2xl">
       {/* Image Banner Header */}
       <div className="relative h-44 w-full overflow-hidden">
-        <img
+        <Image
           src={match.image}
           alt={match.title}
-          loading="lazy"
-          decoding="async"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          fill
+          className="group-hover:scale-105 transition-transform duration-500 object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#10131a] via-transparent to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#10131a] via-transparent to-black/40 z-10" />
 
         {/* Date Badge Top Right */}
-        <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-md px-3 py-1 rounded-xl text-center border border-white/10">
+        <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-md px-3 py-1 rounded-xl text-center border border-white/10 z-20">
           <span className="font-display text-lg font-black text-white block leading-none">
             {match.time.includes('7:00') ? '12' : match.time.includes('8:15') ? '13' : '14'}
           </span>

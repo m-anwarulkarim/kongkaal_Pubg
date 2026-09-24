@@ -1,4 +1,6 @@
 import { Users, Trophy, Coins, Shield, Medal, MessageCircle, ArrowRight } from 'lucide-react'
+import Image from '@/components/ui/Image'
+import Link from '@/components/ui/Link'
 
 export default function BottomSection() {
   return (
@@ -43,15 +45,15 @@ export default function BottomSection() {
             <div className="flex items-center gap-1.5 text-xs font-bold text-white">
               <Trophy className="w-3.5 h-3.5 text-[#e50914]" /> Recent Winners
             </div>
-            <a href="#" className="text-[10px] font-bold text-gray-400 hover:text-white no-underline flex items-center gap-1">
+            <Link href="#" className="text-[10px] font-bold text-gray-400 hover:text-white no-underline flex items-center gap-1">
               View All <ArrowRight className="w-3 h-3" />
-            </a>
+            </Link>
           </div>
 
           <div className="flex items-center justify-between bg-[#0b0d14] p-2.5 rounded-xl border border-white/5">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full overflow-hidden border border-red-500 shrink-0">
-                <img src="/solo_battle.jpg" alt="RIYAD" className="w-full h-full object-cover" />
+                <Image src="/solo_battle.jpg" alt="RIYAD" fill className="object-cover" />
               </div>
               <div>
                 <span className="text-xs font-bold text-white flex items-center gap-1 leading-none">
@@ -84,15 +86,13 @@ export default function BottomSection() {
             <p className="text-[10px] text-gray-400 mb-3">
               Get latest updates, slots, results & more!
             </p>
-            <a
+            <Link
               href="https://wa.me/8801700000000"
-              target="_blank"
-              rel="noopener noreferrer"
               className="btn-kong-red px-3.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 no-underline shadow-md group"
             >
               <span>Join Now</span>
               <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-            </a>
+            </Link>
           </div>
 
           {/* WhatsApp Logo Backdrop */}

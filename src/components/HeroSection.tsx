@@ -1,4 +1,5 @@
 import { Trophy, Shield, Zap, ArrowRight, Eye, Gamepad2, Calendar, Crown } from 'lucide-react'
+import Image from '@/components/ui/Image'
 
 interface HeroSectionProps {
   onJoinClick: () => void
@@ -15,14 +16,12 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
           
           {/* Background Image & Red Smoke Flare Overlay */}
           <div className="absolute inset-0 z-0">
-            <img
+            <Image
               src="/kongkaal_hero.jpg"
               alt="KongKaaL Gaming PUBG Warrior"
-              loading="eager"
-              decoding="async"
-              // @ts-ignore
-              fetchpriority="high"
-              className="w-full h-full object-cover object-right opacity-60"
+              priority
+              fill
+              className="object-cover object-right opacity-60"
             />
             {/* Gradient Overlays */}
             <div className="absolute inset-0 bg-gradient-to-r from-[#07080b] via-[#07080b]/90 to-transparent w-full lg:w-3/4" />

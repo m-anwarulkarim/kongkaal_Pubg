@@ -1,3 +1,5 @@
+import Link from '@/components/ui/Link'
+
 export default function Footer() {
   return (
     <footer id="contact" className="bg-[#050608] border-t border-white/5 py-8 text-gray-400">
@@ -20,11 +22,11 @@ export default function Footer() {
 
           {/* Social Links */}
           <div className="flex items-center gap-4 text-sm text-gray-400">
-            <a href="#" className="hover:text-red-500 transition-colors no-underline">Facebook</a>
-            <a href="#" className="hover:text-red-500 transition-colors no-underline">YouTube</a>
-            <a href="#" className="hover:text-red-500 transition-colors no-underline">Discord</a>
-            <a href="#" className="hover:text-red-500 transition-colors no-underline">TikTok</a>
-            <a href="https://wa.me/8801700000000" className="hover:text-emerald-400 transition-colors no-underline">WhatsApp</a>
+            <Link href="#" className="hover:text-red-500 transition-colors no-underline">Facebook</Link>
+            <Link href="#" className="hover:text-red-500 transition-colors no-underline">YouTube</Link>
+            <Link href="#" className="hover:text-red-500 transition-colors no-underline">Discord</Link>
+            <Link href="#" className="hover:text-red-500 transition-colors no-underline">TikTok</Link>
+            <Link href="https://wa.me/8801700000000" className="hover:text-emerald-400 transition-colors no-underline">WhatsApp</Link>
           </div>
 
           {/* Copyright */}

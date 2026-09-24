@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Zap } from 'lucide-react'
+import Image from '@/components/ui/Image'
 
 export const STORE_PRODUCTS: StoreProduct[] = [
   {
@@ -76,9 +77,9 @@ export default function StorePreview() {
           {STORE_PRODUCTS.map((product) => (
             <Card key={product.id} className="pubg-card overflow-hidden flex flex-col justify-between border-amber-500/20 bg-[#0e1420]/90">
               <div className="relative h-44 overflow-hidden">
-                <img src={product.image} alt={product.title} className="w-full h-full object-cover hover:scale-105 transition-transform" />
+                <Image src={product.image} alt={product.title} fill className="hover:scale-105 transition-transform object-cover" />
                 {product.badge && (
-                  <Badge className="absolute top-3 left-3 bg-amber-500 text-black font-extrabold text-[10px]">
+                  <Badge className="absolute top-3 left-3 bg-amber-500 text-black font-extrabold text-[10px] z-10">
                     {product.badge}
                   </Badge>
                 )}

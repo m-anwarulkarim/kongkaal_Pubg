@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import Link from '@/components/ui/Link'
 import {
   Crown,
   Globe,
@@ -227,10 +228,10 @@ function AdminDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            <a href="/" target="_blank" className="btn-kong-outline px-3.5 py-1.5 rounded-lg text-xs font-bold no-underline flex items-center gap-1.5">
+            <Link href="/" className="btn-kong-outline px-3.5 py-1.5 rounded-lg text-xs font-bold no-underline flex items-center gap-1.5">
               <Globe className="w-3.5 h-3.5" />
               <span>View Main Website</span>
-            </a>
+            </Link>
             <Button onClick={handleLogout} variant="outline" className="bg-red-950/40 border-red-600 text-red-400 hover:bg-red-900/60 text-xs font-bold">
               Logout
             </Button>
@@ -366,15 +367,13 @@ function AdminDashboard() {
                               )}
 
                               {reg.status === 'VERIFIED' && (
-                                <a
+                                <Link
                                   href={`https://wa.me/${reg.whatsappNumber.replace(/[^0-9]/g, '')}?text=${whatsappMsg}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
                                   className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1 px-2.5 rounded-md inline-flex items-center gap-1 no-underline"
                                 >
                                   <MessageSquare className="w-3.5 h-3.5" />
                                   <span>Send Room ID</span>
-                                </a>
+                                </Link>
                               )}
                             </td>
                           </tr>

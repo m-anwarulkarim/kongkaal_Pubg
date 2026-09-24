@@ -3,6 +3,8 @@ import ModeSelector from './ModeSelector'
 import MatchCard from '@/features/matches/components/MatchCard'
 import RightSidebar from './RightSidebar'
 import type { MatchItem } from '@/types/match'
+import { Trophy, ArrowRight } from 'lucide-react'
+import Link from '@/components/ui/Link'
 
 export const KONGKAAL_MATCHES: MatchItem[] = [
   {
@@ -73,14 +75,14 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
           <div className="lg:col-span-8">
             <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <span className="text-red-500 text-lg">🏆</span>
+                <Trophy className="w-5 h-5 text-red-500" />
                 <h3 className="font-display text-2xl font-bold text-white uppercase leading-none">
                   Upcoming Tournaments
                 </h3>
               </div>
-              <a href="#" className="text-xs font-bold text-gray-400 hover:text-white no-underline">
-                View All ➔
-              </a>
+              <Link href="#" className="text-xs font-bold text-gray-400 hover:text-white no-underline flex items-center gap-1">
+                View All <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
