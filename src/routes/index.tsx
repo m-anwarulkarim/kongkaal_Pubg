@@ -4,7 +4,6 @@ import Header from '../components/Header'
 import HeroSection from '../components/HeroSection'
 import TournamentGridSection, { KONGKAAL_MATCHES } from '../components/TournamentGridSection'
 import BottomSection from '../components/BottomSection'
-import StorePreview from '@/features/store/components/StorePreview'
 import HowItWorks from '../components/HowItWorks'
 import RulesAccordion from '@/features/rules/components/RulesAccordion'
 import SlotBookingModal from '@/features/matches/components/SlotBookingModal'
@@ -52,20 +51,17 @@ function App() {
         {/* 4. Bottom Stats, Recent Winner & WhatsApp Banner */}
         <BottomSection />
 
-        {/* 5. E-Commerce UC & Gaming Store Preview */}
-        <StorePreview />
-
-        {/* 6. How It Works (4-Step Process) */}
+        {/* 5. How It Works (4-Step Process) */}
         <HowItWorks />
 
-        {/* 7. Rules Accordion (Shadcn UI) */}
+        {/* 6. Rules Accordion (Shadcn UI) */}
         <RulesAccordion />
       </main>
 
-      {/* 8. Footer */}
+      {/* 7. Footer */}
       <Footer />
 
-      {/* 9. Payment First Slot Booking Modal */}
+      {/* 8. Payment First Slot Booking Modal */}
       <SlotBookingModal
         match={selectedMatch}
         open={isModalOpen}
