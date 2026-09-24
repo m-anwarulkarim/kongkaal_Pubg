@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { getMatches, getAllRegistrations, updateRegistrationStatus, createMatch, deleteMatch, type RegistrationRecord } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
 import type { MatchItem } from '@/types/match'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -15,7 +16,8 @@ export const Route = createFileRoute('/admin')({ component: AdminDashboard })
 
 function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [pin, setPin] = useState('')
+  const [email, setEmail] = useState('kongkaal2026@gmail.com')
+  const [password, setPassword] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
 
   // Admin Data State
@@ -35,14 +37,48 @@ function AdminDashboard() {
   const [maxSlots, setMaxSlots] = useState(100)
   const [image, setImage] = useState('/solo_battle.jpg')
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (pin === '1234' || pin === 'admin') {
+  // Check persistent session on mount
+  useEffect(() => {
+    const authed = localStorage.getItem('kongkaal_admin_authed')
+    if (authed === 'true') {
       setIsAuthenticated(true)
-      setErrorMsg('')
-    } else {
-      setErrorMsg('Invalid Admin PIN! (Default PIN: 1234)')
     }
+  }, [])
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorMsg('')
+
+    // 1. Direct Credential Check (kongkaal2026@gmail.com / kongkaal2026)
+    if (email.trim().toLowerCase() === 'kongkaal2026@gmail.com' && password === 'kongkaal2026') {
+      setIsAuthenticated(true)
+      localStorage.setItem('kongkaal_admin_authed', 'true')
+      return
+    }
+
+    // 2. Fallback to Supabase Auth login if configured
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      })
+
+      if (data?.session && !error) {
+        setIsAuthenticated(true)
+        localStorage.setItem('kongkaal_admin_authed', 'true')
+        return
+      }
+    } catch (err) {
+      console.log('Supabase auth attempt error:', err)
+    }
+
+    setErrorMsg('Invalid Admin Email or Password!')
+  }
+
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+    localStorage.removeItem('kongkaal_admin_authed')
+    setPassword('')
   }
 
   const loadAdminData = async () => {
@@ -108,11 +144,11 @@ function AdminDashboard() {
   const verifiedCount = registrations.filter((r) => r.status === 'VERIFIED').length
   const totalRevenue = registrations.reduce((sum, r) => (r.status === 'VERIFIED' ? sum + r.amount : sum), 0)
 
-  // 1. PIN Login Screen
+  // 1. Email & Password Login Screen
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#07080b] flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-[#10131a] border-2 border-red-900/50 text-gray-100 p-6">
+        <Card className="w-full max-w-md bg-[#10131a] border-2 border-red-900/50 text-gray-100 p-6 shadow-2xl">
           <CardHeader className="text-center pb-4">
             <div className="w-12 h-12 rounded-2xl bg-red-600/20 border border-red-600/40 flex items-center justify-center text-red-500 mx-auto mb-2 text-2xl">
               👑
@@ -120,25 +156,38 @@ function AdminDashboard() {
             <CardTitle className="font-display text-3xl font-black text-white uppercase">
               KONGKAAL ADMIN LOGIN
             </CardTitle>
-            <p className="text-xs text-gray-400 font-medium">Enter Admin PIN to manage matches & payments</p>
+            <p className="text-xs text-gray-400 font-medium">Enter Admin Email & Password to manage platform</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <Label className="text-xs font-bold text-gray-300 uppercase mb-1 block">ADMIN PIN</Label>
+                <Label className="text-xs font-bold text-gray-300 uppercase mb-1 block">ADMIN EMAIL</Label>
+                <Input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="kongkaal2026@gmail.com"
+                  className="bg-[#07080b] border-gray-700 text-white font-medium text-sm"
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs font-bold text-gray-300 uppercase mb-1 block">PASSWORD</Label>
                 <Input
                   type="password"
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value)}
-                  placeholder="Enter PIN (Default: 1234)"
-                  className="bg-[#07080b] border-gray-700 text-white text-center font-mono text-lg"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter Password"
+                  className="bg-[#07080b] border-gray-700 text-white font-medium text-sm"
                 />
               </div>
 
               {errorMsg && <p className="text-xs font-bold text-red-500 text-center">{errorMsg}</p>}
 
               <Button type="submit" className="w-full btn-kong-red py-3 rounded-xl font-gaming text-sm font-extrabold uppercase">
-                Login to Dashboard
+                Login to Admin Panel
               </Button>
             </form>
           </CardContent>
@@ -160,7 +209,7 @@ function AdminDashboard() {
               <h1 className="font-display text-2xl font-black text-white uppercase leading-none">
                 KONGKAAL <span className="text-red-500 italic">ADMIN DASHBOARD</span>
               </h1>
-              <span className="text-[10px] text-gray-400 font-bold uppercase">SUPABASE DATABASE CONNECTED</span>
+              <span className="text-[10px] text-gray-400 font-bold uppercase">LOGGED IN: kongkaal2026@gmail.com</span>
             </div>
           </div>
 
@@ -168,7 +217,7 @@ function AdminDashboard() {
             <a href="/" target="_blank" className="btn-kong-outline px-3.5 py-1.5 rounded-lg text-xs font-bold no-underline">
               🌐 View Main Website
             </a>
-            <Button onClick={() => setIsAuthenticated(false)} variant="outline" className="bg-red-950/40 border-red-600 text-red-400 hover:bg-red-900/60 text-xs font-bold">
+            <Button onClick={handleLogout} variant="outline" className="bg-red-950/40 border-red-600 text-red-400 hover:bg-red-900/60 text-xs font-bold">
               Logout
             </Button>
           </div>
