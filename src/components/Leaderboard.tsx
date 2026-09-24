@@ -1,3 +1,5 @@
+import { Swords, CheckCircle2 } from 'lucide-react'
+
 export default function Leaderboard() {
   const winners = [
     {
@@ -70,16 +72,18 @@ export default function Leaderboard() {
                       <span className="text-xs text-gray-400">IGN: {win.captain}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-2.5 py-1 rounded bg-gray-800 text-white font-bold text-xs">
-                        ⚔️ {win.kills} KILLS
+                      <span className="px-2.5 py-1 rounded bg-gray-800 text-white font-bold text-xs inline-flex items-center gap-1.5">
+                        <Swords className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{win.kills} KILLS</span>
                       </span>
                     </td>
                     <td className="px-6 py-4 font-display text-xl font-bold text-green-400">
                       {win.prize}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-3 py-1 rounded-full bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-bold uppercase">
-                        ✅ {win.status}
+                      <span className="px-3 py-1 rounded-full bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-bold uppercase inline-flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>{win.status}</span>
                       </span>
                     </td>
                   </tr>
@@ -91,4 +95,5 @@ export default function Leaderboard() {
       </div>
     </section>
   )
+}
 }
