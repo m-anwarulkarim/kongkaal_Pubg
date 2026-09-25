@@ -26,7 +26,15 @@ let jsFiles = []
 if (fs.existsSync(assetsDir)) {
   const files = fs.readdirSync(assetsDir)
   cssFile = files.find((f) => f.endsWith('.css')) || ''
-  jsFiles = files.filter((f) => f.endsWith('.js'))
+  
+  jsFiles = files.filter((f) => {
+    if (!f.endsWith('.js')) return false
+    if (f.startsWith('rolldown-runtime') || f.startsWith('runtime')) return true
+    if (f.startsWith('vendor-')) return true
+    if (f.startsWith('routes-')) return true
+    if (f.startsWith('index-')) return true
+    return false
+  })
 
   const getOrder = (name) => {
     if (name.startsWith('rolldown-runtime') || name.startsWith('runtime')) return 1
