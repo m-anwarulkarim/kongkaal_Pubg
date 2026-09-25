@@ -1,4 +1,4 @@
-import { useState, type ImgHTMLAttributes } from 'react'
+import { useState, useRef, useEffect, type ImgHTMLAttributes } from 'react'
 
 export interface ImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   src: string
@@ -23,6 +23,13 @@ export default function Image({
 }: ImageProps) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
+  const imgRef = useRef<HTMLImageElement>(null)
+
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete) {
+      setIsLoaded(true)
+    }
+  }, [src])
 
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setIsLoaded(true)
@@ -31,19 +38,25 @@ export default function Image({
 
   const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setHasError(true)
+    setIsLoaded(true) // Ensure image (fallback) becomes visible on error
     if (onError) onError(e)
   }
 
   const currentSrc = hasError ? fallbackSrc : src
 
   return (
-    <div className={`relative overflow-hidden ${fill ? 'w-full h-full' : 'inline-block'} ${className}`}>
+    <div
+      className={`relative overflow-hidden ${
+        fill ? 'w-full h-full' : 'inline-block'
+      } ${className}`}
+    >
       {/* Skeleton / Blur Loading Placeholder */}
       {!isLoaded && placeholder === 'blur' && (
         <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-[#181c28] to-gray-900 animate-pulse z-0" />
       )}
 
       <img
+        ref={imgRef}
         src={currentSrc}
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
@@ -52,7 +65,9 @@ export default function Image({
         fetchpriority={priority ? 'high' : 'auto'}
         onLoad={handleLoad}
         onError={handleError}
-        className={`${fill ? 'w-full h-full object-cover' : ''} transition-opacity duration-300 ${
+        className={`${
+          fill ? 'absolute inset-0 w-full h-full object-cover' : ''
+        } transition-opacity duration-300 ${
           isLoaded ? 'opacity-100' : 'opacity-0'
         }`}
         {...props}
