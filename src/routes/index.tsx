@@ -8,6 +8,7 @@ import HowItWorks from '../components/HowItWorks'
 import RulesAccordion from '@/features/rules/components/RulesAccordion'
 import SlotBookingModal from '@/features/matches/components/SlotBookingModal'
 import Footer from '../components/Footer'
+import WhatsAppFloatingButton from '../components/WhatsAppFloatingButton'
 import type { MatchItem } from '@/types/match'
 
 export const Route = createFileRoute('/')({ component: App })
@@ -61,7 +62,10 @@ function App() {
       {/* 7. Footer */}
       <Footer />
 
-      {/* 8. Payment First Slot Booking Modal */}
+      {/* 8. Floating WhatsApp Support Button */}
+      <WhatsAppFloatingButton />
+
+      {/* 9. Payment First Slot Booking Modal */}
       <SlotBookingModal
         match={selectedMatch}
         open={isModalOpen}
