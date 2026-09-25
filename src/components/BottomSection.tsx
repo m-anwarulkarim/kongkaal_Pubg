@@ -8,7 +8,7 @@ export default function BottomSection() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
         {/* 1. Left Stats Bar (4 columns) */}
-        <div className="lg:col-span-5 bg-[#10131a] p-4 rounded-2xl border border-white/10 grid grid-cols-4 gap-2 text-center items-center">
+        <div className="lg:col-span-5 bg-[#10131a] p-4 rounded-2xl border border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center items-center">
           <div>
             <div className="w-8 h-8 rounded-full bg-red-600/10 text-red-500 flex items-center justify-center mx-auto mb-1">
               <Users className="w-4 h-4" />
