@@ -1,55 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ModeSelector from './ModeSelector'
 import MatchCard from '@/features/matches/components/MatchCard'
 import RightSidebar from './RightSidebar'
 import type { MatchItem } from '@/types/match'
-import { Trophy, ArrowRight } from 'lucide-react'
+import { Trophy, ArrowRight, Loader2 } from 'lucide-react'
 import Link from '@/components/ui/Link'
+import { getMatches, DEFAULT_MATCHES } from '@/lib/db'
 
-export const KONGKAAL_MATCHES: MatchItem[] = [
-  {
-    id: 'solo-12sep',
-    title: 'SOLO BATTLE',
-    mode: 'SOLO',
-    map: 'Erangel',
-    time: '10:00 PM',
-    entryFee: 50,
-    winnerPrize: 2000,
-    perKillPrize: 10,
-    joinedSlots: 24,
-    maxSlots: 100,
-    image: '/solo_battle.jpg',
-    status: 'OPEN',
-  },
-  {
-    id: 'duo-13sep',
-    title: 'DUO BATTLE',
-    mode: 'DUO',
-    map: 'Erangel',
-    time: '10:00 PM',
-    entryFee: 100,
-    winnerPrize: 5000,
-    perKillPrize: 20,
-    joinedSlots: 18,
-    maxSlots: 50,
-    image: '/duo_battle.jpg',
-    status: 'OPEN',
-  },
-  {
-    id: 'squad-14sep',
-    title: 'SQUAD SHOWDOWN',
-    mode: 'SQUAD',
-    map: 'Livik',
-    time: '09:00 PM',
-    entryFee: 200,
-    winnerPrize: 10000,
-    perKillPrize: 30,
-    joinedSlots: 12,
-    maxSlots: 50,
-    image: '/squad_showdown.jpg',
-    status: 'OPEN',
-  },
-]
+export const KONGKAAL_MATCHES: MatchItem[] = DEFAULT_MATCHES
 
 interface TournamentGridSectionProps {
   onSelectMatch: (match: MatchItem) => void
@@ -57,9 +15,26 @@ interface TournamentGridSectionProps {
 
 export default function TournamentGridSection({ onSelectMatch }: TournamentGridSectionProps) {
   const [selectedMode, setSelectedMode] = useState<'SOLO' | 'DUO' | 'SQUAD'>('SOLO')
+  const [matches, setMatches] = useState<MatchItem[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const filteredMatches = KONGKAAL_MATCHES.filter((m) => {
-    return m.mode === selectedMode || selectedMode === 'SOLO'
+  useEffect(() => {
+    async function loadTournamentMatches() {
+      try {
+        const data = await getMatches()
+        setMatches(data)
+      } catch (err) {
+        console.error('Failed to load dynamic matches:', err)
+        setMatches(DEFAULT_MATCHES)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadTournamentMatches()
+  }, [])
+
+  const filteredMatches = matches.filter((m) => {
+    return m.mode === selectedMode
   })
 
   return (
@@ -85,11 +60,23 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
               </Link>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredMatches.map((match) => (
-                <MatchCard key={match.id} match={match} onSelect={onSelectMatch} />
-              ))}
-            </div>
+            {loading ? (
+              <div className="p-12 text-center text-red-500 font-gaming flex items-center justify-center gap-2 bg-[#0e111a] rounded-2xl border border-white/10">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                LOADING UPCOMING TOURNAMENTS...
+              </div>
+            ) : filteredMatches.length === 0 ? (
+              <div className="p-12 text-center text-gray-400 bg-[#0e111a] rounded-2xl border border-white/10 space-y-2">
+                <p className="font-bold text-white">No active {selectedMode} tournaments found right now.</p>
+                <p className="text-xs">Dashboard থেকে এডমিন নতুন ম্যাচ ক্রিয়েট করলে এখানে সরাসরি দেখতে পাবেন।</p>
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredMatches.map((match) => (
+                  <MatchCard key={match.id} match={match} onSelect={onSelectMatch} />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Right Column: Leaderboard & Top Players Sidebar */}
@@ -102,3 +89,4 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
     </section>
   )
 }
+
