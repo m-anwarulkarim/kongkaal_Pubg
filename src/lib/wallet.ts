@@ -244,26 +244,34 @@ export async function payMatchWithWallet(
   }
 }
 
-// 6. Admin Credit / Transfer Money to Customer
-export async function adminCreditCustomerWallet(
+// 6. Admin Credit / Deduct Money to/from Customer
+export async function adminAdjustCustomerWallet(
   userEmail: string,
   amount: number,
+  action: 'ADD' | 'DEDUCT',
   note?: string
 ): Promise<{ success: boolean; message: string }> {
   const profile = await getCustomerProfile(userEmail)
 
-  profile.walletBalance += amount
+  if (action === 'DEDUCT' && profile.walletBalance < amount) {
+    profile.walletBalance = 0
+  } else if (action === 'DEDUCT') {
+    profile.walletBalance -= amount
+  } else {
+    profile.walletBalance += amount
+  }
+
   await updateCustomerProfile(profile)
 
   const tx: WalletTransaction = {
     id: 'tx-admin-' + Date.now(),
     userEmail,
     userName: profile.name,
-    type: 'ADMIN_CREDIT',
+    type: action === 'ADD' ? 'ADMIN_CREDIT' : 'WITHDRAW',
     amount,
     status: 'APPROVED',
     createdAt: new Date().toISOString(),
-    note: note || 'Credited by Admin',
+    note: note || (action === 'ADD' ? 'Added by Admin (+)' : 'Deducted by Admin (-)'),
   }
 
   const txs = getLocalTxs()
@@ -272,7 +280,7 @@ export async function adminCreditCustomerWallet(
 
   return {
     success: true,
-    message: `৳${amount} credited to ${userEmail} successfully!`,
+    message: `${action === 'ADD' ? '+' : '-'}৳${amount} ${action === 'ADD' ? 'added to' : 'deducted from'} ${userEmail} successfully!`,
   }
 }
 

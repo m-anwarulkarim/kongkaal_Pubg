@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import {
   getWalletTransactions,
   getAllCustomerProfiles,
-  adminCreditCustomerWallet,
+  adminAdjustCustomerWallet,
   adminApproveTransaction,
 } from '@/lib/wallet'
 import type { WalletTransaction, CustomerProfile } from '@/types/wallet'
@@ -10,15 +10,16 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Send, CheckCircle2, XCircle, Search, RefreshCw } from 'lucide-react'
+import { Send, CheckCircle2, XCircle, Search, RefreshCw, PlusCircle, MinusCircle } from 'lucide-react'
 
 export default function WalletTab() {
   const [customers, setCustomers] = useState<CustomerProfile[]>([])
   const [transactions, setTransactions] = useState<WalletTransaction[]>([])
 
-  // Send Money Modal / Form State
+  // Send / Deduct Money Form State
   const [sendEmail, setSendEmail] = useState('')
   const [sendAmount, setSendAmount] = useState('500')
+  const [actionType, setActionType] = useState<'ADD' | 'DEDUCT'>('ADD')
   const [sendNote, setSendNote] = useState('Match Winning Prize Bonus')
   const [sendMsg, setSendMsg] = useState('')
   const [sending, setSending] = useState(false)
@@ -42,11 +43,11 @@ export default function WalletTab() {
     setSending(true)
     setSendMsg('')
 
-    const res = await adminCreditCustomerWallet(sendEmail.trim(), Number(sendAmount), sendNote)
+    const res = await adminAdjustCustomerWallet(sendEmail.trim(), Number(sendAmount), actionType, sendNote)
     setSending(false)
 
     if (res.success) {
-      setSendMsg(`SUCCESS: ৳${sendAmount} transferred to ${sendEmail}!`)
+      setSendMsg(res.message)
       setSendAmount('500')
       loadWalletData()
       setTimeout(() => setSendMsg(''), 4000)
@@ -75,29 +76,64 @@ export default function WalletTab() {
 
   return (
     <div className="space-y-6">
-      {/* Top Banner & Quick Send Money Form */}
+      {/* Top Banner & Quick Send/Deduct Money Form */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Send Money Form (Admin Credit to Customer) */}
+        {/* Send / Deduct Money Form (Admin Balance Adjustments) */}
         <Card className="lg:col-span-1 bg-[#101422] border-red-500/30 p-6 rounded-2xl space-y-4 shadow-xl">
           <div className="flex items-center gap-2 border-b border-white/10 pb-3">
             <Send className="w-5 h-5 text-red-500" />
             <h3 className="font-display text-lg font-black text-white uppercase">
-              Send Money to Customer
+              Adjust Customer Balance (+ / -)
             </h3>
           </div>
 
           <p className="text-xs text-gray-400">
-            কাস্টমারের ওয়ালেটে সরাসরি টাকা পাঠান (প্রাইজ মানি, রিফান্ড বা বোনাস হিসেবে)।
+            কাস্টমারের ওয়ালেটে টাকা **যোগ (+)** বা **কাটতে (-)** পারবেন (প্রাইজ মানি, রিফান্ড বা পেনাল্টি হিসেবে)।
           </p>
 
           {sendMsg && (
-            <div className={`p-3 rounded-xl text-xs font-bold ${sendMsg.startsWith('SUCCESS') ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40' : 'bg-red-950 text-red-300 border border-red-500/40'}`}>
+            <div className={`p-3 rounded-xl text-xs font-bold ${sendMsg.includes('ERROR') ? 'bg-red-950 text-red-300 border border-red-500/40' : 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'}`}>
               {sendMsg}
             </div>
           )}
 
           <form onSubmit={handleSendMoneySubmit} className="space-y-3 text-xs">
+            {/* Action Selector (+ Add vs - Deduct) */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setActionType('ADD')
+                  setSendNote('Match Winning Prize Bonus (+)')
+                }}
+                className={`py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 border transition-all ${
+                  actionType === 'ADD'
+                    ? 'bg-emerald-600 border-emerald-500 text-white shadow-md shadow-emerald-600/30'
+                    : 'bg-[#080a12] border-white/10 text-gray-400 hover:text-white'
+                }`}
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>+ Add Money</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActionType('DEDUCT')
+                  setSendNote('Balance Deduction / Penalty (-)')
+                }}
+                className={`py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 border transition-all ${
+                  actionType === 'DEDUCT'
+                    ? 'bg-red-600 border-red-500 text-white shadow-md shadow-red-600/30'
+                    : 'bg-[#080a12] border-white/10 text-gray-400 hover:text-white'
+                }`}
+              >
+                <MinusCircle className="w-4 h-4" />
+                <span>- Deduct Money</span>
+              </button>
+            </div>
+
             <div>
               <label className="text-gray-300 font-bold block mb-1">Customer Email / ID</label>
               <Input
@@ -111,7 +147,7 @@ export default function WalletTab() {
             </div>
 
             <div>
-              <label className="text-gray-300 font-bold block mb-1">Transfer Amount (৳ BDT)</label>
+              <label className="text-gray-300 font-bold block mb-1">Amount (৳ BDT)</label>
               <Input
                 type="number"
                 placeholder="e.g. 500"
@@ -136,10 +172,20 @@ export default function WalletTab() {
             <Button
               type="submit"
               disabled={sending}
-              className="w-full bg-[#e50914] hover:bg-red-600 text-white font-bold py-2.5 text-xs rounded-xl shadow-lg shadow-red-600/30 flex items-center justify-center gap-2"
+              className={`w-full font-bold py-2.5 text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 ${
+                actionType === 'ADD'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30'
+                  : 'bg-red-600 hover:bg-red-700 text-white shadow-red-600/30'
+              }`}
             >
               <Send className="w-4 h-4" />
-              <span>{sending ? 'Processing Transfer...' : 'Send Money to Customer Wallet'}</span>
+              <span>
+                {sending
+                  ? 'Processing...'
+                  : actionType === 'ADD'
+                  ? 'Add Money (+) to Customer Wallet'
+                  : 'Deduct Money (-) from Customer Wallet'}
+              </span>
             </Button>
           </form>
         </Card>
