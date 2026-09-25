@@ -21,15 +21,25 @@ try {
 
 // 2. Scan assets directory for CSS and JS bundles
 let cssFile = ''
-let indexJsFile = ''
-let runtimeJsFile = ''
+let jsFiles = []
 
 if (fs.existsSync(assetsDir)) {
   const files = fs.readdirSync(assetsDir)
   cssFile = files.find((f) => f.endsWith('.css')) || ''
-  indexJsFile = files.find((f) => f.startsWith('index-') && f.endsWith('.js')) || ''
-  runtimeJsFile = files.find((f) => f.startsWith('rolldown-runtime-') && f.endsWith('.js')) || ''
+  jsFiles = files.filter((f) => f.endsWith('.js'))
+
+  const getOrder = (name) => {
+    if (name.startsWith('rolldown-runtime') || name.startsWith('runtime')) return 1
+    if (name.startsWith('vendor-react')) return 2
+    if (name.startsWith('vendor-')) return 3
+    if (name.startsWith('routes-')) return 4
+    if (name.startsWith('index-')) return 5
+    return 6
+  }
+  jsFiles.sort((a, b) => getOrder(a) - getOrder(b))
 }
+
+const jsScriptTags = jsFiles.map((f) => `<script type="module" src="/assets/${f}"></script>`).join('\n    ')
 
 // 3. Generate dist/client/index.html as SPA fallback
 const htmlContent = `<!DOCTYPE html>
@@ -47,8 +57,7 @@ const htmlContent = `<!DOCTYPE html>
   </head>
   <body class="font-sans antialiased bg-[#07080b] text-gray-100 selection:bg-red-600/30 selection:text-red-200">
     <div id="root"></div>
-    ${runtimeJsFile ? `<script type="module" src="/assets/${runtimeJsFile}"></script>` : ''}
-    ${indexJsFile ? `<script type="module" src="/assets/${indexJsFile}"></script>` : ''}
+    ${jsScriptTags}
   </body>
 </html>
 `
