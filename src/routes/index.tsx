@@ -7,6 +7,7 @@ import BottomSection from '../components/BottomSection'
 import HowItWorks from '../components/HowItWorks'
 import RulesAccordion from '@/features/rules/components/RulesAccordion'
 import SlotBookingModal from '@/features/matches/components/SlotBookingModal'
+import ContactSection from '../components/ContactSection'
 import Footer from '../components/Footer'
 import WhatsAppFloatingButton from '../components/WhatsAppFloatingButton'
 import type { MatchItem } from '@/types/match'
@@ -57,9 +58,12 @@ function App() {
 
         {/* 6. Rules Accordion (Shadcn UI) */}
         <RulesAccordion />
+
+        {/* 7. Premium 24/7 Support & Contact Section */}
+        <ContactSection />
       </main>
 
-      {/* 7. Footer */}
+      {/* 8. Footer */}
       <Footer />
 
       {/* 8. Floating WhatsApp Support Button */}
