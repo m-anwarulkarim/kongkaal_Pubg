@@ -24,16 +24,19 @@ export default {
       // @ts-ignore
       const response = await server.fetch(request, env, ctx)
 
-      // 3. Fallback to asset if status is 404
-      if (response.status === 404 && env.ASSETS) {
-        const fallback = await env.ASSETS.fetch(request)
-        if (fallback.status !== 404) return fallback
+      // 3. Fallback to /index.html asset if status is 404 or route is dynamic
+      if ((!response || response.status === 404) && env.ASSETS) {
+        const indexReq = new Request(new URL('/index.html', request.url), request)
+        const fallback = await env.ASSETS.fetch(indexReq)
+        if (fallback && fallback.status !== 404) return fallback
       }
 
       return response
     } catch (err: any) {
       if (env.ASSETS) {
-        return env.ASSETS.fetch(request)
+        const indexReq = new Request(new URL('/index.html', request.url), request)
+        const fallback = await env.ASSETS.fetch(indexReq)
+        if (fallback && fallback.status !== 404) return fallback
       }
       return new Response(`KongKaaL Worker Error: ${err.message}`, { status: 500 })
     }

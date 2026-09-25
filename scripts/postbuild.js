@@ -96,4 +96,13 @@ console.log('✅ _routes.json created!')
 fs.writeFileSync(path.join(clientDir, '.assetsignore'), '', 'utf-8')
 console.log('✅ .assetsignore created!')
 
+// 7. Create 404.html & admin/index.html fallbacks for direct route requests
+fs.copyFileSync(path.join(clientDir, 'index.html'), path.join(clientDir, '404.html'))
+const adminDir = path.join(clientDir, 'admin')
+if (!fs.existsSync(adminDir)) {
+  fs.mkdirSync(adminDir, { recursive: true })
+}
+fs.copyFileSync(path.join(clientDir, 'index.html'), path.join(adminDir, 'index.html'))
+console.log('✅ 404.html & admin/index.html fallbacks created!')
+
 console.log('🎉 Cloudflare Pages Deployment Package Ready in dist/client!')
