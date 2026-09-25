@@ -49,10 +49,14 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <div className="font-sans antialiased bg-[#07080b] text-gray-100 selection:bg-red-600/30 selection:text-red-200 min-h-screen">
-      <HeadContent />
-      {children}
-      <Scripts />
-    </div>
+    <html lang="en" className="dark">
+      <head>
+        <HeadContent />
+      </head>
+      <body className="font-sans antialiased bg-[#07080b] text-gray-100 selection:bg-red-600/30 selection:text-red-200 min-h-screen">
+        {children}
+        <Scripts />
+      </body>
+    </html>
   )
 }

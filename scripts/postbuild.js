@@ -11,7 +11,7 @@ console.log('🚀 Running Cloudflare Pages Post-Build Optimizer...')
 try {
   console.log('📦 Bundling Cloudflare Pages Worker (_worker.js)...')
   execSync(
-    'npx esbuild src/worker.ts --bundle --outfile=dist/client/_worker.js --format=esm --target=es2022 --main-fields=module,main --external:node:*',
+    'npx esbuild src/worker.ts --bundle --outfile=dist/client/_worker.js --format=esm --target=es2022 --platform=neutral --conditions=workerd,worker --main-fields=module,main --external:node:*',
     { stdio: 'inherit' }
   )
   console.log('✅ _worker.js successfully created!')
@@ -70,8 +70,8 @@ const htmlContent = `<!DOCTYPE html>
 </html>
 `
 
-fs.writeFileSync(path.join(clientDir, 'index.html'), htmlContent, 'utf-8')
-console.log('✅ index.html fallback successfully created in dist/client/')
+// fs.writeFileSync(path.join(clientDir, 'index.html'), htmlContent, 'utf-8')
+console.log('✅ skipped generating index.html fallback to allow SSR!')
 
 // 4. Clean up any invalid _redirects file if present
 const redirectsPath = path.join(clientDir, '_redirects')
@@ -105,12 +105,12 @@ fs.writeFileSync(path.join(clientDir, '.assetsignore'), '', 'utf-8')
 console.log('✅ .assetsignore created!')
 
 // 7. Create 404.html & admin/index.html fallbacks for direct route requests
-fs.copyFileSync(path.join(clientDir, 'index.html'), path.join(clientDir, '404.html'))
+// fs.copyFileSync(path.join(clientDir, 'index.html'), path.join(clientDir, '404.html'))
 const adminDir = path.join(clientDir, 'admin')
 if (!fs.existsSync(adminDir)) {
   fs.mkdirSync(adminDir, { recursive: true })
 }
-fs.copyFileSync(path.join(clientDir, 'index.html'), path.join(adminDir, 'index.html'))
-console.log('✅ 404.html & admin/index.html fallbacks created!')
+// fs.copyFileSync(path.join(clientDir, 'index.html'), path.join(adminDir, 'index.html'))
+console.log('✅ 404.html & admin/index.html fallbacks skipped!')
 
 console.log('🎉 Cloudflare Pages Deployment Package Ready in dist/client!')

@@ -23,16 +23,11 @@ export default {
       // 2. Render HTML via TanStack Start SSR Server
       // @ts-ignore
       const response = await server.fetch(request, env, ctx)
-
-      // 3. Fallback to /index.html asset if status is 404 or route is dynamic
-      if ((!response || response.status === 404) && env.ASSETS) {
-        const indexReq = new Request(new URL('/index.html', request.url), request)
-        const fallback = await env.ASSETS.fetch(indexReq)
-        if (fallback && fallback.status !== 404) return fallback
-      }
-
+      
       return response
     } catch (err: any) {
+      console.error('Worker fetch error:', err)
+      console.error(err.stack)
       if (env.ASSETS) {
         const indexReq = new Request(new URL('/index.html', request.url), request)
         const fallback = await env.ASSETS.fetch(indexReq)
