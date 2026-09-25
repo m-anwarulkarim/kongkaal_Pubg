@@ -56,10 +56,11 @@ const htmlContent = `<!DOCTYPE html>
 fs.writeFileSync(path.join(clientDir, 'index.html'), htmlContent, 'utf-8')
 console.log('✅ index.html fallback successfully created in dist/client/')
 
-// 4. Generate dist/client/_redirects (SPA routing for Cloudflare Pages static)
-const redirectsContent = `/*    /index.html   200\n`
-fs.writeFileSync(path.join(clientDir, '_redirects'), redirectsContent, 'utf-8')
-console.log('✅ _redirects created!')
+// 4. Clean up any invalid _redirects file if present
+const redirectsPath = path.join(clientDir, '_redirects')
+if (fs.existsSync(redirectsPath)) {
+  fs.unlinkSync(redirectsPath)
+}
 
 // 5. Generate dist/client/_routes.json for Cloudflare Pages Worker routing
 const routesConfig = {
