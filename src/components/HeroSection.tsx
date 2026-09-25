@@ -42,7 +42,7 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
               </div>
 
               {/* Title */}
-              <h1 className="font-display text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight text-white uppercase leading-none mb-3">
+              <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight text-white uppercase leading-none mb-3">
                 KONGKAAL <span className="text-[#e50914] italic font-extrabold tracking-normal">GAMING</span>
               </h1>
 

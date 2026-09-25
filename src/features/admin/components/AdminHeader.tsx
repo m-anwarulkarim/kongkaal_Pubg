@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Link from '@/components/ui/Link'
-import { ChevronRight, Search, RefreshCw, Plus, Gamepad2, Globe } from 'lucide-react'
+import { ChevronRight, Search, RefreshCw, Plus, Gamepad2, Globe, Menu } from 'lucide-react'
 
 interface AdminHeaderProps {
   activeTab: AdminTabType
@@ -18,6 +18,7 @@ interface AdminHeaderProps {
   newMatchForm: NewMatchFormData
   setNewMatchForm: React.Dispatch<React.SetStateAction<NewMatchFormData>>
   handleCreateMatch: (e: React.FormEvent) => void
+  onToggleSidebar?: () => void
 }
 
 export default function AdminHeader({
@@ -31,14 +32,23 @@ export default function AdminHeader({
   newMatchForm,
   setNewMatchForm,
   handleCreateMatch,
+  onToggleSidebar,
 }: AdminHeaderProps) {
   return (
-    <header className="bg-[#0c0f17]/95 backdrop-blur-md border-b border-white/10 px-6 py-4 sticky top-0 z-40 flex items-center justify-between gap-4">
-      {/* Active Section Title / Breadcrumb */}
+    <header className="bg-[#0c0f17]/95 backdrop-blur-md border-b border-white/10 px-4 sm:px-6 py-3.5 sticky top-0 z-40 flex flex-wrap items-center justify-between gap-3">
+      {/* Active Section Title / Breadcrumb + Mobile Menu Toggle */}
       <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Admin Portal</span>
-        <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
-        <span className="text-sm font-extrabold text-white uppercase font-gaming">
+        <button
+          onClick={onToggleSidebar}
+          className="p-1.5 text-gray-300 hover:text-white rounded-lg bg-white/5 hover:bg-white/10 md:hidden"
+          title="Open Navigation"
+        >
+          <Menu className="w-5 h-5 text-red-500" />
+        </button>
+
+        <span className="text-xs text-gray-400 font-bold uppercase tracking-wider hidden sm:inline">Admin Portal</span>
+        <ChevronRight className="w-3.5 h-3.5 text-gray-600 hidden sm:inline" />
+        <span className="text-xs sm:text-sm font-extrabold text-white uppercase font-gaming">
           {activeTab}
         </span>
       </div>

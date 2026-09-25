@@ -33,7 +33,7 @@ function AdminDashboard() {
 
   // Sidebar & Navigation State
   const [activeTab, setActiveTab] = useState<AdminTabType>('OVERVIEW')
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Admin Data State
   const [matches, setMatches] = useState<MatchItem[]>([])
@@ -200,7 +200,7 @@ function AdminDashboard() {
       />
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
+      <div className={`flex-1 flex flex-col transition-all duration-300 w-full min-w-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
         {/* Top Header */}
         <AdminHeader
           activeTab={activeTab}
@@ -213,6 +213,7 @@ function AdminDashboard() {
           newMatchForm={newMatchForm}
           setNewMatchForm={setNewMatchForm}
           handleCreateMatch={handleCreateMatch}
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         />
 
         {/* Dashboard Main Content Body */}
