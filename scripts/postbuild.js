@@ -82,4 +82,8 @@ const routesConfig = {
 fs.writeFileSync(path.join(clientDir, '_routes.json'), JSON.stringify(routesConfig, null, 2), 'utf-8')
 console.log('✅ _routes.json created!')
 
+// 6. Generate dist/client/.assetsignore to satisfy Cloudflare Pages asset scanner
+fs.writeFileSync(path.join(clientDir, '.assetsignore'), '', 'utf-8')
+console.log('✅ .assetsignore created!')
+
 console.log('🎉 Cloudflare Pages Deployment Package Ready in dist/client!')
