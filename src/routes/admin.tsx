@@ -21,6 +21,7 @@ import {
   WalletTab,
   MatchesTab,
   PlayersTab,
+  LeaderboardTab,
   SettingsTab,
 } from '@/features/admin'
 
@@ -263,6 +264,8 @@ function AdminDashboard() {
               filteredRegistrations={filteredRegistrations}
             />
           )}
+
+          {activeTab === 'LEADERBOARD' && <LeaderboardTab />}
 
           {activeTab === 'SETTINGS' && <SettingsTab />}
         </main>

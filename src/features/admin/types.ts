@@ -1,4 +1,4 @@
-export type AdminTabType = 'OVERVIEW' | 'PAYMENTS' | 'WALLET' | 'MATCHES' | 'PLAYERS' | 'SETTINGS'
+export type AdminTabType = 'OVERVIEW' | 'PAYMENTS' | 'WALLET' | 'MATCHES' | 'PLAYERS' | 'LEADERBOARD' | 'SETTINGS'
 
 export interface NewMatchFormData {
   title: string

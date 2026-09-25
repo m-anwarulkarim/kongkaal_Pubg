@@ -7,5 +7,7 @@ export { default as PaymentsTab } from './components/PaymentsTab'
 export { default as WalletTab } from './components/WalletTab'
 export { default as MatchesTab } from './components/MatchesTab'
 export { default as PlayersTab } from './components/PlayersTab'
+export { default as LeaderboardTab } from './components/LeaderboardTab'
 export { default as SettingsTab } from './components/SettingsTab'
+
 

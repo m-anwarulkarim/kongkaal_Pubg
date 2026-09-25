@@ -45,3 +45,13 @@ export interface PlayerRegistration {
   trxId: string
   amount: number
 }
+
+export interface LeaderboardItem {
+  id: string
+  matchTitle: string
+  teamName: string
+  playerIgn: string
+  kills: number
+  prizeWon: number
+  status: 'VERIFIED PAYOUT' | 'PENDING'
+}

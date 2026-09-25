@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase'
-import type { MatchItem, PlayerRegistration } from '@/types/match'
+import type { MatchItem, PlayerRegistration, LeaderboardItem } from '@/types/match'
 import { KONGKAAL_MATCHES } from '@/components/TournamentGridSection'
 
 export interface RegistrationRecord extends PlayerRegistration {
@@ -278,3 +278,181 @@ export async function updateRegistrationStatus(id: string, status: 'VERIFIED' | 
     return { success: false, message: err?.message || 'Failed to update status' }
   }
 }
+
+// Initial default leaderboard entries
+export const INITIAL_LEADERBOARD: LeaderboardItem[] = [
+  {
+    id: 'lb-1',
+    matchTitle: 'Erangel Squad Championship #308',
+    teamName: 'VIP ESPORTS',
+    playerIgn: 'VIP_SHADOW',
+    kills: 18,
+    prizeWon: 6440,
+    status: 'VERIFIED PAYOUT',
+  },
+  {
+    id: 'lb-2',
+    matchTitle: 'Solo Erangel Rush #100',
+    teamName: 'SOLO PLAYER',
+    playerIgn: 'CYCLONE_99',
+    kills: 11,
+    prizeWon: 1720,
+    status: 'VERIFIED PAYOUT',
+  },
+  {
+    id: 'lb-3',
+    matchTitle: 'Duo Miramar Tactical #203',
+    teamName: 'DEADLY DUO',
+    playerIgn: 'RAKIB_OP',
+    kills: 14,
+    prizeWon: 3560,
+    status: 'VERIFIED PAYOUT',
+  },
+  {
+    id: 'lb-4',
+    matchTitle: 'Squad Sanhok War #307',
+    teamName: 'DARK HUNTERS',
+    playerIgn: 'HUNTER_X',
+    kills: 21,
+    prizeWon: 7680,
+    status: 'VERIFIED PAYOUT',
+  },
+]
+
+// Local Storage Helper for Leaderboard
+function getLocalLeaderboard(): LeaderboardItem[] {
+  if (typeof window === 'undefined') return INITIAL_LEADERBOARD
+  const stored = localStorage.getItem('kongkaal_leaderboard')
+  if (!stored) {
+    localStorage.setItem('kongkaal_leaderboard', JSON.stringify(INITIAL_LEADERBOARD))
+    return INITIAL_LEADERBOARD
+  }
+  try {
+    return JSON.parse(stored)
+  } catch {
+    return INITIAL_LEADERBOARD
+  }
+}
+
+function saveLocalLeaderboard(items: LeaderboardItem[]) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('kongkaal_leaderboard', JSON.stringify(items))
+  }
+}
+
+// 7. Get Leaderboard Items
+export async function getLeaderboard(): Promise<LeaderboardItem[]> {
+  if (!isSupabaseConfigured()) {
+    return getLocalLeaderboard()
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('leaderboards')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error || !data || data.length === 0) {
+      return getLocalLeaderboard()
+    }
+
+    return data.map((d: any) => ({
+      id: d.id,
+      matchTitle: d.match_title,
+      teamName: d.team_name,
+      playerIgn: d.player_ign,
+      kills: Number(d.kills),
+      prizeWon: Number(d.prize_won),
+      status: d.status || 'VERIFIED PAYOUT',
+    }))
+  } catch {
+    return getLocalLeaderboard()
+  }
+}
+
+// 8. Create Leaderboard Item
+export async function createLeaderboardItem(
+  item: Omit<LeaderboardItem, 'id'>
+): Promise<{ success: boolean; message: string; newItem?: LeaderboardItem }> {
+  const newItem: LeaderboardItem = {
+    id: 'lb-' + Date.now(),
+    ...item,
+  }
+
+  // Always update local storage
+  const current = getLocalLeaderboard()
+  const updated = [newItem, ...current]
+  saveLocalLeaderboard(updated)
+
+  if (!isSupabaseConfigured()) {
+    return { success: true, message: 'Leaderboard champion added!', newItem }
+  }
+
+  try {
+    const { error } = await supabase.from('leaderboards').insert([
+      {
+        match_title: item.matchTitle,
+        team_name: item.teamName,
+        player_ign: item.playerIgn,
+        kills: item.kills,
+        prize_won: item.prizeWon,
+        status: item.status,
+      },
+    ])
+    if (error) {
+      console.warn('Supabase insert failed, stored in localStorage:', error)
+    }
+  } catch (err) {
+    console.warn('Supabase insert exception:', err)
+  }
+
+  return { success: true, message: 'Leaderboard champion added successfully!', newItem }
+}
+
+// 9. Update Leaderboard Item
+export async function updateLeaderboardItem(
+  id: string,
+  updates: Partial<LeaderboardItem>
+): Promise<{ success: boolean; message: string }> {
+  const current = getLocalLeaderboard()
+  const updated = current.map((item) => (item.id === id ? { ...item, ...updates } : item))
+  saveLocalLeaderboard(updated)
+
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase
+        .from('leaderboards')
+        .update({
+          match_title: updates.matchTitle,
+          team_name: updates.teamName,
+          player_ign: updates.playerIgn,
+          kills: updates.kills,
+          prize_won: updates.prizeWon,
+          status: updates.status,
+        })
+        .eq('id', id)
+    } catch (err) {
+      console.warn('Supabase update failed:', err)
+    }
+  }
+
+  return { success: true, message: 'Leaderboard entry updated successfully!' }
+}
+
+// 10. Delete Leaderboard Item
+export async function deleteLeaderboardItem(id: string): Promise<{ success: boolean; message: string }> {
+  const current = getLocalLeaderboard()
+  const updated = current.filter((item) => item.id !== id)
+  saveLocalLeaderboard(updated)
+
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.from('leaderboards').delete().eq('id', id)
+    } catch (err) {
+      console.warn('Supabase delete failed:', err)
+    }
+  }
+
+  return { success: true, message: 'Leaderboard entry deleted successfully!' }
+}
+
