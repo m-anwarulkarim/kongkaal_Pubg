@@ -17,6 +17,7 @@ export interface MatchItem {
   maxSlots: number
   image: string
   status: MatchStatus
+  whatsappGroupLink?: string
 }
 
 export interface PlayerRegistration {
@@ -31,7 +32,7 @@ export interface PlayerRegistration {
   player3Uid?: string
   player4Name?: string
   player4Uid?: string
-  paymentMethod: 'bKash' | 'Nagad' | 'Rocket'
+  paymentMethod: 'bKash' | 'Nagad' | 'Rocket' | 'WALLET'
   trxId: string
   amount: number
 }

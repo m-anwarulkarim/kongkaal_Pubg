@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import type { MatchItem } from '@/types/match'
 import { saveRegistration } from '@/lib/db'
 import { useCustomerAuth } from '@/lib/auth'
+import { payMatchWithWallet } from '@/lib/wallet'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -59,10 +60,10 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
   const [player4Uid, _setPlayer4Uid] = useState('')
 
   // Payment State
-  const [paymentMethod, setPaymentMethod] = useState<'bKash' | 'Nagad' | 'Rocket'>('bKash')
+  const [paymentMethod, setPaymentMethod] = useState<'bKash' | 'Nagad' | 'Rocket' | 'WALLET'>('bKash')
   const [trxId, setTrxId] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [dbBookingId, setDbBookingId] = useState<string | null>(null)
+  const [_dbBookingId, setDbBookingId] = useState<string | null>(null)
 
   const paymentNumbers = {
     bKash: '01712-345678',
@@ -87,6 +88,49 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
   const handleConfirmPayment = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (paymentMethod === 'WALLET') {
+      if (!user?.email) {
+        alert('ওয়ালেট দিয়ে পেমেন্ট করতে গুগলে লগইন থাকুন!')
+        return
+      }
+      setIsSubmitting(true)
+
+      const payRes = await payMatchWithWallet(user.email, player1Name, match.entryFee, match.title)
+      if (!payRes.success) {
+        setIsSubmitting(false)
+        alert(payRes.message)
+        return
+      }
+
+      // Save registration with WALLET
+      const result = await saveRegistration({
+        matchId: match.id,
+        teamName: teamName || undefined,
+        player1Name,
+        player1Uid,
+        whatsappNumber,
+        player2Name: player2Name || undefined,
+        player2Uid: player2Uid || undefined,
+        player3Name: player3Name || undefined,
+        player3Uid: player3Uid || undefined,
+        player4Name: player4Name || undefined,
+        player4Uid: player4Uid || undefined,
+        paymentMethod: 'WALLET',
+        trxId: 'WALLET-' + Date.now().toString().slice(-6),
+        amount: match.entryFee,
+      })
+
+      setIsSubmitting(false)
+      if (result.success) {
+        if (result.id) setDbBookingId(result.id)
+        setStep('SUCCESS')
+      } else {
+        alert(`Error saving slot: ${result.message}`)
+      }
+      return
+    }
+
     if (!trxId || trxId.length < 6) {
       alert('দয়া করে সঠিক Transaction ID (TrxID) লিখুন!')
       return
@@ -121,10 +165,6 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
       alert(`Error saving registration: ${result.message}`)
     }
   }
-
-  const whatsappMessage = encodeURIComponent(
-    `Hello Admin! I have paid for PUBG Match: ${match.title}.\nMode: ${match.mode}\nIn-Game Name: ${player1Name}\nPUBG UID: ${player1Uid}\nTrxID: ${trxId}\nAmount: ৳${match.entryFee}\nPlease confirm my slot!`
-  )
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -304,7 +344,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
               </div>
 
               {/* Payment Method Selector */}
-              <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('bKash')}
@@ -315,7 +355,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                   }`}
                 >
                   <Heart className="w-5 h-5 text-pink-500" />
-                  <span className="text-sm">bKash</span>
+                  <span className="text-xs">bKash</span>
                 </button>
 
                 <button
@@ -328,7 +368,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                   }`}
                 >
                   <Flame className="w-5 h-5 text-orange-500" />
-                  <span className="text-sm">Nagad</span>
+                  <span className="text-xs">Nagad</span>
                 </button>
 
                 <button
@@ -341,118 +381,169 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                   }`}
                 >
                   <Rocket className="w-5 h-5 text-purple-400" />
-                  <span className="text-sm">Rocket</span>
+                  <span className="text-xs">Rocket</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('WALLET')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 font-bold transition-all ${
+                    paymentMethod === 'WALLET'
+                      ? 'bg-emerald-950/60 border-emerald-500 text-emerald-400 shadow-lg shadow-emerald-500/30'
+                      : 'bg-[#0b0e14] border-emerald-500/30 text-emerald-300 hover:border-emerald-500'
+                  }`}
+                >
+                  <Copy className="w-5 h-5 text-emerald-400" />
+                  <span className="text-xs font-black">Pay Wallet</span>
                 </button>
               </div>
 
-              {/* Instructions Box */}
-              <div className="bg-[#0b0e14] border border-red-900/30 rounded-xl p-5 mb-6">
-                <div className="flex justify-between items-center border-b border-gray-800 pb-3 mb-3">
-                  <div>
-                    <span className="text-xs text-gray-400 font-bold block">SEND MONEY NUMBER ({paymentMethod})</span>
-                    <span className="font-display text-2xl font-black text-red-500 tracking-wider">
-                      {paymentNumbers[paymentMethod]}
-                    </span>
+              {/* WALLET PAYMENT INSTANT CHECKOUT */}
+              {paymentMethod === 'WALLET' ? (
+                <div className="bg-emerald-950/30 border border-emerald-500/40 rounded-2xl p-5 mb-6 space-y-3">
+                  <div className="flex justify-between items-center text-xs text-emerald-300 font-bold">
+                    <span>Pay with Account Wallet Balance:</span>
+                    <span className="text-sm font-display text-white">Entry Fee: ৳{match.entryFee}</span>
                   </div>
+                  <p className="text-xs text-gray-300">
+                    আপনার একাউন্ট ব্যালেন্স থেকে সাথে সাথে <strong>৳{match.entryFee}</strong> কেটে নেওয়া হবে এবং সাথে সাথে আপনার স্লট **ভেরিফাইড (VERIFIED)** হয়ে যাবে!
+                  </p>
                   <Button
-                    type="button"
-                    onClick={() => handleCopy(paymentNumbers[paymentMethod], paymentMethod)}
-                    className="btn-kong-outline px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-1"
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-gaming text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30"
                   >
-                    {copiedNumber === paymentMethod ? (
+                    {isSubmitting ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="w-5 h-5" />
+                    )}
+                    <span>1-CLICK WALLET PAY & JOIN MATCH</span>
+                  </Button>
+                </div>
+              ) : (
+                /* MANUAL BKASH/NAGAD TRXiD CHECKOUT */
+                <>
+                  <div className="bg-[#0b0e14] border border-red-900/30 rounded-xl p-5 mb-6">
+                    <div className="flex justify-between items-center border-b border-gray-800 pb-3 mb-3">
+                      <div>
+                        <span className="text-xs text-gray-400 font-bold block">SEND MONEY NUMBER ({paymentMethod})</span>
+                        <span className="font-display text-2xl font-black text-red-500 tracking-wider">
+                          {paymentNumbers[paymentMethod as keyof typeof paymentNumbers] || '01712-345678'}
+                        </span>
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={() => handleCopy(paymentNumbers[paymentMethod as keyof typeof paymentNumbers] || '01712-345678', paymentMethod)}
+                        className="btn-kong-outline px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-1"
+                      >
+                        {copiedNumber === paymentMethod ? (
+                          <>
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>COPIED!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>COPY NUMBER</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    <div className="text-xs text-gray-300 space-y-2 font-medium">
+                      <p>১. আপনার <strong>{paymentMethod}</strong> অ্যাপ এ গিয়ে <strong>Send Money</strong> সিলেক্ট করুন।</p>
+                      <p>২. সেন্ড মানি করুন মোট <strong>৳{match.entryFee}</strong> টাকা।</p>
+                      <p>৩. পেমেন্ট সম্পন্ন হলে প্রাপ্ত <strong>Transaction ID (TrxID)</strong> টি কপি করে নিচে বসান।</p>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <Label className="text-xs font-bold text-red-400 uppercase mb-1 block">
+                      TRANSACTION ID (TrxID) দিন <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      required
+                      value={trxId}
+                      onChange={(e) => setTrxId(e.target.value.toUpperCase())}
+                      placeholder="e.g. BAX8912K9L"
+                      className="bg-[#0b0e14] border-2 border-red-600/60 text-lg font-mono font-bold text-red-400 text-center tracking-widest uppercase"
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-gaming text-base font-extrabold flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? (
                       <>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>COPIED!</span>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span>SAVING TO DATABASE...</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3.5 h-3.5" />
-                        <span>COPY NUMBER</span>
+                        <CheckCircle2 className="w-5 h-5" />
+                        <span>SUBMIT & SAVE TO DATABASE</span>
                       </>
                     )}
                   </Button>
-                </div>
-
-                <div className="text-xs text-gray-300 space-y-2 font-medium">
-                  <p>১. আপনার <strong>{paymentMethod}</strong> অ্যাপ এ গিয়ে <strong>Send Money</strong> সিলেক্ট করুন।</p>
-                  <p>২. সেন্ড মানি করুন মোট <strong>৳{match.entryFee}</strong> টাকা।</p>
-                  <p>৩. পেমেন্ট সম্পন্ন হলে প্রাপ্ত <strong>Transaction ID (TrxID)</strong> টি কপি করে নিচে বসান।</p>
-                </div>
-              </div>
-
-              {/* Transaction ID Input */}
-              <div className="mb-6">
-                <Label className="text-xs font-bold text-red-400 uppercase mb-1 block">
-                  TRANSACTION ID (TrxID) দিন <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  required
-                  value={trxId}
-                  onChange={(e) => setTrxId(e.target.value.toUpperCase())}
-                  placeholder="e.g. BAX8912K9L"
-                  className="bg-[#0b0e14] border-2 border-red-600/60 text-lg font-mono font-bold text-red-400 text-center tracking-widest uppercase"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-gaming text-base font-extrabold flex items-center justify-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>SAVING TO DATABASE...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span>SUBMIT & SAVE TO DATABASE</span>
-                  </>
-                )}
-              </Button>
+                </>
+              )}
             </form>
           )}
 
-          {/* STEP 3: SUCCESS CONFIRMATION */}
+          {/* STEP 3: SUCCESS CONFIRMATION & WHATSAPP MATCH GROUP LINK */}
           {step === 'SUCCESS' && (
-            <div className="text-center py-4">
-              <div className="w-16 h-16 bg-green-500/20 border-2 border-green-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+            <div className="text-center py-4 space-y-4">
+              <div className="w-16 h-16 bg-green-500/20 border-2 border-green-500 rounded-full flex items-center justify-center mx-auto animate-bounce">
                 <svg className="w-10 h-10 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
 
-              <Badge className="bg-red-600/20 border border-red-600/40 text-red-400 text-xs font-bold uppercase mb-2">
-                SAVED TO DATABASE • PENDING ADMIN VERIFICATION
+              <Badge className="bg-emerald-950 border border-emerald-500/40 text-emerald-400 text-xs font-bold uppercase">
+                {paymentMethod === 'WALLET' ? 'SLOT INSTANTLY VERIFIED' : 'PENDING ADMIN VERIFICATION'}
               </Badge>
 
-              <h3 className="font-display text-3xl font-black text-white uppercase mb-2 flex items-center justify-center gap-2">
+              <h3 className="font-display text-2xl sm:text-3xl font-black text-white uppercase flex items-center justify-center gap-2">
                 <span>SLOT RESERVED SUCCESSFULLY!</span>
                 <Gamepad2 className="w-7 h-7 text-red-500" />
               </h3>
-              <p className="text-sm text-gray-300 max-w-md mx-auto mb-6">
-                আপনার স্লট বুকিং ও ট্রানজেকশন তথ্য সুপাবেস (Supabase) ডাটাবেজে সংরক্ষণ করা হয়েছে। এডমিন ভেরিফাই করার পর আপনার WhatsApp নাম্বারে গেম শুরুর ১৫ মিনিট আগে <strong>Room ID & Password</strong> পাঠাবেন।
+
+              <p className="text-xs text-gray-300 max-w-md mx-auto">
+                আপনার স্লট বুকিং সুপাবেস ডাটাবেজে সংরক্ষিত হয়েছে। ম্যাচ শুরুর ১৫ মিনিট আগে আপনার ড্যাশবোর্ডে **Room ID & Password** দেখতে পাবেন।
               </p>
 
-              {dbBookingId && (
-                <div className="mb-4 text-xs font-mono text-gray-400">
-                  BOOKING DB ID: <span className="text-red-400">{dbBookingId}</span>
-                </div>
-              )}
+              {/* Tournament WhatsApp Group Link Button */}
+              <div className="p-4 bg-[#111625] border border-emerald-500/40 rounded-2xl space-y-2">
+                <span className="text-xs text-emerald-400 font-bold block">
+                  📢 টুর্নামেন্ট ওয়াটসঅ্যাপ অফিশিয়াল গ্রূপ লিংক:
+                </span>
+                <a
+                  href={match.whatsappGroupLink || 'https://chat.whatsapp.com/KongKaaLMatchGroup'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-xs inline-flex items-center justify-center gap-2 no-underline shadow-lg shadow-emerald-600/30"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>JOIN MATCH WHATSAPP GROUP FOR ROOM CODE</span>
+                </a>
+              </div>
 
-              <a
-                href={`https://wa.me/8801700000000?text=${whatsappMessage}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 px-6 rounded-xl font-gaming text-sm font-extrabold inline-flex items-center gap-2 no-underline shadow-lg mb-3"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>INSTANT CONFIRM ON WHATSAPP</span>
-              </a>
+              <div className="pt-2 flex justify-center gap-3">
+                <a
+                  href="/dashboard"
+                  className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-2.5 px-5 rounded-xl border border-white/20 no-underline"
+                >
+                  View My Dashboard
+                </a>
+                <Button onClick={onClose} className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl">
+                  Close Window
+                </Button>
+              </div>
             </div>
           )}
-
         </div>
       </DialogContent>
     </Dialog>
