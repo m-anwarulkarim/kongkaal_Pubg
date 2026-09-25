@@ -1,4 +1,4 @@
-import { useState, ImgHTMLAttributes } from 'react'
+import { useState, type ImgHTMLAttributes } from 'react'
 
 export interface ImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   src: string

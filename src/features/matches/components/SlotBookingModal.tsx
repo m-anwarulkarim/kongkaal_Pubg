@@ -43,9 +43,9 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
   const [player2Name, setPlayer2Name] = useState('')
   const [player2Uid, setPlayer2Uid] = useState('')
   const [player3Name, setPlayer3Name] = useState('')
-  const [player3Uid, setPlayer3Uid] = useState('')
+  const [player3Uid, _setPlayer3Uid] = useState('')
   const [player4Name, setPlayer4Name] = useState('')
-  const [player4Uid, setPlayer4Uid] = useState('')
+  const [player4Uid, _setPlayer4Uid] = useState('')
 
   // Payment State
   const [paymentMethod, setPaymentMethod] = useState<'bKash' | 'Nagad' | 'Rocket'>('bKash')

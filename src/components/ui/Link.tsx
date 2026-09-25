@@ -1,4 +1,4 @@
-import { AnchorHTMLAttributes, forwardRef } from 'react'
+import { type AnchorHTMLAttributes, forwardRef } from 'react'
 import { Link as TanStackLink } from '@tanstack/react-router'
 
 export interface LinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
