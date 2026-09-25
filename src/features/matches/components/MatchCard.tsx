@@ -61,19 +61,32 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
             </span>
           </div>
 
-          {/* Prize Stats 3 Columns */}
-          <div className="grid grid-cols-3 gap-2 bg-[#0b0d14] rounded-xl p-3 mb-4 text-left border border-white/5">
+          {/* Prize Stats Main Bar */}
+          <div className="grid grid-cols-3 gap-2 bg-[#0b0d14] rounded-xl p-3 mb-3 text-left border border-white/5">
             <div>
               <span className="text-[10px] text-gray-400 font-medium block">Entry Fee</span>
               <span className="font-display text-xl font-black text-white">৳{match.entryFee}</span>
             </div>
             <div>
-              <span className="text-[10px] text-gray-400 font-medium block">Prize Pool</span>
-              <span className="font-display text-xl font-black text-white">৳{match.winnerPrize}</span>
+              <span className="text-[10px] text-gray-400 font-medium block">Total Prize</span>
+              <span className="font-display text-xl font-black text-emerald-400">৳{match.winnerPrize}</span>
             </div>
             <div>
               <span className="text-[10px] text-gray-400 font-medium block">Per Kill</span>
-              <span className="font-display text-xl font-black text-white">৳{match.perKillPrize}</span>
+              <span className="font-display text-xl font-black text-amber-400">৳{match.perKillPrize}</span>
+            </div>
+          </div>
+
+          {/* 1st, 2nd, 3rd Place Prize Breakdown Badges */}
+          <div className="grid grid-cols-3 gap-1.5 text-[10px] font-bold text-center mb-4 bg-white/5 p-2 rounded-xl border border-white/5">
+            <div className="bg-amber-950/60 border border-amber-500/30 text-amber-300 py-1 px-1 rounded-lg">
+              🥇 1st: ৳{match.firstPrize || match.winnerPrize}
+            </div>
+            <div className="bg-slate-900 border border-slate-400/30 text-slate-300 py-1 px-1 rounded-lg">
+              🥈 2nd: ৳{match.secondPrize || 0}
+            </div>
+            <div className="bg-amber-950/30 border border-amber-700/30 text-amber-500 py-1 px-1 rounded-lg">
+              🥉 3rd: ৳{match.thirdPrize || 0}
             </div>
           </div>
         </div>

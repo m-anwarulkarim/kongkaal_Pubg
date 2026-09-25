@@ -251,7 +251,7 @@ export default function MatchesTab({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-gray-300 font-bold block mb-1">Entry Fee (৳)</Label>
                   <Input
@@ -262,7 +262,7 @@ export default function MatchesTab({
                   />
                 </div>
                 <div>
-                  <Label className="text-gray-300 font-bold block mb-1">Prize (৳)</Label>
+                  <Label className="text-gray-300 font-bold block mb-1">Total Prize Pool (৳)</Label>
                   <Input
                     type="number"
                     value={editingMatch.winnerPrize}
@@ -270,14 +270,48 @@ export default function MatchesTab({
                     className="bg-[#07080b] border-gray-700 text-white"
                   />
                 </div>
-                <div>
-                  <Label className="text-gray-300 font-bold block mb-1">Per Kill (৳)</Label>
-                  <Input
-                    type="number"
-                    value={editingMatch.perKillPrize}
-                    onChange={(e) => setEditingMatch({ ...editingMatch, perKillPrize: Number(e.target.value) })}
-                    className="bg-[#07080b] border-gray-700 text-white"
-                  />
+              </div>
+
+              {/* 1st, 2nd, 3rd Prize Breakdown Inputs */}
+              <div className="bg-[#07080b] p-3 rounded-xl border border-white/10 space-y-2">
+                <span className="text-[11px] font-bold text-amber-400 block uppercase">🏆 Prize Pool Breakdown (1st, 2nd, 3rd Place)</span>
+                <div className="grid grid-cols-4 gap-2">
+                  <div>
+                    <Label className="text-[10px] font-bold text-gray-400 block mb-0.5">🥇 1st Prize</Label>
+                    <Input
+                      type="number"
+                      value={editingMatch.firstPrize || editingMatch.winnerPrize}
+                      onChange={(e) => setEditingMatch({ ...editingMatch, firstPrize: Number(e.target.value) })}
+                      className="bg-[#101420] border-gray-700 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-bold text-gray-400 block mb-0.5">🥈 2nd Prize</Label>
+                    <Input
+                      type="number"
+                      value={editingMatch.secondPrize || 0}
+                      onChange={(e) => setEditingMatch({ ...editingMatch, secondPrize: Number(e.target.value) })}
+                      className="bg-[#101420] border-gray-700 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-bold text-gray-400 block mb-0.5">🥉 3rd Prize</Label>
+                    <Input
+                      type="number"
+                      value={editingMatch.thirdPrize || 0}
+                      onChange={(e) => setEditingMatch({ ...editingMatch, thirdPrize: Number(e.target.value) })}
+                      className="bg-[#101420] border-gray-700 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-bold text-gray-400 block mb-0.5">💥 Per Kill</Label>
+                    <Input
+                      type="number"
+                      value={editingMatch.perKillPrize}
+                      onChange={(e) => setEditingMatch({ ...editingMatch, perKillPrize: Number(e.target.value) })}
+                      className="bg-[#101420] border-gray-700 text-white text-xs"
+                    />
+                  </div>
                 </div>
               </div>
 

@@ -12,6 +12,9 @@ export interface MatchItem {
   time: string
   entryFee: number
   winnerPrize: number
+  firstPrize?: number
+  secondPrize?: number
+  thirdPrize?: number
   perKillPrize: number
   joinedSlots: number
   maxSlots: number

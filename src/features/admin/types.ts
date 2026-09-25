@@ -7,6 +7,9 @@ export interface NewMatchFormData {
   time: string
   entryFee: number
   winnerPrize: number
+  firstPrize: number
+  secondPrize: number
+  thirdPrize: number
   perKillPrize: number
   maxSlots: number
   image: string

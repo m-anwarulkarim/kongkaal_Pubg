@@ -139,7 +139,7 @@ export default function AdminHeader({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs font-bold text-gray-300">Entry Fee (৳)</Label>
                   <Input
@@ -153,7 +153,7 @@ export default function AdminHeader({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs font-bold text-gray-300">Winner Prize (৳)</Label>
+                  <Label className="text-xs font-bold text-gray-300">Total Prize Pool (৳)</Label>
                   <Input
                     type="number"
                     value={newMatchForm.winnerPrize}
@@ -164,17 +164,56 @@ export default function AdminHeader({
                     className="bg-[#07080b] border-gray-700 text-white rounded-xl"
                   />
                 </div>
-                <div>
-                  <Label className="text-xs font-bold text-gray-300">Per Kill (৳)</Label>
-                  <Input
-                    type="number"
-                    value={newMatchForm.perKillPrize}
-                    onChange={(e) =>
-                      setNewMatchForm((prev) => ({ ...prev, perKillPrize: Number(e.target.value) }))
-                    }
-                    required
-                    className="bg-[#07080b] border-gray-700 text-white rounded-xl"
-                  />
+              </div>
+
+              {/* 1st, 2nd, 3rd Prize Breakdown */}
+              <div className="bg-[#07080b] p-3 rounded-xl border border-white/10 space-y-2">
+                <span className="text-[11px] font-bold text-amber-400 block uppercase">🏆 Prize Pool Breakdown (1st, 2nd, 3rd Place)</span>
+                <div className="grid grid-cols-4 gap-2">
+                  <div>
+                    <Label className="text-[10px] font-bold text-gray-400 block mb-0.5">🥇 1st Prize</Label>
+                    <Input
+                      type="number"
+                      value={newMatchForm.firstPrize}
+                      onChange={(e) =>
+                        setNewMatchForm((prev) => ({ ...prev, firstPrize: Number(e.target.value) }))
+                      }
+                      className="bg-[#101420] border-gray-700 text-white rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-bold text-gray-400 block mb-0.5">🥈 2nd Prize</Label>
+                    <Input
+                      type="number"
+                      value={newMatchForm.secondPrize}
+                      onChange={(e) =>
+                        setNewMatchForm((prev) => ({ ...prev, secondPrize: Number(e.target.value) }))
+                      }
+                      className="bg-[#101420] border-gray-700 text-white rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-bold text-gray-400 block mb-0.5">🥉 3rd Prize</Label>
+                    <Input
+                      type="number"
+                      value={newMatchForm.thirdPrize}
+                      onChange={(e) =>
+                        setNewMatchForm((prev) => ({ ...prev, thirdPrize: Number(e.target.value) }))
+                      }
+                      className="bg-[#101420] border-gray-700 text-white rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-bold text-gray-400 block mb-0.5">💥 Per Kill</Label>
+                    <Input
+                      type="number"
+                      value={newMatchForm.perKillPrize}
+                      onChange={(e) =>
+                        setNewMatchForm((prev) => ({ ...prev, perKillPrize: Number(e.target.value) }))
+                      }
+                      className="bg-[#101420] border-gray-700 text-white rounded-lg text-xs"
+                    />
+                  </div>
                 </div>
               </div>
 
