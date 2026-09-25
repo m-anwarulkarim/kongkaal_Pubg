@@ -247,6 +247,7 @@ function AdminDashboard() {
               matches={matches}
               setNewMatchOpen={setNewMatchOpen}
               handleDeleteMatch={handleDeleteMatch}
+              onRefreshMatches={loadAdminData}
             />
           )}
 

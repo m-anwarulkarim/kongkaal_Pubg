@@ -97,6 +97,36 @@ export async function deleteMatch(id: string): Promise<{ success: boolean; messa
   }
 }
 
+// 3b. Update Existing Match (Title, Image Picture, Entry Fee, Prize, etc.)
+export async function updateMatch(match: MatchItem): Promise<{ success: boolean; message: string }> {
+  if (!isSupabaseConfigured()) {
+    return { success: true, message: 'Match updated locally' }
+  }
+
+  try {
+    const { error } = await supabase
+      .from('matches')
+      .update({
+        title: match.title,
+        mode: match.mode,
+        map: match.map,
+        time: match.time,
+        entry_fee: match.entryFee,
+        winner_prize: match.winnerPrize,
+        per_kill_prize: match.perKillPrize,
+        max_slots: match.maxSlots,
+        image: match.image,
+        status: match.status,
+      })
+      .eq('id', match.id)
+
+    if (error) return { success: false, message: error.message }
+    return { success: true, message: 'Match updated successfully in Supabase!' }
+  } catch (err: any) {
+    return { success: false, message: err?.message || 'Failed to update match' }
+  }
+}
+
 // 4. Save Player Slot Registration & Payment TrxID
 export async function saveRegistration(registration: PlayerRegistration): Promise<{ success: boolean; message: string; id?: string }> {
   console.log('[DB Service] Saving slot registration:', registration)

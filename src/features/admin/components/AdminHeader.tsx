@@ -203,7 +203,68 @@ export default function AdminHeader({
                 </div>
               </div>
 
-              <Button type="submit" className="w-full btn-kong-red py-3 rounded-xl font-gaming text-sm font-extrabold">
+              {/* Match Picture / Banner Selection & Custom Upload */}
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <Label className="text-xs font-bold text-gray-300 block">Match Picture / Banner Image</Label>
+                
+                {/* Preset Image Options */}
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { label: 'Solo', url: '/solo_battle.jpg' },
+                    { label: 'Duo', url: '/duo_battle.jpg' },
+                    { label: 'Squad', url: '/squad_showdown.jpg' },
+                    { label: 'Banner', url: '/hero_banner.jpg' },
+                  ].map((img) => (
+                    <button
+                      type="button"
+                      key={img.url}
+                      onClick={() => setNewMatchForm((prev) => ({ ...prev, image: img.url }))}
+                      className={`relative rounded-xl overflow-hidden border-2 h-14 transition-all ${
+                        newMatchForm.image === img.url ? 'border-red-500 shadow-md shadow-red-500/40 scale-105' : 'border-white/10 opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={img.url} alt={img.label} className="w-full h-full object-cover" />
+                      <span className="absolute bottom-0 inset-x-0 bg-black/70 text-[9px] font-bold text-white text-center py-0.5">
+                        {img.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Image URL or Device File Upload */}
+                <div className="flex gap-2 items-center pt-1">
+                  <Input
+                    type="text"
+                    placeholder="Or paste Image URL (https://...)"
+                    value={newMatchForm.image}
+                    onChange={(e) => setNewMatchForm((prev) => ({ ...prev, image: e.target.value }))}
+                    className="bg-[#07080b] border-gray-700 text-white rounded-xl text-xs flex-1"
+                  />
+
+                  <label className="cursor-pointer bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-3 py-2 rounded-xl border border-white/20 shrink-0">
+                    Upload Picture
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          const reader = new FileReader()
+                          reader.onloadend = () => {
+                            if (reader.result) {
+                              setNewMatchForm((prev) => ({ ...prev, image: reader.result as string }))
+                            }
+                          }
+                          reader.readAsDataURL(file)
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full btn-kong-red py-3 rounded-xl font-gaming text-sm font-extrabold mt-2">
                 Save Match to Supabase
               </Button>
             </form>
