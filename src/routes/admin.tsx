@@ -18,6 +18,7 @@ import {
   AdminHeader,
   OverviewTab,
   PaymentsTab,
+  WalletTab,
   MatchesTab,
   PlayersTab,
   SettingsTab,
@@ -238,6 +239,8 @@ function AdminDashboard() {
               handleStatusUpdate={handleStatusUpdate}
             />
           )}
+
+          {activeTab === 'WALLET' && <WalletTab />}
 
           {activeTab === 'MATCHES' && (
             <MatchesTab

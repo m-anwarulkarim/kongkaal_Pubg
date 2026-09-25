@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { MatchItem } from '@/types/match'
 import { saveRegistration } from '@/lib/db'
+import { useCustomerAuth } from '@/lib/auth'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,6 +31,8 @@ interface SlotBookingModalProps {
 export default function SlotBookingModal({ match, open, onClose }: SlotBookingModalProps) {
   if (!match) return null
 
+  const { user } = useCustomerAuth()
+
   const [step, setStep] = useState<'DETAILS' | 'PAYMENT' | 'SUCCESS'>('DETAILS')
   const [copiedNumber, setCopiedNumber] = useState<string | null>(null)
 
@@ -38,6 +41,14 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
   const [player1Name, setPlayer1Name] = useState('')
   const [player1Uid, setPlayer1Uid] = useState('')
   const [whatsappNumber, setWhatsappNumber] = useState('')
+
+  // Auto pre-fill if customer logged in via Google
+  useEffect(() => {
+    if (user && !player1Name) {
+      const googleName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || ''
+      setPlayer1Name(googleName)
+    }
+  }, [user, open])
 
   // Teammates
   const [player2Name, setPlayer2Name] = useState('')

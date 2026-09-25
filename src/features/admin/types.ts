@@ -1,4 +1,4 @@
-export type AdminTabType = 'OVERVIEW' | 'PAYMENTS' | 'MATCHES' | 'PLAYERS' | 'SETTINGS'
+export type AdminTabType = 'OVERVIEW' | 'PAYMENTS' | 'WALLET' | 'MATCHES' | 'PLAYERS' | 'SETTINGS'
 
 export interface NewMatchFormData {
   title: string
@@ -11,3 +11,4 @@ export interface NewMatchFormData {
   maxSlots: number
   image: string
 }
+

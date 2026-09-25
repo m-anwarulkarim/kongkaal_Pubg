@@ -5,6 +5,7 @@ import {
   X,
   LayoutDashboard,
   CreditCard,
+  Wallet,
   Gamepad2,
   Users,
   Settings,
@@ -115,6 +116,22 @@ export default function AdminSidebar({
                   {pendingCount}
                 </span>
               )}
+            </button>
+
+            {/* Wallet & Money Management */}
+            <button
+              onClick={() => {
+                setActiveTab('WALLET')
+                if (typeof window !== 'undefined' && window.innerWidth < 768) setSidebarOpen(false)
+              }}
+              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'WALLET'
+                  ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-600/30'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Wallet className="w-5 h-5 shrink-0 text-emerald-400" />
+              <span className={sidebarOpen ? 'block' : 'hidden md:hidden'}>Wallet & Money</span>
             </button>
 
             {/* Tournament Matches */}
