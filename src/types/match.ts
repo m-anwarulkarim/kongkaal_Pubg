@@ -4,6 +4,11 @@ export type MapName = 'Erangel' | 'Miramar' | 'Sanhok' | 'Livik'
 
 export type MatchStatus = 'OPEN' | 'FILLING_FAST' | 'LIVE_SOON' | 'COMPLETED'
 
+export interface RankPrize {
+  rank: string
+  amount: number
+}
+
 export interface MatchItem {
   id: string
   title: string
@@ -16,6 +21,7 @@ export interface MatchItem {
   secondPrize?: number
   thirdPrize?: number
   perKillPrize: number
+  rankPrizes?: RankPrize[]
   joinedSlots: number
   maxSlots: number
   image: string
