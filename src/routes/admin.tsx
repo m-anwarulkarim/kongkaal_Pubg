@@ -9,7 +9,8 @@ import {
   deleteMatch,
   type RegistrationRecord,
 } from '@/lib/db'
-import { getAllCustomerProfiles } from '@/lib/wallet'
+import { getAllCustomerProfiles, getWalletTransactions } from '@/lib/wallet'
+import { getSupportMessages } from '@/lib/support'
 import { supabase } from '@/lib/supabase'
 import type { MatchItem } from '@/types/match'
 import {
@@ -44,6 +45,8 @@ function AdminDashboard() {
   // Admin Data State
   const [matches, setMatches] = useState<MatchItem[]>([])
   const [registrations, setRegistrations] = useState<RegistrationRecord[]>([])
+  const [walletTxs, setWalletTxs] = useState<any[]>([])
+  const [supportMsgs, setSupportMsgs] = useState<any[]>([])
   const [customerCount, setCustomerCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -115,14 +118,18 @@ function AdminDashboard() {
 
   const loadAdminData = async () => {
     setLoading(true)
-    const [matchesData, regsData, custsData] = await Promise.all([
+    const [matchesData, regsData, custsData, txsData, msgsData] = await Promise.all([
       getMatches(),
       getAllRegistrations(),
       getAllCustomerProfiles(),
+      getWalletTransactions(),
+      getSupportMessages(),
     ])
     setMatches(matchesData)
     setRegistrations(regsData)
     setCustomerCount(custsData.length)
+    setWalletTxs(txsData)
+    setSupportMsgs(msgsData)
     setLoading(false)
   }
 
@@ -206,6 +213,8 @@ function AdminDashboard() {
 
   // Calculate Overview Stats
   const pendingCount = registrations.filter((r) => r.status === 'PENDING').length
+  const pendingWalletCount = walletTxs.filter((t) => t.status === 'PENDING').length
+  const pendingSupportCount = supportMsgs.filter((m) => m.status === 'PENDING').length
   const verifiedCount = registrations.filter((r) => r.status === 'VERIFIED').length
   const totalRevenue = registrations.reduce((sum, r) => (r.status === 'VERIFIED' ? sum + r.amount : sum), 0)
 
@@ -242,6 +251,8 @@ function AdminDashboard() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         pendingCount={pendingCount}
+        pendingWalletCount={pendingWalletCount}
+        pendingSupportCount={pendingSupportCount}
         matchesCount={matches.length}
         handleLogout={handleLogout}
       />

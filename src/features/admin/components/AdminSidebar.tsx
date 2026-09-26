@@ -20,6 +20,8 @@ interface AdminSidebarProps {
   activeTab: AdminTabType
   setActiveTab: (tab: AdminTabType) => void
   pendingCount: number
+  pendingWalletCount?: number
+  pendingSupportCount?: number
   matchesCount: number
   handleLogout: () => void
 }
@@ -30,6 +32,8 @@ export default function AdminSidebar({
   activeTab,
   setActiveTab,
   pendingCount,
+  pendingWalletCount = 0,
+  pendingSupportCount = 0,
   matchesCount,
   handleLogout,
 }: AdminSidebarProps) {
@@ -45,13 +49,15 @@ export default function AdminSidebar({
       label: 'Payment Approvals',
       icon: CreditCard,
       badge: pendingCount > 0 ? pendingCount : null,
-      badgeColor: 'bg-amber-500 text-black',
+      badgeColor: 'bg-amber-500 text-black font-black animate-pulse shadow-md shadow-amber-500/20',
       iconColor: 'text-amber-400',
     },
     {
       id: 'WALLET' as const,
       label: 'Wallet & Money',
       icon: Wallet,
+      badge: pendingWalletCount > 0 ? pendingWalletCount : null,
+      badgeColor: 'bg-emerald-500 text-black font-black animate-pulse shadow-md shadow-emerald-500/20',
       iconColor: 'text-emerald-400',
     },
     {
@@ -78,6 +84,8 @@ export default function AdminSidebar({
       id: 'MESSAGES' as const,
       label: 'Support Messages',
       icon: MessageSquare,
+      badge: pendingSupportCount > 0 ? pendingSupportCount : null,
+      badgeColor: 'bg-red-500 text-white font-black animate-pulse shadow-md shadow-red-500/20',
       iconColor: 'text-sky-400',
     },
     {
@@ -160,8 +168,17 @@ export default function AdminSidebar({
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 relative">
                     <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : item.iconColor}`} />
+                    {!sidebarOpen && item.badge !== null && item.badge !== undefined && (
+                      <span
+                        className={`absolute -top-1.5 -right-2 text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center ${
+                          item.badgeColor || 'bg-red-500 text-white'
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
                     {sidebarOpen && <span className="truncate">{item.label}</span>}
                   </div>
 
