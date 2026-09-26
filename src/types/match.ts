@@ -58,4 +58,5 @@ export interface LeaderboardItem {
   prizeWon: number
   status: 'VERIFIED PAYOUT' | 'PENDING'
   isPinned?: boolean
+  pinnedPosition?: number
 }

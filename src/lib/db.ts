@@ -473,6 +473,7 @@ export async function getLeaderboard(): Promise<LeaderboardItem[]> {
       prizeWon: Number(d.prize_won),
       status: d.status || 'VERIFIED PAYOUT',
       isPinned: Boolean(d.is_pinned),
+      pinnedPosition: d.pinned_position ? Number(d.pinned_position) : undefined,
     }))
   } catch {
     return getLocalLeaderboard()
@@ -510,6 +511,7 @@ export async function createLeaderboardItem(
         prize_won: item.prizeWon,
         status: item.status,
         is_pinned: item.isPinned || false,
+        pinned_position: item.pinnedPosition || null,
       },
     ])
     if (error) {
@@ -546,6 +548,7 @@ export async function updateLeaderboardItem(
           prize_won: updates.prizeWon,
           status: updates.status,
           is_pinned: updates.isPinned,
+          pinned_position: updates.pinnedPosition,
         })
         .eq('id', id)
     } catch (err) {

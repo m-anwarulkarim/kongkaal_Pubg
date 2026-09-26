@@ -29,9 +29,12 @@ export default function Leaderboard() {
     if (sortBy === 'TOP_PRIZE') {
       return b.prizeWon - a.prizeWon
     }
-    if (a.isPinned && !b.isPinned) return -1
-    if (!a.isPinned && b.isPinned) return 1
-    return 0
+    const posA = a.pinnedPosition || (a.isPinned ? 1 : 999)
+    const posB = b.pinnedPosition || (b.isPinned ? 1 : 999)
+    if (posA !== posB) {
+      return posA - posB
+    }
+    return b.kills - a.kills
   })
 
   return (
