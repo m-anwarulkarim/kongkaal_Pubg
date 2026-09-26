@@ -38,12 +38,12 @@ export default function Header({ onRegisterClick }: HeaderProps) {
   const { user, signOut } = useCustomerAuth()
 
   const navItems = [
-    { label: 'Home', href: '#', icon: Home },
-    { label: 'Tournaments', href: '#tournaments', icon: Trophy },
-    { label: 'Leaderboard', href: '#leaderboard', icon: Medal },
-    { label: 'Players', href: '#players', icon: Users },
-    { label: 'About', href: '#about', icon: Info },
-    { label: 'Contact', href: '#contact', icon: PhoneCall },
+    { label: 'Home', href: '/', icon: Home },
+    { label: 'Tournaments', href: '/#tournaments', icon: Trophy },
+    { label: 'Leaderboard', href: '/#leaderboard', icon: Medal },
+    { label: 'Players', href: '/#players', icon: Users },
+    { label: 'About', href: '/#about', icon: Info },
+    { label: 'Contact', href: '/#contact', icon: PhoneCall },
   ]
 
   const userAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture
@@ -55,7 +55,7 @@ export default function Header({ onRegisterClick }: HeaderProps) {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-4">
           
           {/* KongKaaL GAMING Logo */}
-          <Link href="#" className="flex items-center gap-1.5 sm:gap-2 no-underline group shrink-0">
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2 no-underline group shrink-0">
             <div className="relative flex items-center justify-center">
               {/* Crown Icon */}
               <svg className="w-5 h-5 sm:w-8 sm:h-8 text-red-600 fill-current drop-shadow-[0_0_10px_rgba(229,9,20,0.6)]" viewBox="0 0 24 24">
@@ -283,7 +283,7 @@ export default function Header({ onRegisterClick }: HeaderProps) {
             <div>
               {/* Sidebar Header */}
               <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-5">
-                <Link href="#" className="flex items-center gap-2 no-underline" onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/" className="flex items-center gap-2 no-underline" onClick={() => setMobileMenuOpen(false)}>
                   <svg className="w-7 h-7 text-red-600 fill-current drop-shadow-[0_0_10px_rgba(229,9,20,0.6)]" viewBox="0 0 24 24">
                     <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
                   </svg>
