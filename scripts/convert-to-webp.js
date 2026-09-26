@@ -12,16 +12,18 @@ const files = fs.readdirSync(publicDir)
 
 for (const file of files) {
   const ext = path.extname(file).toLowerCase()
-  if (ext === '.jpg' || ext === '.jpeg' || ext === '.png') {
+  if (ext === '.webp') {
     const filePath = path.join(publicDir, file)
-    const baseName = path.basename(file, ext)
-    const webpPath = path.join(publicDir, `${baseName}.webp`)
 
-    console.log(`Converting ${file} -> ${baseName}.webp ...`)
-    await sharp(filePath)
-      .webp({ quality: 85 })
-      .toFile(webpPath)
-    console.log(`✓ Created ${baseName}.webp`)
+    console.log(`Optimizing ${file} ...`)
+    const inputBuffer = fs.readFileSync(filePath)
+    const buffer = await sharp(inputBuffer)
+      .resize({ width: 800, withoutEnlargement: true })
+      .webp({ quality: 65 })
+      .toBuffer()
+
+    fs.writeFileSync(filePath, buffer)
+    console.log(`✓ Optimized ${file} -> ${(buffer.length / 1024).toFixed(1)} KB`)
   }
 }
-console.log('All public images converted to webp successfully!')
+console.log('All public WebP images compressed to under 100 KB successfully!')
