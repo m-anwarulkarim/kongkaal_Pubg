@@ -201,113 +201,101 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
 
             </div>
 
-            {/* Right Column Side Panel (Stacked Widgets) */}
-            <div className="lg:col-span-4 space-y-3">
+            {/* Right Column Side Panel (2-Line Grid Layout: 2 Widgets per line) */}
+            <div className="lg:col-span-4 grid grid-cols-2 gap-2 sm:gap-3">
               
               {/* Widget 1: LIVE Tournament Ongoing */}
-              <div className="bg-[#10131a]/90 backdrop-blur-md border border-white/10 rounded-xl p-4 flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="bg-[#e50914] text-white text-[10px] font-extrabold px-2 py-0.5 rounded tracking-wider animate-pulse uppercase">
+              <div className="bg-[#10131a]/90 backdrop-blur-md border border-white/10 rounded-xl p-3 flex items-center justify-between min-w-0">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="bg-[#e50914] text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded tracking-wider animate-pulse uppercase shrink-0">
                       LIVE
                     </span>
-                    <span className="text-xs font-bold text-white">{heroSettings.liveStatusText}</span>
+                    <span className="text-[11px] sm:text-xs font-bold text-white truncate">{heroSettings.liveStatusText}</span>
                   </div>
-                  <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1">
-                    <Eye className="w-3.5 h-3.5 text-gray-400" /> {displayLiveCount} Players Active
+                  <span className="text-[10px] sm:text-[11px] text-gray-400 font-medium flex items-center gap-1 truncate">
+                    <Eye className="w-3 h-3 text-gray-400 shrink-0" /> {displayLiveCount} Active
                   </span>
                 </div>
-                <div className="p-2 bg-red-600/10 border border-red-600/20 rounded-lg text-red-500">
-                  <Gamepad2 className="w-6 h-6" />
+                <div className="p-1.5 bg-red-600/10 border border-red-600/20 rounded-lg text-red-500 shrink-0">
+                  <Gamepad2 className="w-5 h-5" />
                 </div>
               </div>
 
               {/* Widget 2: Interactive PUBG Esports Gameplay Video Card */}
               <div
                 onClick={() => setVideoModalOpen(true)}
-                className="relative overflow-hidden bg-gradient-to-r from-[#121624] to-[#1a0f1d] border border-red-500/30 hover:border-red-500 rounded-xl p-3.5 transition-all duration-300 shadow-lg hover:shadow-red-600/30 cursor-pointer group"
+                className="relative overflow-hidden bg-gradient-to-r from-[#121624] to-[#1a0f1d] border border-red-500/30 hover:border-red-500 rounded-xl p-2.5 sm:p-3 transition-all duration-300 shadow-lg hover:shadow-red-600/30 cursor-pointer group flex items-center gap-2 min-w-0"
               >
-                <div className="flex items-center gap-3">
-                  <div className="relative w-20 h-14 rounded-lg overflow-hidden border border-white/20 shrink-0 bg-black">
-                    <Image
-                      src="/kongkaal_hero.webp"
-                      alt="PUBG Trailer Thumbnail"
-                      fill
-                      className="object-cover opacity-80 group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <div className="w-7 h-7 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                        <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-                      </div>
+                <div className="relative w-12 h-9 sm:w-14 sm:h-10 rounded-lg overflow-hidden border border-white/20 shrink-0 bg-black">
+                  <Image
+                    src="/kongkaal_hero.webp"
+                    alt="PUBG Trailer Thumbnail"
+                    fill
+                    className="object-cover opacity-80 group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
                     </div>
                   </div>
+                </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-red-400 uppercase tracking-wider mb-0.5">
-                      <Film className="w-3 h-3 text-red-500" />
-                      <span>Esports Trailer</span>
-                    </div>
-                    <div className="text-xs font-extrabold text-white truncate group-hover:text-red-400 transition-colors">
-                      Watch PUBG Mobile Gameplay
-                    </div>
-                    <span className="text-[10px] text-gray-400 block font-mono mt-0.5">
-                      Click to Play Trailer Video 🎬
-                    </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1 text-[9px] font-bold text-red-400 uppercase tracking-wider mb-0.5">
+                    <Film className="w-2.5 h-2.5 text-red-500 shrink-0" />
+                    <span className="truncate">Esports Trailer</span>
                   </div>
+                  <div className="text-[11px] sm:text-xs font-extrabold text-white truncate group-hover:text-red-400 transition-colors">
+                    Watch Gameplay
+                  </div>
+                  <span className="text-[9px] text-gray-400 block font-mono truncate">
+                    Play Trailer 🎬
+                  </span>
                 </div>
               </div>
 
               {/* Widget 3: Next Match Timer (Animated Glowing Card) */}
               <div
                 onClick={onJoinClick}
-                className="relative overflow-hidden bg-gradient-to-r from-[#121624] via-[#161c2e] to-[#121624] backdrop-blur-md border border-red-500/30 hover:border-red-500 rounded-xl p-4 transition-all duration-300 shadow-[0_0_20px_rgba(229,9,20,0.15)] hover:shadow-[0_0_30px_rgba(229,9,20,0.35)] hover:-translate-y-0.5 cursor-pointer group"
+                className="relative overflow-hidden bg-gradient-to-r from-[#121624] via-[#161c2e] to-[#121624] backdrop-blur-md border border-red-500/30 hover:border-red-500 rounded-xl p-3 transition-all duration-300 shadow-md cursor-pointer group"
               >
-                {/* Glowing Radar Light Pulse in Corner */}
-                <div className="absolute -top-10 -right-10 w-24 h-24 bg-red-600/20 rounded-full blur-xl pointer-events-none group-hover:bg-red-500/35 transition-all duration-500" />
-                
-                {/* Animated Light Sheen Effect */}
-                <div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
-
-                <div className="relative z-10 flex items-center justify-between">
-                  <div className="space-y-1">
-                    {/* Header with Pulsing Live Radar Badge */}
-                    <div className="flex items-center gap-2 text-xs font-extrabold text-amber-400">
-                      <span className="relative flex h-2 w-2">
+                <div className="relative z-10 flex items-center justify-between min-w-0">
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-amber-400">
+                      <span className="relative flex h-1.5 w-1.5 shrink-0">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
                       </span>
-                      <Calendar className="w-3.5 h-3.5 text-red-500" />
-                      <span className="uppercase tracking-wider">Next Match</span>
+                      <Calendar className="w-3 h-3 text-red-500 shrink-0" />
+                      <span className="uppercase tracking-wider truncate">Next Match</span>
                     </div>
 
-                    {/* Time Display with Neon Glow Text */}
-                    <div className="font-display text-base sm:text-lg font-black text-white tracking-wide flex items-center gap-2 group-hover:text-amber-400 transition-colors">
-                      <Clock className="w-4 h-4 text-amber-400 shrink-0" />
-                      <span>{displayNextTime}</span>
+                    <div className="font-display text-xs sm:text-sm font-black text-white tracking-wide flex items-center gap-1 group-hover:text-amber-400 transition-colors">
+                      <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                      <span className="truncate">{displayNextTime}</span>
                     </div>
 
-                    {/* Map & Mode with Shield Badge */}
-                    <div className="text-[11px] text-gray-300 font-bold flex items-center gap-1.5 uppercase font-mono">
-                      <Shield className="w-3.5 h-3.5 text-red-500 fill-red-500/20 shrink-0" />
-                      <span>{displayNextMap}</span>
+                    <div className="text-[10px] text-gray-300 font-bold flex items-center gap-1 uppercase font-mono truncate">
+                      <Shield className="w-3 h-3 text-red-500 shrink-0" />
+                      <span className="truncate">{displayNextMap}</span>
                     </div>
                   </div>
 
-                  {/* Right Animated Arrow Badge */}
-                  <div className="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/30 group-hover:bg-red-600 group-hover:text-white flex items-center justify-center text-red-400 transition-all duration-300 shrink-0 shadow-md">
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  <div className="w-6 h-6 rounded-lg bg-red-500/10 border border-red-500/30 group-hover:bg-red-600 group-hover:text-white flex items-center justify-center text-red-400 transition-all shrink-0">
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
               </div>
 
               {/* Widget 4: Play Compete Win Script Box */}
-              <div className="bg-[#10131a]/90 backdrop-blur-md border border-red-900/40 rounded-xl p-4 text-center relative overflow-hidden">
-                <div className="text-[10px] font-extrabold tracking-widest text-gray-300 uppercase mb-0.5">
+              <div className="bg-[#10131a]/90 backdrop-blur-md border border-red-900/40 rounded-xl p-3 text-center relative overflow-hidden flex flex-col items-center justify-center">
+                <div className="text-[9px] font-extrabold tracking-widest text-gray-300 uppercase mb-0.5">
                   PLAY • COMPETE • WIN
                 </div>
-                <div className="font-display text-2xl sm:text-3xl font-black text-[#e50914] italic uppercase tracking-wide flex items-center justify-center gap-2">
-                  <span>BE THE NEXT CHAMPION</span>
-                  <Crown className="w-6 h-6 text-amber-400 fill-amber-400 shrink-0" />
+                <div className="font-display text-xs sm:text-sm font-black text-[#e50914] italic uppercase tracking-wide flex items-center justify-center gap-1">
+                  <span className="truncate">BE THE CHAMPION</span>
+                  <Crown className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
                 </div>
               </div>
 
