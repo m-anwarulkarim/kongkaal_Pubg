@@ -62,11 +62,11 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
   const modalVideoUrl = formatYouTubeEmbedUrl(rawYtUrl, false)
 
   return (
-    <section className="relative overflow-hidden bg-[#07080b] py-8 border-b border-white/5">
+    <section className="relative overflow-hidden bg-[#07080b] py-3 sm:py-8 border-b border-white/5">
       
       {/* Hero Banner Box */}
-      <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="relative rounded-2xl overflow-hidden bg-[#0c0e14] border border-red-900/30 p-6 sm:p-10 lg:p-12 shadow-2xl">
+      <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+        <div className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-[#0c0e14] border border-red-900/30 p-4 sm:p-8 lg:p-12 shadow-2xl">
           
           {/* Background Layer: 2-Second Smooth Animation from Image to Video */}
           <div className="absolute inset-0 z-0 overflow-hidden">
@@ -201,8 +201,8 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
 
             </div>
 
-            {/* Right Column Side Panel (Responsive Grid: 1 col on mobile, 2 cols on sm) */}
-            <div className="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-2 sm:gap-3 mt-6 lg:mt-0">
+            {/* Right Column Side Panel (2-Line Grid Layout: 2 Widgets per line) */}
+            <div className="lg:col-span-4 grid grid-cols-2 gap-2 sm:gap-3 mt-4 sm:mt-6 lg:mt-0">
               
               {/* Widget 1: LIVE Tournament Ongoing */}
               <div className="bg-[#10131a]/90 backdrop-blur-md border border-white/10 rounded-xl p-3 flex items-center justify-between min-w-0">
