@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Sparkles,
   X,
+  Upload,
 } from 'lucide-react'
 import {
   getLeaderboard,
@@ -18,6 +19,14 @@ import {
   deleteLeaderboardItem,
 } from '@/lib/db'
 import type { LeaderboardItem } from '@/types/match'
+
+const PRESET_AVATARS = [
+  'https://api.dicebear.com/7.x/bottts/svg?seed=PubgHero&backgroundColor=e50914',
+  'https://api.dicebear.com/7.x/bottts/svg?seed=SkullKing&backgroundColor=101422',
+  'https://api.dicebear.com/7.x/bottts/svg?seed=SniperPro&backgroundColor=059669',
+  'https://api.dicebear.com/7.x/bottts/svg?seed=ShadowNinja&backgroundColor=d97706',
+  'https://api.dicebear.com/7.x/bottts/svg?seed=CyberWarrior&backgroundColor=2563eb',
+]
 
 export default function LeaderboardTab() {
   const [items, setItems] = useState<LeaderboardItem[]>([])
@@ -31,8 +40,11 @@ export default function LeaderboardTab() {
     matchTitle: '',
     teamName: '',
     playerIgn: '',
-    kills: 0,
-    prizeWon: 0,
+    pubgUid: '',
+    avatarUrl: '',
+    rank: '1ST PLACE',
+    kills: 10,
+    prizeWon: 1000,
     status: 'VERIFIED PAYOUT' as 'VERIFIED PAYOUT' | 'PENDING',
   })
   const [submitting, setSubmitting] = useState(false)
@@ -59,6 +71,9 @@ export default function LeaderboardTab() {
       matchTitle: '',
       teamName: '',
       playerIgn: '',
+      pubgUid: '',
+      avatarUrl: PRESET_AVATARS[0],
+      rank: '1ST PLACE',
       kills: 10,
       prizeWon: 1000,
       status: 'VERIFIED PAYOUT',
@@ -72,11 +87,31 @@ export default function LeaderboardTab() {
       matchTitle: item.matchTitle,
       teamName: item.teamName,
       playerIgn: item.playerIgn,
+      pubgUid: item.pubgUid || '',
+      avatarUrl: item.avatarUrl || '',
+      rank: item.rank || '1ST PLACE',
       kills: item.kills,
       prizeWon: item.prizeWon,
       status: item.status,
     })
     setIsModalOpen(true)
+  }
+
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        alert('ছবি ৩ MB এর ছোট হতে হবে!')
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setFormData((prev) => ({ ...prev, avatarUrl: reader.result as string }))
+        }
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -204,9 +239,9 @@ export default function LeaderboardTab() {
             <table className="w-full text-left text-sm text-gray-300">
               <thead className="bg-[#090b12] font-gaming text-xs uppercase tracking-wider text-amber-400 border-b border-white/10">
                 <tr>
+                  <th className="px-6 py-4">PLAYER PROFILE</th>
                   <th className="px-6 py-4">MATCH TITLE</th>
-                  <th className="px-6 py-4">WINNER / TEAM</th>
-                  <th className="px-6 py-4">PLAYER IGN</th>
+                  <th className="px-6 py-4">TEAM / RANK</th>
                   <th className="px-6 py-4">TOTAL KILLS</th>
                   <th className="px-6 py-4">CASH PRIZE</th>
                   <th className="px-6 py-4">STATUS</th>
@@ -216,9 +251,30 @@ export default function LeaderboardTab() {
               <tbody className="divide-y divide-white/5 font-medium">
                 {filteredItems.map((item) => (
                   <tr key={item.id} className="hover:bg-amber-500/5 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {item.avatarUrl ? (
+                          <img
+                            src={item.avatarUrl}
+                            alt={item.playerIgn}
+                            className="w-10 h-10 rounded-full border border-amber-500/40 object-cover shadow-md"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold">
+                            {item.playerIgn[0]?.toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-white font-bold block leading-none">{item.playerIgn}</span>
+                          <span className="text-[11px] text-gray-400 font-mono">UID: {item.pubgUid || 'N/A'}</span>
+                        </div>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-white font-bold">{item.matchTitle}</td>
-                    <td className="px-6 py-4 font-bold text-amber-400">{item.teamName}</td>
-                    <td className="px-6 py-4 text-gray-300 font-mono text-xs">{item.playerIgn}</td>
+                    <td className="px-6 py-4">
+                      <span className="font-bold text-amber-400 block">{item.teamName}</span>
+                      <span className="text-[10px] text-amber-500/80 uppercase font-mono">{item.rank || 'CHAMPION'}</span>
+                    </td>
                     <td className="px-6 py-4">
                       <span className="px-2.5 py-1 rounded bg-black/40 border border-white/10 text-white font-bold text-xs inline-flex items-center gap-1.5">
                         <Swords className="w-3.5 h-3.5 text-amber-400" />
@@ -266,8 +322,8 @@ export default function LeaderboardTab() {
 
       {/* Add / Edit Champion Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#101422] border border-amber-500/30 w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl space-y-6 p-6 animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[#101422] border border-amber-500/30 w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl space-y-6 p-6 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div className="flex items-center gap-2.5">
@@ -288,6 +344,68 @@ export default function LeaderboardTab() {
 
             {/* Modal Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Winner Profile Picture Selector */}
+              <div className="bg-[#161a29] border border-white/10 rounded-xl p-4 text-center space-y-3">
+                <label className="block text-xs font-bold text-gray-300 uppercase text-left">
+                  Player Profile Picture / Avatar
+                </label>
+                
+                <div className="relative inline-block mx-auto">
+                  {formData.avatarUrl ? (
+                    <img
+                      src={formData.avatarUrl}
+                      alt="Winner Avatar"
+                      className="w-16 h-16 rounded-full border-2 border-amber-500 shadow-md object-cover mx-auto"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center text-amber-400 text-xl font-bold mx-auto">
+                      {formData.playerIgn[0]?.toUpperCase() || 'P'}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-center gap-2 pt-1">
+                  <label className="cursor-pointer bg-amber-500 hover:bg-amber-600 text-black font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow">
+                    <Upload className="w-3.5 h-3.5" /> Upload Device Image
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Gamer Presets */}
+                <div>
+                  <span className="text-[10px] text-gray-400 block mb-1">Select Preset PUBG Avatar:</span>
+                  <div className="flex justify-center gap-2">
+                    {PRESET_AVATARS.map((url, idx) => (
+                      <button
+                        type="button"
+                        key={idx}
+                        onClick={() => setFormData({ ...formData, avatarUrl: url })}
+                        className={`rounded-full p-0.5 border-2 transition-transform ${
+                          formData.avatarUrl === url ? 'border-amber-500 scale-110' : 'border-transparent'
+                        }`}
+                      >
+                        <img src={url} alt={`Preset ${idx}`} className="w-8 h-8 rounded-full bg-[#0a0c14]" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <input
+                    type="url"
+                    placeholder="Or enter image URL (https://...)"
+                    value={formData.avatarUrl}
+                    onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
+                    className="w-full px-3 py-1.5 bg-black/50 border border-white/10 rounded-lg text-xs text-white font-mono"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-bold text-gray-300 uppercase mb-1">
                   Match Title <span className="text-red-500">*</span>
@@ -326,6 +444,33 @@ export default function LeaderboardTab() {
                     placeholder="e.g. VIP_SHADOW"
                     value={formData.playerIgn}
                     onChange={(e) => setFormData({ ...formData, playerIgn: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-black/50 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-300 uppercase mb-1">
+                    PUBG Character ID (UID)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 5123456789"
+                    value={formData.pubgUid}
+                    onChange={(e) => setFormData({ ...formData, pubgUid: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-black/50 border border-white/10 rounded-xl text-sm text-white font-mono focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-300 uppercase mb-1">
+                    Rank / Badge Title
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 1ST PLACE / CHAMPION"
+                    value={formData.rank}
+                    onChange={(e) => setFormData({ ...formData, rank: e.target.value })}
                     className="w-full px-3.5 py-2.5 bg-black/50 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>

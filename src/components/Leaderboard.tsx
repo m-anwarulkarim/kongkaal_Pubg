@@ -50,8 +50,9 @@ export default function Leaderboard() {
               <table className="w-full text-left text-sm text-gray-300">
                 <thead className="bg-[#0b0e14] font-gaming text-xs uppercase tracking-wider text-amber-400 border-b border-gray-800">
                   <tr>
+                    <th className="px-6 py-4">CHAMPION PROFILE</th>
                     <th className="px-6 py-4">MATCH TITLE</th>
-                    <th className="px-6 py-4">WINNER / TEAM</th>
+                    <th className="px-6 py-4">TEAM / RANK</th>
                     <th className="px-6 py-4">TOTAL KILLS</th>
                     <th className="px-6 py-4">CASH PRIZE WON</th>
                     <th className="px-6 py-4">PAYMENT STATUS</th>
@@ -60,10 +61,31 @@ export default function Leaderboard() {
                 <tbody className="divide-y divide-gray-800 font-medium">
                   {winners.map((win) => (
                     <tr key={win.id} className="hover:bg-amber-500/5 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {win.avatarUrl ? (
+                            <img
+                              src={win.avatarUrl}
+                              alt={win.playerIgn}
+                              className="w-11 h-11 rounded-full border-2 border-amber-500 shadow-md object-cover"
+                            />
+                          ) : (
+                            <div className="w-11 h-11 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center text-amber-400 font-bold text-lg">
+                              {win.playerIgn[0]?.toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <span className="text-white font-bold text-base block leading-snug">{win.playerIgn}</span>
+                            {win.pubgUid && (
+                              <span className="text-xs text-gray-400 font-mono block">UID: {win.pubgUid}</span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 text-white font-bold">{win.matchTitle}</td>
                       <td className="px-6 py-4">
                         <span className="text-amber-400 font-bold block">{win.teamName}</span>
-                        <span className="text-xs text-gray-400">IGN: {win.playerIgn}</span>
+                        <span className="text-[10px] text-amber-500/80 font-mono uppercase">{win.rank || '1ST PLACE'}</span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-2.5 py-1 rounded bg-gray-800 text-white font-bold text-xs inline-flex items-center gap-1.5 border border-amber-500/20">

@@ -51,6 +51,9 @@ export interface LeaderboardItem {
   matchTitle: string
   teamName: string
   playerIgn: string
+  pubgUid?: string
+  avatarUrl?: string
+  rank?: string
   kills: number
   prizeWon: number
   status: 'VERIFIED PAYOUT' | 'PENDING'

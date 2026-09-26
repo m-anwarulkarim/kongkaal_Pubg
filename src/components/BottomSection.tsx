@@ -1,8 +1,26 @@
+import { useState, useEffect } from 'react'
 import { Users, Trophy, Coins, Shield, Medal, MessageCircle, ArrowRight } from 'lucide-react'
-import Image from '@/components/ui/Image'
 import Link from '@/components/ui/Link'
+import { getLeaderboard } from '@/lib/db'
+import type { LeaderboardItem } from '@/types/match'
 
 export default function BottomSection() {
+  const [latestWinner, setLatestWinner] = useState<LeaderboardItem | null>(null)
+
+  useEffect(() => {
+    async function fetchWinner() {
+      try {
+        const winners = await getLeaderboard()
+        if (winners && winners.length > 0) {
+          setLatestWinner(winners[0])
+        }
+      } catch (err) {
+        console.error('Failed to fetch latest winner:', err)
+      }
+    }
+    fetchWinner()
+  }, [])
+
   return (
     <div className="mx-auto max-w-7xl px-4 lg:px-8 my-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
@@ -45,30 +63,37 @@ export default function BottomSection() {
             <div className="flex items-center gap-1.5 text-xs font-bold text-white">
               <Trophy className="w-3.5 h-3.5 text-[#e50914]" /> Recent Winners
             </div>
-            <Link href="#" className="text-[10px] font-bold text-gray-400 hover:text-white no-underline flex items-center gap-1">
+            <a href="#leaderboard" className="text-[10px] font-bold text-gray-400 hover:text-white no-underline flex items-center gap-1">
               View All <ArrowRight className="w-3 h-3" />
-            </Link>
+            </a>
           </div>
 
           <div className="flex items-center justify-between bg-[#0b0d14] p-2.5 rounded-xl border border-white/5">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full overflow-hidden border border-red-500 shrink-0">
-                <Image src="/solo_battle.jpg" alt="RIYAD" fill className="object-cover" />
+              <div className="w-9 h-9 rounded-full overflow-hidden border border-red-500 shrink-0 bg-red-950 flex items-center justify-center">
+                {latestWinner?.avatarUrl ? (
+                  <img src={latestWinner.avatarUrl} alt={latestWinner.playerIgn} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white font-bold text-xs">{latestWinner?.playerIgn[0]?.toUpperCase() || 'W'}</span>
+                )}
               </div>
-              <div>
-                <span className="text-xs font-bold text-white flex items-center gap-1 leading-none">
-                  RIYAD <span className="font-bold text-[8px] text-emerald-400 bg-emerald-950/80 px-1 rounded border border-emerald-500/30">BD</span>
+              <div className="overflow-hidden">
+                <span className="text-xs font-bold text-white flex items-center gap-1 leading-none truncate">
+                  {latestWinner?.playerIgn || 'RIYAD_OP'}
+                  <span className="font-bold text-[8px] text-emerald-400 bg-emerald-950/80 px-1 rounded border border-emerald-500/30 shrink-0">
+                    BD
+                  </span>
                 </span>
-                <span className="text-[9px] text-gray-400 block mt-0.5">
-                  Solo Tournament • 1st Place
+                <span className="text-[9px] text-gray-400 block mt-0.5 truncate">
+                  {latestWinner?.matchTitle || 'Solo Tournament'} • {latestWinner?.rank || '1st Place'}
                 </span>
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-right shrink-0">
               <span className="text-[9px] font-bold text-amber-500 flex items-center justify-end gap-0.5">
-                <Medal className="w-3 h-3" /> 8 KILLS
+                <Medal className="w-3 h-3" /> {latestWinner?.kills || 8} KILLS
               </span>
-              <span className="font-display text-sm font-bold text-red-500">৳500</span>
+              <span className="font-display text-sm font-bold text-red-500">৳{latestWinner?.prizeWon || 500}</span>
             </div>
           </div>
         </div>
@@ -87,7 +112,7 @@ export default function BottomSection() {
               Get latest updates, slots, results & more!
             </p>
             <Link
-              href="https://wa.me/8801700000000"
+              href="https://whatsapp.com/channel/0029Vb8kbvtK5cDCZ4I3rf0K"
               className="btn-kong-red px-3.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 no-underline shadow-md group"
             >
               <span>Join Now</span>
@@ -106,3 +131,4 @@ export default function BottomSection() {
     </div>
   )
 }
+
