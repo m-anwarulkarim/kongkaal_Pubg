@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import type { MatchItem } from '@/types/match'
 import { saveRegistration } from '@/lib/db'
 import { useCustomerAuth } from '@/lib/auth'
@@ -19,7 +20,6 @@ import {
   CheckCircle2,
   Copy,
   Loader2,
-  Gamepad2,
   MessageCircle,
 } from 'lucide-react'
 
@@ -74,13 +74,14 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
   const handleCopy = (num: string, type: string) => {
     navigator.clipboard.writeText(num)
     setCopiedNumber(type)
+    toast.success(`${type} Send Money নম্বর কপি হয়েছে!`)
     setTimeout(() => setCopiedNumber(null), 2000)
   }
 
   const handleProceedToPayment = (e: React.FormEvent) => {
     e.preventDefault()
     if (!player1Name || !player1Uid || !whatsappNumber) {
-      alert('দয়া করে আপনার In-Game Name, PUBG Character ID এবং WhatsApp নাম্বার দিন!')
+      toast.error('দয়া করে আপনার In-Game Name, PUBG Character ID এবং WhatsApp নাম্বার দিন!')
       return
     }
     setStep('PAYMENT')
@@ -91,7 +92,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
     if (paymentMethod === 'WALLET') {
       if (!user?.email) {
-        alert('ওয়ালেট দিয়ে পেমেন্ট করতে গুগলে লগইন থাকুন!')
+        toast.error('ওয়ালেট দিয়ে পেমেন্ট করতে গুগলে লগইন থাকুন!')
         return
       }
       setIsSubmitting(true)
@@ -99,7 +100,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
       const payRes = await payMatchWithWallet(user.email, player1Name, match.entryFee, match.title)
       if (!payRes.success) {
         setIsSubmitting(false)
-        alert(payRes.message)
+        toast.error(payRes.message)
         return
       }
 
@@ -124,15 +125,16 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
       setIsSubmitting(false)
       if (result.success) {
         if (result.id) setDbBookingId(result.id)
+        toast.success('🎉 ধন্যবাদ! ওয়ালেট পেমেন্টে আপনার স্লট ভেরিফাইড হয়েছে!')
         setStep('SUCCESS')
       } else {
-        alert(`Error saving slot: ${result.message}`)
+        toast.error(`Error saving slot: ${result.message}`)
       }
       return
     }
 
     if (!trxId || trxId.length < 6) {
-      alert('দয়া করে সঠিক Transaction ID (TrxID) লিখুন!')
+      toast.error('দয়া করে সঠিক Transaction ID (TrxID) লিখুন!')
       return
     }
 
@@ -160,9 +162,10 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
     if (result.success) {
       if (result.id) setDbBookingId(result.id)
+      toast.success('🎉 ধন্যবাদ! আপনার স্লট বুকিং সফলভাবে জমা হয়েছে!')
       setStep('SUCCESS')
     } else {
-      alert(`Error saving registration: ${result.message}`)
+      toast.error(`Error saving registration: ${result.message}`)
     }
   }
 
@@ -495,36 +498,60 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
           {/* STEP 3: SUCCESS CONFIRMATION & WHATSAPP MATCH GROUP LINK */}
           {step === 'SUCCESS' && (
-            <div className="text-center py-4 space-y-4">
-              <div className="w-16 h-16 bg-green-500/20 border-2 border-green-500 rounded-full flex items-center justify-center mx-auto animate-bounce">
-                <svg className="w-10 h-10 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
+            <div className="text-center py-6 space-y-5 animate-in fade-in zoom-in duration-300">
+              <div className="w-20 h-20 bg-gradient-to-tr from-emerald-600/30 to-green-500/20 border-2 border-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                <CheckCircle2 className="w-12 h-12 text-emerald-400" />
               </div>
 
-              <Badge className="bg-emerald-950 border border-emerald-500/40 text-emerald-400 text-xs font-bold uppercase">
-                {paymentMethod === 'WALLET' ? 'SLOT INSTANTLY VERIFIED' : 'PENDING ADMIN VERIFICATION'}
-              </Badge>
+              <div className="space-y-1">
+                <Badge className="bg-emerald-950 border border-emerald-500/50 text-emerald-400 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                  {paymentMethod === 'WALLET' ? '✓ INSTANTLY VERIFIED VIA WALLET' : '⏳ RESERVED (PENDING ADMIN VERIFICATION)'}
+                </Badge>
 
-              <h3 className="font-display text-2xl sm:text-3xl font-black text-white uppercase flex items-center justify-center gap-2">
-                <span>SLOT RESERVED SUCCESSFULLY!</span>
-                <Gamepad2 className="w-7 h-7 text-red-500" />
-              </h3>
+                <h3 className="font-display text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-white to-emerald-400 uppercase tracking-wide pt-2">
+                  THANK YOU FOR REGISTERING! 🎉
+                </h3>
+                <p className="text-xs font-bold text-gray-300 uppercase tracking-wider">
+                  ধন্যবাদ! আপনার টুর্নামেন্ট স্লট বুকিং সফলভাবে জমা হয়েছে।
+                </p>
+              </div>
 
-              <p className="text-xs text-gray-300 max-w-md mx-auto">
-                আপনার স্লট বুকিং সুপাবেস ডাটাবেজে সংরক্ষিত হয়েছে। ম্যাচ শুরুর ১৫ মিনিট আগে আপনার ড্যাশবোর্ডে **Room ID & Password** দেখতে পাবেন।
+              {/* Registration Summary Card */}
+              <div className="bg-[#0b0e16] border border-white/10 rounded-2xl p-4 max-w-lg mx-auto text-left space-y-2 text-xs">
+                <div className="flex justify-between border-b border-white/5 pb-2">
+                  <span className="text-gray-400 font-bold">MATCH:</span>
+                  <span className="text-white font-bold">{match.title} ({match.mode})</span>
+                </div>
+                <div className="flex justify-between border-b border-white/5 pb-2">
+                  <span className="text-gray-400 font-bold">PLAYER IGN & UID:</span>
+                  <span className="text-amber-400 font-mono font-bold">{player1Name} ({player1Uid})</span>
+                </div>
+                {teamName && (
+                  <div className="flex justify-between border-b border-white/5 pb-2">
+                    <span className="text-gray-400 font-bold">TEAM NAME:</span>
+                    <span className="text-white font-bold">{teamName}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-gray-400 font-bold">PAYMENT METHOD:</span>
+                  <span className="text-emerald-400 font-bold font-mono">{paymentMethod} {trxId ? `(TrxID: ${trxId})` : ''}</span>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-400 max-w-md mx-auto leading-relaxed">
+                ম্যাচ শুরুর ১৫ মিনিট আগে আপনার ড্যাশবোর্ডে **Room ID & Password** অপশন দেখতে পাবেন।
               </p>
 
               {/* Tournament WhatsApp Group Link Button */}
-              <div className="p-4 bg-[#111625] border border-emerald-500/40 rounded-2xl space-y-2">
+              <div className="p-4 bg-emerald-950/20 border border-emerald-500/40 rounded-2xl space-y-2 max-w-lg mx-auto">
                 <span className="text-xs text-emerald-400 font-bold block">
-                  📢 টুর্নামেন্ট ওয়াটসঅ্যাপ অফিশিয়াল চ্যানেল লিংক:
+                  📢 টুর্নামেন্ট রুম কোডের জন্য অফিশিয়াল ওয়াটসঅ্যাপ চ্যানেলে জয়েন করুন:
                 </span>
                 <a
                   href={match.whatsappGroupLink || 'https://whatsapp.com/channel/0029Vb8kbvtK5cDCZ4I3rf0K'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-xs inline-flex items-center justify-center gap-2 no-underline shadow-lg shadow-emerald-600/30"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl text-xs inline-flex items-center justify-center gap-2 no-underline shadow-lg shadow-emerald-600/30 transition-all"
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>JOIN OFFICIAL WHATSAPP CHANNEL FOR ROOM CODE</span>
@@ -534,11 +561,11 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
               <div className="pt-2 flex justify-center gap-3">
                 <a
                   href="/dashboard"
-                  className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-2.5 px-5 rounded-xl border border-white/20 no-underline"
+                  className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-2.5 px-5 rounded-xl border border-white/20 no-underline transition-colors"
                 >
                   View My Dashboard
                 </a>
-                <Button onClick={onClose} className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl">
+                <Button onClick={onClose} className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-colors cursor-pointer">
                   Close Window
                 </Button>
               </div>
