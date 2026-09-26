@@ -2,18 +2,21 @@ import { useState, useEffect } from 'react'
 import type { RegistrationRecord } from '@/lib/db'
 import { getAllCustomerProfiles } from '@/lib/wallet'
 import type { CustomerProfile } from '@/types/wallet'
+import { getUserSupportMessages } from '@/lib/support'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Users, Gamepad2, Search, Smartphone, Wallet, RefreshCw, Mail, ShieldCheck } from 'lucide-react'
+import { Users, Gamepad2, Search, Smartphone, Wallet, RefreshCw, Mail, ShieldCheck, MessageSquare } from 'lucide-react'
 
 interface PlayersTabProps {
   registrations: RegistrationRecord[]
   filteredRegistrations: RegistrationRecord[]
+  onSelectUserMessage?: (userEmail: string) => void
 }
 
 export default function PlayersTab({
   registrations,
   filteredRegistrations,
+  onSelectUserMessage,
 }: PlayersTabProps) {
   const [viewMode, setViewMode] = useState<'CUSTOMERS' | 'MATCH_SLOTS'>('CUSTOMERS')
   const [customers, setCustomers] = useState<CustomerProfile[]>([])
@@ -59,7 +62,7 @@ export default function PlayersTab({
             <Users className="w-6 h-6 text-blue-400" /> All Gmail Logged-in Customers & Players
           </h2>
           <p className="text-xs text-gray-400">
-            ওয়েবসাইটে জিমেইল (Google Login) দিয়ে লগইন করা সকল কাস্টমারের অটোমেটিক প্রোফাইল এবং ম্যাচের স্লট তথ্য।
+            ওয়েবসাইটে জিমেইল (Google Login) দিয়ে লগইন করা সকল কাস্টমারের তথ্য এবং মেসেজ রিপ্লাই প্যানেল।
           </p>
         </div>
 
@@ -122,7 +125,7 @@ export default function PlayersTab({
                 Gmail Logged-in Customer Profiles
               </h3>
               <span className="text-xs text-gray-400">
-                কাস্টমার গুগল লগইন করার সাথে সাথেই তার তথ্য ড্যাশবোর্ডে যোগ হয়ে যায়।
+                কাস্টমারের পাশে মেসেজ বোতামে চাপলে তার পাঠানো মেসেজ পেজে নিয়ে যাবে।
               </span>
             </div>
             <Badge className="bg-emerald-950 text-emerald-400 border border-emerald-500/30 text-xs font-bold px-3 py-1">
@@ -148,71 +151,91 @@ export default function PlayersTab({
                     <th className="p-3.5">PUBG UID</th>
                     <th className="p-3.5">WhatsApp Number</th>
                     <th className="p-3.5">Wallet Balance</th>
-                    <th className="p-3.5 text-right">Auth Method</th>
+                    <th className="p-3.5 text-right">Support Message / Chat</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 font-medium">
-                  {filteredCustomers.map((cust) => (
-                    <tr key={cust.email} className="hover:bg-white/5 transition-colors">
-                      <td className="p-3.5">
-                        <div className="flex items-center gap-3">
-                          {cust.avatarUrl ? (
-                            <img
-                              src={cust.avatarUrl}
-                              alt={cust.name}
-                              className="w-10 h-10 rounded-full border border-blue-500/40 object-cover shadow-md"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-blue-600 border border-blue-500 flex items-center justify-center text-white font-bold text-sm">
-                              {cust.name[0]?.toUpperCase()}
+                  {filteredCustomers.map((cust) => {
+                    const userMsgs = getUserSupportMessages(cust.email)
+                    const pendingMsgs = userMsgs.filter((m) => m.status === 'PENDING')
+                    const hasPending = pendingMsgs.length > 0
+
+                    return (
+                      <tr key={cust.email} className="hover:bg-white/5 transition-colors">
+                        <td className="p-3.5">
+                          <div className="flex items-center gap-3">
+                            {cust.avatarUrl ? (
+                              <img
+                                src={cust.avatarUrl}
+                                alt={cust.name}
+                                className="w-10 h-10 rounded-full border border-blue-500/40 object-cover shadow-md"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-blue-600 border border-blue-500 flex items-center justify-center text-white font-bold text-sm">
+                                {cust.name[0]?.toUpperCase()}
+                              </div>
+                            )}
+                            <div>
+                              <span className="font-bold text-white text-sm block leading-tight">
+                                {cust.name}
+                              </span>
+                              <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 mt-0.5">
+                                <ShieldCheck className="w-3 h-3" /> VERIFIED GOOGLE USER
+                              </span>
                             </div>
-                          )}
-                          <div>
-                            <span className="font-bold text-white text-sm block leading-tight">
-                              {cust.name}
-                            </span>
-                            <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 mt-0.5">
-                              <ShieldCheck className="w-3 h-3" /> VERIFIED GOOGLE USER
-                            </span>
                           </div>
-                        </div>
-                      </td>
-                      <td className="p-3.5 text-gray-300 font-mono">
-                        <span className="flex items-center gap-1.5">
-                          <Mail className="w-3.5 h-3.5 text-red-500 shrink-0" />
-                          {cust.email}
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-gray-300 font-mono">
-                        {cust.pubgUid ? (
-                          <span className="px-2 py-0.5 bg-black/40 rounded border border-white/10 text-white font-bold">
-                            {cust.pubgUid}
+                        </td>
+                        <td className="p-3.5 text-gray-300 font-mono">
+                          <span className="flex items-center gap-1.5">
+                            <Mail className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                            {cust.email}
                           </span>
-                        ) : (
-                          <span className="text-gray-500">Not set</span>
-                        )}
-                      </td>
-                      <td className="p-3.5 text-emerald-400 font-mono">
-                        {cust.whatsappNumber ? (
+                        </td>
+                        <td className="p-3.5 text-gray-300 font-mono">
+                          {cust.pubgUid ? (
+                            <span className="px-2 py-0.5 bg-black/40 rounded border border-white/10 text-white font-bold">
+                              {cust.pubgUid}
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">Not set</span>
+                          )}
+                        </td>
+                        <td className="p-3.5 text-emerald-400 font-mono">
+                          {cust.whatsappNumber ? (
+                            <span className="flex items-center gap-1">
+                              <Smartphone className="w-3.5 h-3.5" /> {cust.whatsappNumber}
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">Not set</span>
+                          )}
+                        </td>
+                        <td className="p-3.5 font-display text-sm font-bold text-emerald-400">
                           <span className="flex items-center gap-1">
-                            <Smartphone className="w-3.5 h-3.5" /> {cust.whatsappNumber}
+                            <Wallet className="w-3.5 h-3.5" /> ৳{cust.walletBalance || 0}
                           </span>
-                        ) : (
-                          <span className="text-gray-500">Not set</span>
-                        )}
-                      </td>
-                      <td className="p-3.5 font-display text-sm font-bold text-emerald-400">
-                        <span className="flex items-center gap-1">
-                          <Wallet className="w-3.5 h-3.5" /> ৳{cust.walletBalance || 0}
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-right">
-                        <Badge className="bg-red-950 text-red-400 border border-red-500/30 text-[10px] font-bold">
-                          Gmail OAuth
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="p-3.5 text-right">
+                          <button
+                            onClick={() => onSelectUserMessage?.(cust.email)}
+                            className={`px-3 py-1.5 rounded-xl font-bold text-xs inline-flex items-center gap-1.5 shadow transition-all ${
+                              hasPending
+                                ? 'bg-amber-500 text-black animate-pulse hover:bg-amber-400'
+                                : userMsgs.length > 0
+                                ? 'bg-red-600/20 text-red-400 border border-red-500/40 hover:bg-red-600/30'
+                                : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white hover:bg-white/10'
+                            }`}
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            {hasPending
+                              ? `New Message (${pendingMsgs.length})`
+                              : userMsgs.length > 0
+                              ? `Messages (${userMsgs.length})`
+                              : 'Send Message'}
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -278,4 +301,3 @@ export default function PlayersTab({
     </div>
   )
 }
-

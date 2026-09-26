@@ -38,6 +38,7 @@ function AdminDashboard() {
   // Sidebar & Navigation State
   const [activeTab, setActiveTab] = useState<AdminTabType>('OVERVIEW')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [selectedMessageEmail, setSelectedMessageEmail] = useState('')
 
   // Admin Data State
   const [matches, setMatches] = useState<MatchItem[]>([])
@@ -271,12 +272,16 @@ function AdminDashboard() {
             <PlayersTab
               registrations={registrations}
               filteredRegistrations={filteredRegistrations}
+              onSelectUserMessage={(email) => {
+                setSelectedMessageEmail(email)
+                setActiveTab('MESSAGES')
+              }}
             />
           )}
 
           {activeTab === 'LEADERBOARD' && <LeaderboardTab />}
 
-          {activeTab === 'MESSAGES' && <MessagesTab />}
+          {activeTab === 'MESSAGES' && <MessagesTab initialSearch={selectedMessageEmail} />}
 
           {activeTab === 'SETTINGS' && <SettingsTab />}
         </main>
