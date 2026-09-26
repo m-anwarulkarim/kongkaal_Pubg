@@ -671,6 +671,7 @@ export interface HeroBannerSettings {
   nextMatchMap: string
   liveStatusText: string
   activePlayersCount: number
+  heroVideoUrl?: string
 }
 
 export const DEFAULT_HERO_SETTINGS: HeroBannerSettings = {
@@ -678,6 +679,7 @@ export const DEFAULT_HERO_SETTINGS: HeroBannerSettings = {
   nextMatchMap: 'Erangel / Asia',
   liveStatusText: 'Tournament Ongoing',
   activePlayersCount: 128,
+  heroVideoUrl: 'https://www.youtube.com/embed/uCd6tbLv6XY?autoplay=1&mute=1&loop=1&playlist=uCd6tbLv6XY',
 }
 
 export function getHeroBannerSettings(): HeroBannerSettings {

@@ -102,6 +102,20 @@ export default function SettingsTab() {
               />
             </div>
 
+            {/* Hero Video URL */}
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold text-gray-300 mb-1.5 uppercase">
+                Hero Section Video URL / YouTube Embed (ভিডিও লিঙ্ক)
+              </label>
+              <input
+                type="text"
+                value={heroSettings.heroVideoUrl || ''}
+                onChange={(e) => setHeroSettings({ ...heroSettings, heroVideoUrl: e.target.value })}
+                placeholder="https://www.youtube.com/embed/uCd6tbLv6XY"
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-500 font-mono"
+              />
+            </div>
+
           </div>
 
           {/* Banner Live Preview Card */}

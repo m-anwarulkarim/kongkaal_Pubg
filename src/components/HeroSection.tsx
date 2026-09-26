@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Trophy, Shield, Zap, ArrowRight, Eye, Gamepad2, Calendar, Crown, Clock } from 'lucide-react'
+import { Trophy, Shield, Zap, ArrowRight, Eye, Gamepad2, Calendar, Crown, Clock, Play, Film, X } from 'lucide-react'
 import Image from '@/components/ui/Image'
 import { getHeroBannerSettings, getMatches, type HeroBannerSettings } from '@/lib/db'
 
@@ -12,6 +12,8 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
   const [heroSettings, setHeroSettings] = useState<HeroBannerSettings>(() => getHeroBannerSettings())
   const [upcomingMatchInfo, setUpcomingMatchInfo] = useState<{ time: string; map: string } | null>(null)
   const [liveMatchInfo, setLiveMatchInfo] = useState<{ count: number } | null>(null)
+  const [videoModalOpen, setVideoModalOpen] = useState(false)
+  const [isVideoBackground, setIsVideoBackground] = useState(false)
 
   useEffect(() => {
     const loadBannerData = async () => {
@@ -55,6 +57,7 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
   const displayNextTime = upcomingMatchInfo?.time || heroSettings.nextMatchTime
   const displayNextMap = upcomingMatchInfo?.map || heroSettings.nextMatchMap
   const displayLiveCount = liveMatchInfo?.count || heroSettings.activePlayersCount
+  const videoUrl = heroSettings.heroVideoUrl || 'https://www.youtube.com/embed/uCd6tbLv6XY?autoplay=1'
 
   return (
     <section className="relative overflow-hidden bg-[#07080b] py-8 border-b border-white/5">
@@ -63,15 +66,25 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="relative rounded-2xl overflow-hidden bg-[#0c0e14] border border-red-900/30 p-6 sm:p-10 lg:p-12 shadow-2xl">
           
-          {/* Background Image & Red Smoke Flare Overlay */}
+          {/* Background Image / Video & Red Smoke Flare Overlay */}
           <div className="absolute inset-0 z-0">
-            <Image
-              src="/kongkaal_hero.webp"
-              alt="KongKaaL Gaming PUBG Warrior"
-              priority
-              fill
-              className="object-cover object-[80%_center] sm:object-right opacity-75 sm:opacity-60 transition-opacity"
-            />
+            {isVideoBackground && videoUrl ? (
+              <iframe
+                src={`${videoUrl}${videoUrl.includes('?') ? '&' : '?'}autoplay=1&mute=1&loop=1&controls=0`}
+                title="PUBG Gaming Video Background"
+                className="w-full h-full object-cover scale-125 pointer-events-none opacity-60"
+                allow="autoplay; encrypted-media"
+              />
+            ) : (
+              <Image
+                src="/kongkaal_hero.webp"
+                alt="KongKaaL Gaming PUBG Warrior"
+                priority
+                fill
+                className="object-cover object-[80%_center] sm:object-right opacity-75 sm:opacity-60 transition-opacity"
+              />
+            )}
+
             {/* Gradient Overlays */}
             <div className="absolute inset-0 bg-gradient-to-r from-[#07080b]/95 via-[#07080b]/60 to-[#07080b]/20 sm:via-[#07080b]/90 sm:to-transparent w-full lg:w-3/4" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#07080b] via-transparent to-black/40" />
@@ -82,12 +95,35 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
             {/* Left Column Text & Buttons */}
             <div className="lg:col-span-8">
               
-              {/* Welcome Badge */}
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-0.5 w-8 bg-[#e50914]" />
-                <span className="text-xs font-bold tracking-widest text-[#e50914] uppercase">
-                  WELCOME TO
-                </span>
+              {/* Welcome Badge & Media Switcher */}
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-0.5 w-8 bg-[#e50914]" />
+                  <span className="text-xs font-bold tracking-widest text-[#e50914] uppercase">
+                    WELCOME TO
+                  </span>
+                </div>
+
+                {/* Video / Image Mode Toggle Pill */}
+                <div className="flex items-center bg-black/60 border border-white/15 p-1 rounded-xl backdrop-blur-md">
+                  <button
+                    onClick={() => setIsVideoBackground(false)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                      !isVideoBackground ? 'bg-red-600 text-white shadow-md' : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Image View
+                  </button>
+                  <button
+                    onClick={() => setIsVideoBackground(true)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all ${
+                      isVideoBackground ? 'bg-red-600 text-white shadow-md' : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <Film className="w-3 h-3" />
+                    Video View
+                  </button>
+                </div>
               </div>
 
               {/* Title */}
@@ -139,7 +175,7 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={onJoinClick}
                   className="btn-kong-red px-6 py-3 rounded-xl text-sm font-bold flex items-center gap-2 group"
@@ -153,6 +189,19 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
                   className="btn-kong-outline px-6 py-3 rounded-xl text-sm font-bold"
                 >
                   View All Tournaments
+                </button>
+
+                {/* Watch Video Trailer Button */}
+                <button
+                  onClick={() => setVideoModalOpen(true)}
+                  className="bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-white border border-red-500/40 px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-red-600/20 group"
+                >
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                  <Play className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" />
+                  <span>Watch Gameplay Video</span>
                 </button>
               </div>
 
@@ -179,7 +228,42 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
                 </div>
               </div>
 
-              {/* Widget 2: Next Match Timer (Animated Glowing Card) */}
+              {/* Widget 2: Interactive PUBG Esports Gameplay Video Card */}
+              <div
+                onClick={() => setVideoModalOpen(true)}
+                className="relative overflow-hidden bg-gradient-to-r from-[#121624] to-[#1a0f1d] border border-red-500/30 hover:border-red-500 rounded-xl p-3.5 transition-all duration-300 shadow-lg hover:shadow-red-600/30 cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="relative w-20 h-14 rounded-lg overflow-hidden border border-white/20 shrink-0 bg-black">
+                    <Image
+                      src="/kongkaal_hero.webp"
+                      alt="PUBG Trailer Thumbnail"
+                      fill
+                      className="object-cover opacity-80 group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <div className="w-7 h-7 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-red-400 uppercase tracking-wider mb-0.5">
+                      <Film className="w-3 h-3 text-red-500" />
+                      <span>Esports Trailer</span>
+                    </div>
+                    <div className="text-xs font-extrabold text-white truncate group-hover:text-red-400 transition-colors">
+                      Watch PUBG Mobile Gameplay
+                    </div>
+                    <span className="text-[10px] text-gray-400 block font-mono mt-0.5">
+                      Click to Play Trailer Video 🎬
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Widget 3: Next Match Timer (Animated Glowing Card) */}
               <div
                 onClick={onJoinClick}
                 className="relative overflow-hidden bg-gradient-to-r from-[#121624] via-[#161c2e] to-[#121624] backdrop-blur-md border border-red-500/30 hover:border-red-500 rounded-xl p-4 transition-all duration-300 shadow-[0_0_20px_rgba(229,9,20,0.15)] hover:shadow-[0_0_30px_rgba(229,9,20,0.35)] hover:-translate-y-0.5 cursor-pointer group"
@@ -222,14 +306,14 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
                 </div>
               </div>
 
-              {/* Widget 3: Play Compete Win Script Box */}
-              <div className="bg-[#10131a]/90 backdrop-blur-md border border-red-900/40 rounded-xl p-5 text-center relative overflow-hidden">
-                <div className="text-xs font-extrabold tracking-widest text-gray-300 uppercase mb-1">
+              {/* Widget 4: Play Compete Win Script Box */}
+              <div className="bg-[#10131a]/90 backdrop-blur-md border border-red-900/40 rounded-xl p-4 text-center relative overflow-hidden">
+                <div className="text-[10px] font-extrabold tracking-widest text-gray-300 uppercase mb-0.5">
                   PLAY • COMPETE • WIN
                 </div>
-                <div className="font-display text-3xl font-black text-[#e50914] italic uppercase tracking-wide flex items-center justify-center gap-2">
+                <div className="font-display text-2xl sm:text-3xl font-black text-[#e50914] italic uppercase tracking-wide flex items-center justify-center gap-2">
                   <span>BE THE NEXT CHAMPION</span>
-                  <Crown className="w-7 h-7 text-amber-400 fill-amber-400 shrink-0" />
+                  <Crown className="w-6 h-6 text-amber-400 fill-amber-400 shrink-0" />
                 </div>
               </div>
 
@@ -239,6 +323,70 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
 
         </div>
       </div>
+
+      {/* VIDEO POPUP MODAL */}
+      {videoModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-xl animate-in fade-in duration-200">
+          <div className="relative bg-[#0c0e14] border border-red-500/40 rounded-3xl overflow-hidden w-full max-w-4xl shadow-2xl space-y-3">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-white/10 bg-[#121624]">
+              <div className="flex items-center gap-2">
+                <Film className="w-5 h-5 text-red-500" />
+                <h3 className="font-extrabold text-white text-sm uppercase tracking-wider">
+                  KongKaaL Gaming • Official PUBG Trailer & Gameplay
+                </h3>
+              </div>
+              <button
+                onClick={() => setVideoModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-red-600 text-white flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Video Player Frame */}
+            <div className="relative aspect-video w-full bg-black">
+              {videoUrl ? (
+                <iframe
+                  src={`${videoUrl}${videoUrl.includes('?') ? '&' : '?'}autoplay=1`}
+                  title="KongKaaL Gaming PUBG Trailer"
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 p-8 text-center">
+                  <Film className="w-12 h-12 text-red-500 mb-2" />
+                  <p className="text-sm font-bold text-white">No Video Link Configured</p>
+                  <span className="text-xs text-gray-400 mt-1">
+                    Admin can add a video URL in Admin Panel Settings.
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-[#0a0c12] border-t border-white/10 flex items-center justify-between text-xs">
+              <span className="text-gray-400 font-medium">
+                🔥 Join Bangladesh's Biggest PUBG Mobile Tournaments!
+              </span>
+              <button
+                onClick={() => {
+                  setVideoModalOpen(false)
+                  onJoinClick()
+                }}
+                className="btn-kong-red px-4 py-2 rounded-xl font-bold flex items-center gap-1.5"
+              >
+                <span>Register Now</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </section>
   )
 }
