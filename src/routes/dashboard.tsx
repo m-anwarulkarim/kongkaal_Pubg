@@ -42,6 +42,8 @@ import {
   Plus,
   MessageCircle,
   LogOut,
+  CheckCircle2,
+  Clock,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/dashboard')({ component: CustomerDashboardPage })
@@ -72,12 +74,14 @@ function CustomerDashboardPage() {
   const [depMethod, setDepMethod] = useState<'bKash' | 'Nagad' | 'Rocket'>('bKash')
   const [depTrxId, setDepTrxId] = useState('')
   const [depMsg, setDepMsg] = useState('')
+  const [depSuccess, setDepSuccess] = useState(false)
 
   // Withdraw Form State
   const [wthAmount, setWthAmount] = useState('200')
   const [wthMethod, setWthMethod] = useState<'bKash' | 'Nagad' | 'Rocket'>('bKash')
   const [wthAccount, setWthAccount] = useState('')
   const [wthMsg, setWthMsg] = useState('')
+  const [wthSuccess, setWthSuccess] = useState(false)
 
   // Profile Edit State
   const [editName, setEditName] = useState('')
@@ -236,13 +240,9 @@ function CustomerDashboardPage() {
     })
 
     if (res.success) {
-      setDepMsg('টাকা জমার অনুরোধ সফল হয়েছে! এডমিন TrxID চেক করে ব্যালেন্স যোগ করবেন।')
-      setDepTrxId('')
+      setDepSuccess(true)
+      toast.success('টাকা জমার অনুরোধ সফলভাবে পাঠানো হয়েছে!')
       loadDashboardData()
-      setTimeout(() => {
-        setDepositOpen(false)
-        setDepMsg('')
-      }, 2500)
     }
   }
 
@@ -283,13 +283,9 @@ function CustomerDashboardPage() {
     })
 
     if (res.success) {
-      setWthMsg(res.message)
-      toast.success(res.message)
+      setWthSuccess(true)
+      toast.success('ক্যাশ-আউট অনুরোধ সফলভাবে পাঠানো হয়েছে!')
       loadDashboardData()
-      setTimeout(() => {
-        setWithdrawOpen(false)
-        setWthMsg('')
-      }, 2500)
     } else {
       setWthMsg(res.message)
       toast.error(res.message)
@@ -669,93 +665,158 @@ function CustomerDashboardPage() {
 
       {/* MODAL 1: ADD MONEY (DEPOSIT) */}
       {depositOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-[#0f121d] border border-red-500/30 rounded-3xl p-6 max-w-md w-full space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0f121d] border border-red-500/30 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl relative overflow-hidden">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
               <h3 className="font-bold text-lg text-white">Add Money to Wallet (টাকা জমা)</h3>
-              <button onClick={() => setDepositOpen(false)} className="text-gray-400 hover:text-white">
+              <button
+                onClick={() => {
+                  setDepositOpen(false)
+                  setDepSuccess(false)
+                  setDepMsg('')
+                }}
+                className="text-gray-400 hover:text-white p-1"
+              >
                 ✕
               </button>
             </div>
 
-            {depMsg && (
-              <div className="p-3 bg-red-950/50 border border-red-500/40 rounded-xl text-xs text-red-300">
-                {depMsg}
-              </div>
-            )}
+            {depSuccess ? (
+              <div className="text-center py-4 px-1 space-y-4 animate-in fade-in zoom-in duration-200">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500/50 flex items-center justify-center text-emerald-400 mx-auto shadow-lg shadow-emerald-500/30">
+                  <CheckCircle2 className="w-10 h-10 animate-bounce" />
+                </div>
 
-            {/* Payment Number Copy */}
-            <div className="bg-[#161a29] p-4 rounded-2xl border border-white/10 space-y-2">
-              <span className="text-xs text-gray-400 font-bold block">Send Money to Send Number:</span>
-              <div className="flex justify-between items-center font-mono font-bold text-emerald-400 text-base">
-                <span>{paymentNumbers[depMethod]} ({depMethod})</span>
-                <Button
-                  onClick={() => handleCopy(paymentNumbers[depMethod], depMethod)}
-                  size="sm"
-                  className="bg-white/10 hover:bg-white/20 text-white text-xs px-2 py-1 h-auto"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  {copiedId === depMethod ? 'Copied' : 'Copy'}
-                </Button>
-              </div>
-            </div>
+                <div className="space-y-1.5">
+                  <h3 className="font-display text-xl sm:text-2xl font-black text-white uppercase">
+                    🎉 ধন্যবাদ! আপনার রিকোয়েস্ট সফলভাবে জমা হয়েছে
+                  </h3>
+                  <p className="text-xs text-emerald-400 font-bold">
+                    আপনার টাকা জমা (Add Money) রিকোয়েস্ট অ্যাডমিন প্যানেলে জমা হয়েছে।
+                  </p>
+                </div>
 
-            <form onSubmit={handleDepositSubmit} className="space-y-4 text-xs">
-              <div>
-                <label className="text-gray-300 font-bold block mb-1">Select Gateway</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['bKash', 'Nagad', 'Rocket'] as const).map((m) => (
-                    <button
-                      type="button"
-                      key={m}
-                      onClick={() => setDepMethod(m)}
-                      className={`py-2 rounded-xl border font-bold ${
-                        depMethod === m
-                          ? 'bg-red-600 border-red-500 text-white'
-                          : 'bg-[#161a29] border-white/10 text-gray-300'
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
+                <div className="bg-[#161a29] border border-white/10 rounded-2xl p-4 text-left space-y-2 text-xs">
+                  <div className="flex justify-between items-center text-gray-300 pb-2 border-b border-white/10">
+                    <span>ডিপোজিট পরিমাণ:</span>
+                    <strong className="text-white font-mono text-sm">৳{depAmount} BDT</strong>
+                  </div>
+                  <div className="flex justify-between items-center text-gray-300">
+                    <span>পেমেন্ট গেটওয়ে:</span>
+                    <strong className="text-pink-400 font-mono">{depMethod}</strong>
+                  </div>
+
+                  <div className="pt-2 text-[11px] text-amber-300 leading-relaxed font-medium bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 mt-2">
+                    ⏱️ <strong>ভেরিফিকেশন সময়:</strong> অনুগ্রহ করে <strong>১ থেকে ১২ ঘণ্টার</strong> মধ্যে অপেক্ষা করুন। অ্যাডমিন ম্যানুয়ালি TrxID চেক করে আপনার ওয়ালেটে টাকা যোগ করে দেবেন।
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <a
+                    href={`https://wa.me/8801980184366?text=${encodeURIComponent(`Hello Admin! I submitted a Deposit request of ৳${depAmount} via ${depMethod} (TrxID: ${depTrxId}). Please verify!`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 transition-all no-underline"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>জরুরি প্রশ্ন থাকলে সরাসরি WhatsApp-এ মেসেজ দিন</span>
+                  </a>
+
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setDepositOpen(false)
+                      setDepSuccess(false)
+                      setDepTrxId('')
+                    }}
+                    className="w-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2.5 rounded-xl border border-white/20"
+                  >
+                    ঠিক আছে, বুঝতে পেরেছি (Close)
+                  </Button>
                 </div>
               </div>
+            ) : (
+              <>
+                {depMsg && (
+                  <div className="p-3 bg-red-950/50 border border-red-500/40 rounded-xl text-xs text-red-300">
+                    {depMsg}
+                  </div>
+                )}
 
-              <div>
-                <label className="text-gray-300 font-bold block mb-1">Deposit Amount (৳)</label>
-                <Input
-                  type="number"
-                  value={depAmount}
-                  onChange={(e) => setDepAmount(e.target.value)}
-                  className="bg-[#161a29] border-white/10 text-white"
-                  required
-                />
-              </div>
+                {/* Payment Number Copy */}
+                <div className="bg-[#161a29] p-4 rounded-2xl border border-white/10 space-y-2">
+                  <span className="text-xs text-gray-400 font-bold block">Send Money to Send Number:</span>
+                  <div className="flex justify-between items-center font-mono font-bold text-emerald-400 text-base">
+                    <span>{paymentNumbers[depMethod]} ({depMethod})</span>
+                    <Button
+                      onClick={() => handleCopy(paymentNumbers[depMethod], depMethod)}
+                      size="sm"
+                      className="bg-white/10 hover:bg-white/20 text-white text-xs px-2 py-1 h-auto"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      {copiedId === depMethod ? 'Copied' : 'Copy'}
+                    </Button>
+                  </div>
+                </div>
 
-              <div>
-                <label className="text-gray-300 font-bold block mb-1">Transaction ID (TrxID)</label>
-                <Input
-                  type="text"
-                  placeholder="e.g. BAX9021K9L"
-                  value={depTrxId}
-                  onChange={(e) => setDepTrxId(e.target.value)}
-                  className="bg-[#161a29] border-white/10 text-white uppercase font-mono"
-                  required
-                />
-              </div>
+                <form onSubmit={handleDepositSubmit} className="space-y-4 text-xs">
+                  <div>
+                    <label className="text-gray-300 font-bold block mb-1">Select Gateway</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['bKash', 'Nagad', 'Rocket'] as const).map((m) => (
+                        <button
+                          type="button"
+                          key={m}
+                          onClick={() => setDepMethod(m)}
+                          className={`py-2 rounded-xl border font-bold ${
+                            depMethod === m
+                              ? 'bg-red-600 border-red-500 text-white'
+                              : 'bg-[#161a29] border-white/10 text-gray-300'
+                          }`}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              <Button type="submit" className="w-full bg-[#e50914] hover:bg-red-600 font-bold py-3 text-xs rounded-xl">
-                Submit Deposit Request
-              </Button>
-            </form>
+                  <div>
+                    <label className="text-gray-300 font-bold block mb-1">Deposit Amount (৳)</label>
+                    <Input
+                      type="number"
+                      value={depAmount}
+                      onChange={(e) => setDepAmount(e.target.value)}
+                      className="bg-[#161a29] border-white/10 text-white"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-gray-300 font-bold block mb-1">Transaction ID (TrxID)</label>
+                    <Input
+                      type="text"
+                      placeholder="e.g. BAX9021K9L"
+                      value={depTrxId}
+                      onChange={(e) => setDepTrxId(e.target.value)}
+                      className="bg-[#161a29] border-white/10 text-white uppercase font-mono"
+                      required
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full bg-[#e50914] hover:bg-red-600 font-bold py-3 text-xs rounded-xl">
+                    Submit Deposit Request
+                  </Button>
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}
 
       {/* MODAL 2: WITHDRAW MONEY */}
       {withdrawOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-[#0f121d] border border-emerald-500/30 rounded-3xl p-6 max-w-md w-full space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0f121d] border border-emerald-500/30 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl relative overflow-hidden">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
               <div>
                 <h3 className="font-bold text-lg text-white">Withdraw Money (টাকা ক্যাশ আউট)</h3>
@@ -763,92 +824,157 @@ function CustomerDashboardPage() {
                   বর্তমান ব্যালেন্স: ৳{profile?.walletBalance ?? 0}
                 </p>
               </div>
-              <button onClick={() => setWithdrawOpen(false)} className="text-gray-400 hover:text-white">
+              <button
+                onClick={() => {
+                  setWithdrawOpen(false)
+                  setWthSuccess(false)
+                  setWthMsg('')
+                }}
+                className="text-gray-400 hover:text-white p-1"
+              >
                 ✕
               </button>
             </div>
 
-            {wthMsg && (
-              <div
-                className={`p-3 border rounded-xl text-xs ${
-                  Number(wthAmount) > (profile?.walletBalance ?? 0)
-                    ? 'bg-red-950/50 border-red-500/40 text-red-300'
-                    : 'bg-emerald-950/50 border-emerald-500/40 text-emerald-300'
-                }`}
-              >
-                {wthMsg}
-              </div>
-            )}
-
-            <form onSubmit={handleWithdrawSubmit} className="space-y-4 text-xs">
-              <div>
-                <label className="text-gray-300 font-bold block mb-1">Select Cash-out Method</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['bKash', 'Nagad', 'Rocket'] as const).map((m) => (
-                    <button
-                      type="button"
-                      key={m}
-                      onClick={() => setWthMethod(m)}
-                      className={`py-2 rounded-xl border font-bold ${
-                        wthMethod === m
-                          ? 'bg-emerald-600 border-emerald-500 text-white'
-                          : 'bg-[#161a29] border-white/10 text-gray-300'
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
+            {wthSuccess ? (
+              <div className="text-center py-4 px-1 space-y-4 animate-in fade-in zoom-in duration-200">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500/50 flex items-center justify-center text-emerald-400 mx-auto shadow-lg shadow-emerald-500/30">
+                  <CheckCircle2 className="w-10 h-10 animate-bounce" />
                 </div>
-              </div>
 
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-gray-300 font-bold block">Withdraw Amount (৳)</label>
-                  <span className="text-[11px] text-gray-400 font-medium">
-                    সর্বোচ্চ: <strong className="text-emerald-400 font-bold">৳{profile?.walletBalance ?? 0}</strong>
-                  </span>
-                </div>
-                <Input
-                  type="number"
-                  min={1}
-                  max={profile?.walletBalance ?? 0}
-                  placeholder="উইথড্র অ্যামাউন্ট লিখুন"
-                  value={wthAmount}
-                  onChange={(e) => setWthAmount(e.target.value)}
-                  className={`bg-[#161a29] text-white transition-all ${
-                    Number(wthAmount) > (profile?.walletBalance ?? 0)
-                      ? 'border-red-500/80 focus-visible:ring-red-500 text-red-300'
-                      : 'border-white/10'
-                  }`}
-                  required
-                />
-                {Number(wthAmount) > (profile?.walletBalance ?? 0) && (
-                  <p className="text-red-400 text-[11px] mt-1.5 font-semibold flex items-center gap-1">
-                    ⚠️ ব্যালেন্সের বেশি উইথড্র করা সম্ভব নয়! (আপনার ব্যালেন্স: ৳{profile?.walletBalance ?? 0})
+                <div className="space-y-1.5">
+                  <h3 className="font-display text-xl sm:text-2xl font-black text-white uppercase">
+                    🎉 ধন্যবাদ! আপনার ক্যাশ-আউট রিকোয়েস্ট সফল হয়েছে
+                  </h3>
+                  <p className="text-xs text-emerald-400 font-bold">
+                    আপনার টাকা তোলার (Withdraw) আবেদন সফলভাবে জমা হয়েছে।
                   </p>
+                </div>
+
+                <div className="bg-[#161a29] border border-white/10 rounded-2xl p-4 text-left space-y-2 text-xs">
+                  <div className="flex justify-between items-center text-gray-300 pb-2 border-b border-white/10">
+                    <span>উইথড্র পরিমাণ:</span>
+                    <strong className="text-white font-mono text-sm">৳{wthAmount} BDT</strong>
+                  </div>
+                  <div className="flex justify-between items-center text-gray-300">
+                    <span>অ্যাকাউন্ট ও মেথড:</span>
+                    <strong className="text-emerald-400 font-mono">{wthMethod} ({wthAccount})</strong>
+                  </div>
+
+                  <div className="pt-2 text-[11px] text-amber-300 leading-relaxed font-medium bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 mt-2">
+                    ⏱️ <strong>ক্যাশ-আউট সময়:</strong> অনুগ্রহ করে <strong>১ থেকে ১২ ঘণ্টার</strong> মধ্যে অপেক্ষা করুন। অ্যাডমিন ম্যানুয়ালি চেক করে আপনার পার্সোনাল অ্যাকাউন্টে টাকা পাঠিয়ে দেবেন।
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <a
+                    href={`https://wa.me/8801980184366?text=${encodeURIComponent(`Hello Admin! I submitted a Withdraw request of ৳${wthAmount} to my ${wthMethod} account (${wthAccount}). Please check!`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 transition-all no-underline"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>জরুরি সহায়তা বা আপডেটের জন্য WhatsApp-এ মেসেজ দিন</span>
+                  </a>
+
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setWithdrawOpen(false)
+                      setWthSuccess(false)
+                      setWthAccount('')
+                    }}
+                    className="w-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2.5 rounded-xl border border-white/20"
+                  >
+                    ঠিক আছে, বুঝতে পেরেছি (Close)
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {wthMsg && (
+                  <div
+                    className={`p-3 border rounded-xl text-xs ${
+                      Number(wthAmount) > (profile?.walletBalance ?? 0)
+                        ? 'bg-red-950/50 border-red-500/40 text-red-300'
+                        : 'bg-emerald-950/50 border-emerald-500/40 text-emerald-300'
+                    }`}
+                  >
+                    {wthMsg}
+                  </div>
                 )}
-              </div>
 
-              <div>
-                <label className="text-gray-300 font-bold block mb-1">bKash/Nagad Personal Number</label>
-                <Input
-                  type="text"
-                  placeholder="017XXXXXXXX"
-                  value={wthAccount}
-                  onChange={(e) => setWthAccount(e.target.value)}
-                  className="bg-[#161a29] border-white/10 text-white font-mono"
-                  required
-                />
-              </div>
+                <form onSubmit={handleWithdrawSubmit} className="space-y-4 text-xs">
+                  <div>
+                    <label className="text-gray-300 font-bold block mb-1">Select Cash-out Method</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['bKash', 'Nagad', 'Rocket'] as const).map((m) => (
+                        <button
+                          type="button"
+                          key={m}
+                          onClick={() => setWthMethod(m)}
+                          className={`py-2 rounded-xl border font-bold ${
+                            wthMethod === m
+                              ? 'bg-emerald-600 border-emerald-500 text-white'
+                              : 'bg-[#161a29] border-white/10 text-gray-300'
+                          }`}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              <Button
-                type="submit"
-                disabled={Number(wthAmount) > (profile?.walletBalance ?? 0) || Number(wthAmount) <= 0}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-bold py-3 text-xs rounded-xl transition-all"
-              >
-                Submit Cash Out Request
-              </Button>
-            </form>
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-gray-300 font-bold block">Withdraw Amount (৳)</label>
+                      <span className="text-[11px] text-gray-400 font-medium">
+                        সর্বোচ্চ: <strong className="text-emerald-400 font-bold">৳{profile?.walletBalance ?? 0}</strong>
+                      </span>
+                    </div>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={profile?.walletBalance ?? 0}
+                      placeholder="উইথড্র অ্যামাউন্ট লিখুন"
+                      value={wthAmount}
+                      onChange={(e) => setWthAmount(e.target.value)}
+                      className={`bg-[#161a29] text-white transition-all ${
+                        Number(wthAmount) > (profile?.walletBalance ?? 0)
+                          ? 'border-red-500/80 focus-visible:ring-red-500 text-red-300'
+                          : 'border-white/10'
+                      }`}
+                      required
+                    />
+                    {Number(wthAmount) > (profile?.walletBalance ?? 0) && (
+                      <p className="text-red-400 text-[11px] mt-1.5 font-semibold flex items-center gap-1">
+                        ⚠️ ব্যালেন্সের বেশি উইথড্র করা সম্ভব নয়! (আপনার ব্যালেন্স: ৳{profile?.walletBalance ?? 0})
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-gray-300 font-bold block mb-1">bKash/Nagad Personal Number</label>
+                    <Input
+                      type="text"
+                      placeholder="017XXXXXXXX"
+                      value={wthAccount}
+                      onChange={(e) => setWthAccount(e.target.value)}
+                      className="bg-[#161a29] border-white/10 text-white font-mono"
+                      required
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={Number(wthAmount) > (profile?.walletBalance ?? 0) || Number(wthAmount) <= 0}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-bold py-3 text-xs rounded-xl transition-all"
+                  >
+                    Submit Cash Out Request
+                  </Button>
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}
