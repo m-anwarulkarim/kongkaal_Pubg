@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import type { RegistrationRecord } from '@/lib/db'
 import { getAllCustomerProfiles } from '@/lib/wallet'
 import type { CustomerProfile } from '@/types/wallet'
-import { getUserSupportMessages } from '@/lib/support'
+import { getSupportMessages, type SupportMessage } from '@/lib/support'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Users, Gamepad2, Search, Smartphone, Wallet, RefreshCw, Mail, ShieldCheck, MessageSquare } from 'lucide-react'
@@ -20,14 +20,19 @@ export default function PlayersTab({
 }: PlayersTabProps) {
   const [viewMode, setViewMode] = useState<'CUSTOMERS' | 'MATCH_SLOTS'>('CUSTOMERS')
   const [customers, setCustomers] = useState<CustomerProfile[]>([])
+  const [supportMsgs, setSupportMsgs] = useState<SupportMessage[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
   const loadCustomers = async () => {
     setLoading(true)
     try {
-      const data = await getAllCustomerProfiles()
+      const [data, msgsData] = await Promise.all([
+        getAllCustomerProfiles(),
+        getSupportMessages(),
+      ])
       setCustomers(data)
+      setSupportMsgs(msgsData)
     } catch (err) {
       console.error('Failed to load customers:', err)
     } finally {
@@ -156,7 +161,7 @@ export default function PlayersTab({
                 </thead>
                 <tbody className="divide-y divide-white/5 font-medium">
                   {filteredCustomers.map((cust) => {
-                    const userMsgs = getUserSupportMessages(cust.email)
+                    const userMsgs = (supportMsgs || []).filter((m) => m.userEmail.toLowerCase() === cust.email.toLowerCase())
                     const pendingMsgs = userMsgs.filter((m) => m.status === 'PENDING')
                     const hasPending = pendingMsgs.length > 0
 
