@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import {
   getWalletTransactions,
   getAllCustomerProfiles,
@@ -73,9 +74,10 @@ export default function WalletTab() {
   const handleAction = async (id: string, status: 'APPROVED' | 'REJECTED') => {
     const res = await adminApproveTransaction(id, status)
     if (res.success) {
+      toast.success(status === 'APPROVED' ? 'ট্রানজেকশন সফলভাবে এপ্রুভ (APPROVED) হয়েছে!' : 'ট্রানজেকশন রিজেক্ট করা হয়েছে!')
       loadWalletData()
     } else {
-      alert(`Error: ${res.message}`)
+      toast.error(`Error: ${res.message}`)
     }
   }
 

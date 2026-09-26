@@ -1,3 +1,4 @@
+import { toast } from 'sonner'
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import {
@@ -80,6 +81,7 @@ function AdminDashboard() {
     if (email.trim().toLowerCase() === 'kongkaal2026@gmail.com' && password === 'kongkaal2026') {
       setIsAuthenticated(true)
       localStorage.setItem('kongkaal_admin_authed', 'true')
+      toast.success('এডমিন প্যানেলে সফলভাবে লগইন হয়েছে!')
       return
     }
 
@@ -93,6 +95,7 @@ function AdminDashboard() {
       if (data?.session && !error) {
         setIsAuthenticated(true)
         localStorage.setItem('kongkaal_admin_authed', 'true')
+        toast.success('এডমিন প্যানেলে সফলভাবে লগইন হয়েছে!')
         return
       }
     } catch (err) {
@@ -100,12 +103,14 @@ function AdminDashboard() {
     }
 
     setErrorMsg('Invalid Admin Email or Password!')
+    toast.error('ভুল এডমিন ইমেইল অথবা পাসওয়ার্ড!')
   }
 
   const handleLogout = () => {
     setIsAuthenticated(false)
     localStorage.removeItem('kongkaal_admin_authed')
     setPassword('')
+    toast.info('এডমিন সেশন থেকে লগআউট হয়েছে!')
   }
 
   const loadAdminData = async () => {
@@ -152,9 +157,10 @@ function AdminDashboard() {
   const handleStatusUpdate = async (id: string, newStatus: 'VERIFIED' | 'REJECTED') => {
     const res = await updateRegistrationStatus(id, newStatus)
     if (res.success) {
+      toast.success(newStatus === 'VERIFIED' ? 'স্লট পেমেন্ট ভেরিফাইড (VERIFIED) করা হয়েছে!' : 'স্লট বুকিং রিজেক্ট করা হয়েছে!')
       setRegistrations((prev) => prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)))
     } else {
-      alert(`Error updating status: ${res.message}`)
+      toast.error(`ত্রুটি: ${res.message}`)
     }
   }
 
@@ -178,20 +184,22 @@ function AdminDashboard() {
     })
 
     if (res.success) {
+      toast.success('নতুন টুর্নামেন্ট ম্যাচ তৈরি হয়েছে!')
       setNewMatchOpen(false)
       loadAdminData()
     } else {
-      alert(`Error creating match: ${res.message}`)
+      toast.error(`ত্রুটি: ${res.message}`)
     }
   }
 
   const handleDeleteMatch = async (id: string) => {
-    if (confirm('Are you sure you want to delete this match?')) {
+    if (confirm('আপনি কি নিশ্চিত যে এই ম্যাচটি মুছে ফেলতে চান?')) {
       const res = await deleteMatch(id)
       if (res.success) {
+        toast.success('ম্যাচটি মুছে ফেলা হয়েছে!')
         setMatches((prev) => prev.filter((m) => m.id !== id))
       } else {
-        alert(`Error deleting match: ${res.message}`)
+        toast.error(`ত্রুটি: ${res.message}`)
       }
     }
   }

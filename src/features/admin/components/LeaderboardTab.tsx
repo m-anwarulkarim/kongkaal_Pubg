@@ -138,7 +138,7 @@ export default function LeaderboardTab() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.matchTitle || !formData.teamName || !formData.playerIgn) {
-      alert('Please fill in all required fields!')
+      toast.error('দয়া করে সব প্রয়োজনীয় ঘর পূরণ করুন!')
       return
     }
 
@@ -152,16 +152,18 @@ export default function LeaderboardTab() {
     if (editingId) {
       const res = await updateLeaderboardItem(editingId, payload)
       if (res.success) {
+        toast.success('লিডারবোর্ড তথ্য আপডেট হয়েছে!')
         setItems((prev) =>
           prev.map((item) => (item.id === editingId ? { ...item, ...payload } : item))
         )
         setIsModalOpen(false)
       } else {
-        alert(`Failed to update: ${res.message}`)
+        toast.error(`Failed to update: ${res.message}`)
       }
     } else {
       const res = await createLeaderboardItem(payload)
       if (res.success) {
+        toast.success('লিডারবোর্ডে উইনার যোগ করা হয়েছে!')
         if (res.newItem) {
           setItems((prev) => [res.newItem!, ...prev])
         } else {
@@ -169,19 +171,20 @@ export default function LeaderboardTab() {
         }
         setIsModalOpen(false)
       } else {
-        alert(`Failed to add: ${res.message}`)
+        toast.error(`Failed to add: ${res.message}`)
       }
     }
     setSubmitting(false)
   }
 
   const handleDelete = async (id: string, matchTitle: string) => {
-    if (!confirm(`Are you sure you want to remove ${matchTitle} from Leaderboard?`)) return
+    if (!confirm(`আপনি কি নিশ্চিত যে ${matchTitle} কাস্টমারকে লিডারবোর্ড থেকে সরাতে চান?`)) return
     const res = await deleteLeaderboardItem(id)
     if (res.success) {
+      toast.success('লিডারবোর্ড আইটেম মুছে ফেলা হয়েছে!')
       setItems((prev) => prev.filter((item) => item.id !== id))
     } else {
-      alert(`Failed to delete: ${res.message}`)
+      toast.error(`Failed to delete: ${res.message}`)
     }
   }
 
@@ -190,11 +193,12 @@ export default function LeaderboardTab() {
     const pinnedPosition = isPinned ? targetPos : undefined
     const res = await updateLeaderboardItem(item.id, { isPinned, pinnedPosition })
     if (res.success) {
+      toast.success('লিডারবোর্ড পজিশন সেভ করা হয়েছে!')
       setItems((prev) =>
         prev.map((i) => (i.id === item.id ? { ...i, isPinned, pinnedPosition } : i))
       )
     } else {
-      alert(`Failed to update position: ${res.message}`)
+      toast.error(`Failed to update position: ${res.message}`)
     }
   }
 

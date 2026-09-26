@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import {
   MessageSquare,
   Search,
@@ -118,8 +119,9 @@ export default function MessagesTab({ initialSearch = '' }: MessagesTabProps) {
             }
           : null
       )
+      toast.success('এডমিন রিপ্লাই সফলভাবে পাঠানো হয়েছে!')
     } else {
-      alert('রেসপন্স পাঠানো ব্যর্থ হয়েছে!')
+      toast.error('রেসপন্স পাঠানো ব্যর্থ হয়েছে!')
     }
     setSubmitting(false)
   }

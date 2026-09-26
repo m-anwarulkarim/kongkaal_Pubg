@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import type { MatchItem } from '@/types/match'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -35,10 +36,11 @@ export default function MatchesTab({
     setSaving(false)
 
     if (res.success) {
+      toast.success('ম্যাচ তথ্য সফলভাবে আপডেট হয়েছে!')
       setEditingMatch(null)
       if (onRefreshMatches) onRefreshMatches()
     } else {
-      alert(`Error updating match: ${res.message}`)
+      toast.error(`Error updating match: ${res.message}`)
     }
   }
 
