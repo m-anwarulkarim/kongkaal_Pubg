@@ -14,15 +14,6 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
   const [upcomingMatchInfo, setUpcomingMatchInfo] = useState<{ time: string; map: string } | null>(null)
   const [liveMatchInfo, setLiveMatchInfo] = useState<{ count: number } | null>(null)
   const [videoModalOpen, setVideoModalOpen] = useState(false)
-  const [showVideoBg, setShowVideoBg] = useState(false)
-
-  // 2-second timer to smoothly transition background from image to video
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowVideoBg(true)
-    }, 2000)
-    return () => clearTimeout(timer)
-  }, [])
 
   useEffect(() => {
     const loadBannerData = async () => {
@@ -88,13 +79,9 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
               className="object-cover object-[80%_center] sm:object-right opacity-75 sm:opacity-60 transition-opacity"
             />
 
-            {/* 2. Video Layer - Fades in smoothly after 2 seconds */}
+            {/* 2. Instant Background Video Layer */}
             {bgVideoUrl && (
-              <div
-                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                  showVideoBg ? 'opacity-75 sm:opacity-65' : 'opacity-0 pointer-events-none'
-                }`}
-              >
+              <div className="absolute inset-0 opacity-80 sm:opacity-70">
                 {!bgVideoUrl.includes('youtube.com') && !bgVideoUrl.includes('youtu.be') ? (
                   <video
                     src={bgVideoUrl}
