@@ -111,12 +111,12 @@ export default function Header({ onRegisterClick }: HeaderProps) {
               <div className="relative">
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#12151e] border border-red-500/40 hover:bg-red-950/30 transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-full bg-[#12151e] border border-red-500/40 hover:bg-red-950/30 transition-all cursor-pointer"
                 >
                   {userAvatar ? (
-                    <img src={userAvatar} alt={userName || 'User'} className="w-6 h-6 rounded-full border border-red-500 object-cover" />
+                    <img src={userAvatar} alt={userName || 'User'} className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-red-500 object-cover" />
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-red-600 text-white font-bold text-[10px] flex items-center justify-center">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-red-600 text-white font-bold text-[10px] flex items-center justify-center">
                       {userName?.[0]?.toUpperCase() || 'U'}
                     </div>
                   )}
@@ -164,7 +164,7 @@ export default function Header({ onRegisterClick }: HeaderProps) {
             ) : (
               <button
                 onClick={() => setAuthModalOpen(true)}
-                className="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold font-gaming border border-white/20 text-white hover:bg-white/10 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold font-gaming border border-white/20 text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
               >
                 {/* Small Google G Icon */}
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
@@ -179,13 +179,13 @@ export default function Header({ onRegisterClick }: HeaderProps) {
             
             <button
               onClick={onRegisterClick}
-              className="px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold font-gaming bg-[#e50914] text-white hover:bg-red-600 transition-colors shadow-md shadow-red-600/30 cursor-pointer"
+              className="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold font-gaming bg-[#e50914] text-white hover:bg-red-600 transition-colors shadow-md shadow-red-600/30 cursor-pointer shrink-0"
             >
               Register
             </button>
 
-            {/* Flag & Language Selector Dropdown */}
-            <div className="relative">
+            {/* Flag & Language Selector Dropdown (Hidden on Mobile, Visible on Desktop) */}
+            <div className="relative hidden md:block">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
                 className="flex items-center gap-1.5 bg-[#12151e] hover:bg-[#1a1f2e] border border-white/10 rounded-full px-2.5 py-1 text-xs text-gray-300 transition-all cursor-pointer select-none"
@@ -335,7 +335,41 @@ export default function Header({ onRegisterClick }: HeaderProps) {
             </div>
 
             {/* Sidebar Bottom Auth & Actions */}
-            <div className="pt-6 border-t border-white/10 space-y-3">
+            <div className="pt-4 border-t border-white/10 space-y-3">
+              {/* Language Selector inside Mobile Drawer */}
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/10">
+                <span className="text-xs text-gray-300 font-bold">Language / ভাষা:</span>
+                <div className="flex items-center gap-1 bg-[#12151e] p-1 rounded-lg border border-white/10">
+                  <button
+                    onClick={() => handleSelectLang('BN')}
+                    className={`px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 transition-colors ${
+                      selectedLang === 'BN' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <svg className="w-3.5 h-2.5 rounded-[1px] overflow-hidden shrink-0" viewBox="0 0 20 12">
+                      <rect width="20" height="12" fill="#006a4e" />
+                      <circle cx="9" cy="6" r="3.6" fill="#f42a41" />
+                    </svg>
+                    <span>BD</span>
+                  </button>
+                  <button
+                    onClick={() => handleSelectLang('EN')}
+                    className={`px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 transition-colors ${
+                      selectedLang === 'EN' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <svg className="w-3.5 h-2.5 rounded-[1px] overflow-hidden shrink-0" viewBox="0 0 190 100">
+                      <rect width="190" height="100" fill="#bb133e"/>
+                      <rect y="15.38" width="190" height="15.38" fill="#fff"/>
+                      <rect y="46.15" width="190" height="15.38" fill="#fff"/>
+                      <rect y="76.92" width="190" height="15.38" fill="#fff"/>
+                      <rect width="76" height="53.85" fill="#002147"/>
+                    </svg>
+                    <span>US</span>
+                  </button>
+                </div>
+              </div>
+
               {user ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
