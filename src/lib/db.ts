@@ -576,3 +576,36 @@ export async function deleteLeaderboardItem(id: string): Promise<{ success: bool
   return { success: true, message: 'Leaderboard entry deleted successfully!' }
 }
 
+// 11. Hero Banner Widget Settings Management
+export interface HeroBannerSettings {
+  nextMatchTime: string
+  nextMatchMap: string
+  liveStatusText: string
+  activePlayersCount: number
+}
+
+export const DEFAULT_HERO_SETTINGS: HeroBannerSettings = {
+  nextMatchTime: 'Today • 10:00 PM',
+  nextMatchMap: 'Erangel / Asia',
+  liveStatusText: 'Tournament Ongoing',
+  activePlayersCount: 128,
+}
+
+export function getHeroBannerSettings(): HeroBannerSettings {
+  if (typeof window === 'undefined') return DEFAULT_HERO_SETTINGS
+  const stored = localStorage.getItem('kongkaal_hero_settings')
+  if (!stored) return DEFAULT_HERO_SETTINGS
+  try {
+    return { ...DEFAULT_HERO_SETTINGS, ...JSON.parse(stored) }
+  } catch {
+    return DEFAULT_HERO_SETTINGS
+  }
+}
+
+export function saveHeroBannerSettings(settings: HeroBannerSettings) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('kongkaal_hero_settings', JSON.stringify(settings))
+    window.dispatchEvent(new Event('hero_settings_updated'))
+  }
+}
+

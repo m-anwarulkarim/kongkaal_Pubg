@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react'
 import { Trophy, Shield, Zap, ArrowRight, Eye, Gamepad2, Calendar, Crown } from 'lucide-react'
 import Image from '@/components/ui/Image'
+import { getHeroBannerSettings, getMatches, type HeroBannerSettings } from '@/lib/db'
 
 interface HeroSectionProps {
   onJoinClick: () => void
@@ -7,6 +9,53 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSectionProps) {
+  const [heroSettings, setHeroSettings] = useState<HeroBannerSettings>(() => getHeroBannerSettings())
+  const [upcomingMatchInfo, setUpcomingMatchInfo] = useState<{ time: string; map: string } | null>(null)
+  const [liveMatchInfo, setLiveMatchInfo] = useState<{ count: number } | null>(null)
+
+  useEffect(() => {
+    const loadBannerData = async () => {
+      setHeroSettings(getHeroBannerSettings())
+
+      try {
+        const matches = await getMatches()
+        const upcoming = matches.find((m) => m.status === 'OPEN' || m.status === 'FILLING_FAST' || m.status === 'LIVE_SOON')
+        const activeMatches = matches.filter((m) => m.status !== 'COMPLETED')
+
+        if (upcoming) {
+          setUpcomingMatchInfo({
+            time: upcoming.time || 'Today • 10:00 PM',
+            map: `${upcoming.map} / ${upcoming.mode || 'Asia'}`,
+          })
+        }
+
+        if (activeMatches.length > 0) {
+          const totalJoined = activeMatches.reduce((acc, curr) => acc + (curr.joinedSlots || 0), 0)
+          setLiveMatchInfo({ count: totalJoined > 0 ? totalJoined : 128 })
+        }
+      } catch (err) {
+        console.warn('Could not load dynamic matches for hero:', err)
+      }
+    }
+
+    loadBannerData()
+
+    const handleUpdate = () => {
+      loadBannerData()
+    }
+
+    window.addEventListener('hero_settings_updated', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+    return () => {
+      window.removeEventListener('hero_settings_updated', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
+  }, [])
+
+  const displayNextTime = upcomingMatchInfo?.time || heroSettings.nextMatchTime
+  const displayNextMap = upcomingMatchInfo?.map || heroSettings.nextMatchMap
+  const displayLiveCount = liveMatchInfo?.count || heroSettings.activePlayersCount
+
   return (
     <section className="relative overflow-hidden bg-[#07080b] py-8 border-b border-white/5">
       
@@ -119,10 +168,10 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
                     <span className="bg-[#e50914] text-white text-[10px] font-extrabold px-2 py-0.5 rounded tracking-wider animate-pulse uppercase">
                       LIVE
                     </span>
-                    <span className="text-xs font-bold text-white">Tournament Ongoing</span>
+                    <span className="text-xs font-bold text-white">{heroSettings.liveStatusText}</span>
                   </div>
                   <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1">
-                    <Eye className="w-3.5 h-3.5 text-gray-400" /> 128 Players Active
+                    <Eye className="w-3.5 h-3.5 text-gray-400" /> {displayLiveCount} Players Active
                   </span>
                 </div>
                 <div className="p-2 bg-red-600/10 border border-red-600/20 rounded-lg text-red-500">
@@ -136,10 +185,10 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
                   <Calendar className="w-3.5 h-3.5 text-red-500" /> <span>Next Match</span>
                 </div>
                 <div className="text-sm font-extrabold text-white">
-                  Today • 10:00 PM
+                  {displayNextTime}
                 </div>
                 <div className="text-[11px] text-gray-400 font-medium mt-0.5 flex items-center gap-1">
-                  <Shield className="w-3 h-3 text-red-500" /> Erangel / Asia
+                  <Shield className="w-3 h-3 text-red-500" /> {displayNextMap}
                 </div>
               </div>
 
