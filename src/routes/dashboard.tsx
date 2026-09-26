@@ -39,6 +39,7 @@ import {
   Send,
   Plus,
   MessageCircle,
+  LogOut,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/dashboard')({ component: CustomerDashboardPage })
@@ -52,7 +53,7 @@ const PRESET_AVATARS = [
 ]
 
 function CustomerDashboardPage() {
-  const { user, loading: authLoading } = useCustomerAuth()
+  const { user, loading: authLoading, signOut } = useCustomerAuth()
   const navigate = useNavigate()
 
   const [profile, setProfile] = useState<CustomerProfile | null>(null)
@@ -327,12 +328,24 @@ function CustomerDashboardPage() {
                   </div>
                 </div>
 
-                <Button
-                  onClick={() => setEditProfileOpen(true)}
-                  className="bg-white/10 hover:bg-white/20 text-white font-bold border border-white/20 text-xs rounded-xl px-4 py-2"
-                >
-                  Edit Profile Info
-                </Button>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <Button
+                    onClick={() => setEditProfileOpen(true)}
+                    className="bg-white/10 hover:bg-white/20 text-white font-bold border border-white/20 text-xs rounded-xl px-4 py-2"
+                  >
+                    Edit Profile Info
+                  </Button>
+
+                  <Button
+                    onClick={async () => {
+                      await signOut()
+                      navigate({ to: '/' })
+                    }}
+                    className="bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 font-bold border border-red-500/40 text-xs rounded-xl px-4 py-2 flex items-center gap-1.5 transition-colors"
+                  >
+                    <LogOut className="w-3.5 h-3.5 text-red-500" /> Logout (লগআউট)
+                  </Button>
+                </div>
               </div>
             </div>
 
