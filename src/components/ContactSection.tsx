@@ -12,6 +12,7 @@ import {
   ExternalLink,
   QrCode,
   X,
+  Zap,
 } from 'lucide-react'
 
 export default function ContactSection() {
@@ -42,158 +43,180 @@ export default function ContactSection() {
   }
 
   return (
-    <section id="contact" className="py-20 bg-[#07090e] border-t border-b border-white/5 relative overflow-hidden">
+    <section id="contact" className="py-16 sm:py-24 bg-[#07090e] border-t border-b border-white/5 relative overflow-hidden">
       {/* Background Ambient Glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-red-600/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 relative z-10 space-y-10 sm:space-y-14">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <span className="px-4 py-1.5 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 font-gaming text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1.5">
             <Headphones className="w-3.5 h-3.5 text-red-500" />
             24/7 SUPPORT & HELP CENTER
           </span>
-          <h2 className="font-display text-4xl sm:text-6xl font-black text-white uppercase tracking-tight">
+          <h2 className="font-display text-3xl sm:text-6xl font-black text-white uppercase tracking-tight">
             GET IN TOUCH WITH <span className="text-[#e50914]">KONGKAAL</span>
           </h2>
-          <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
+          <p className="text-gray-400 text-xs sm:text-base leading-relaxed px-2">
             ম্যাচ এন্ট্রি, রুম আইডি ও পাসওয়ার্ড প্রাপ্তি, ক্যাশআউট বা অন্য যেকোনো জিজ্ঞাসায় আমাদের এক্সপার্ট কাস্টমার সাপোর্ট টিমের সাথে সরাসরি যোগাযোগ করুন।
           </p>
         </div>
 
-        {/* Top 3 Quick Contact Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1: WhatsApp Support */}
-          <div className="bg-[#0e121d] border border-emerald-500/30 hover:border-emerald-500/60 rounded-2xl p-6 transition-all hover:-translate-y-1 shadow-xl group flex flex-col justify-between">
+        {/* 3 Quick Contact Info Cards:
+            Mobile: Row 1 has 1 card (full width), Row 2 has 2 cards (side-by-side grid-cols-2)
+            Desktop: 3 cards in 1 row (md:grid-cols-3) */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
+          
+          {/* Card 1: WhatsApp Support (Full Row on Mobile col-span-2) */}
+          <div className="col-span-2 md:col-span-1 bg-gradient-to-b from-emerald-950/40 via-[#0d121c] to-[#080b12] border border-emerald-500/40 hover:border-emerald-500 rounded-3xl p-5 sm:p-7 transition-all duration-300 hover:-translate-y-1.5 shadow-2xl shadow-emerald-950/30 group flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-2xl rounded-full pointer-events-none" />
+
             <div>
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                  <MessageCircle className="w-6 h-6" />
+                <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/20">
+                  <MessageCircle className="w-5 h-5 sm:w-7 sm:h-7" />
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                  Instant Chat
+                <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] sm:text-xs font-black uppercase tracking-wider">
+                  INSTANT CHAT
                 </span>
               </div>
-              <h3 className="font-display text-xl font-bold text-white uppercase mb-1">
-                WhatsApp Support
+
+              <h3 className="font-display text-lg sm:text-2xl font-black text-white uppercase tracking-tight mb-1">
+                WHATSAPP SUPPORT
               </h3>
-              <p className="text-xs text-gray-400 mb-4">
+              <p className="text-xs sm:text-sm text-gray-300 mb-4 leading-relaxed">
                 যেকোনো দ্রুত সাহায্যের জন্য আমাদের অফিসিয়াল হোয়াটসঅ্যাপে মেসেজ বা কল দিন।
               </p>
-              <div className="space-y-1 mb-5 text-xs text-gray-300 font-semibold font-mono">
+
+              <div className="space-y-1.5 mb-6 text-xs sm:text-sm text-emerald-300 font-bold font-mono bg-black/40 p-3 rounded-2xl border border-emerald-500/20">
                 <div className="flex items-center gap-2">
-                  <PhoneCall className="w-3.5 h-3.5 text-emerald-400" />
+                  <PhoneCall className="w-4 h-4 text-emerald-400 shrink-0" />
                   <span>+880 1980-184366</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                <div className="flex items-center gap-2 text-[11px] sm:text-xs text-gray-400 font-normal">
+                  <Clock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   <span>Active 24 Hours / 7 Days</span>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-2">
               <a
                 href="https://wa.me/8801980184366?text=Hello%20KongKaaL%20Support!%20I%20need%20help%20with%20tournament%20match."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-gaming font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 no-underline shadow-lg shadow-emerald-600/20 transition-colors"
+                className="py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-black font-gaming font-extrabold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 no-underline shadow-lg shadow-emerald-500/30 transition-all hover:scale-[1.02] active:scale-95"
               >
-                <MessageCircle className="w-4 h-4" />
-                Chat
+                <MessageCircle className="w-4 h-4 fill-black" />
+                <span>CHAT</span>
               </a>
               <button
                 onClick={() => setQrModalOpen(true)}
-                className="py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-gaming font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors"
+                className="py-3 rounded-2xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 font-gaming font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all hover:scale-[1.02] active:scale-95"
               >
                 <QrCode className="w-4 h-4 text-emerald-400" />
-                Scan QR
+                <span>SCAN QR</span>
               </button>
             </div>
           </div>
 
-          {/* Card 2: Email & Official Helpdesk */}
-          <div className="bg-[#0e121d] border border-red-500/30 hover:border-red-500/60 rounded-2xl p-6 transition-all hover:-translate-y-1 shadow-xl group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
-                <Mail className="w-6 h-6" />
+          {/* Card 2: Email Helpdesk (Half Row 1 on Mobile col-span-1) */}
+          <div className="col-span-1 md:col-span-1 bg-gradient-to-b from-red-950/40 via-[#0d121c] to-[#080b12] border border-red-500/40 hover:border-red-500 rounded-3xl p-4 sm:p-7 transition-all duration-300 hover:-translate-y-1.5 shadow-2xl shadow-red-950/30 group flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 blur-2xl rounded-full pointer-events-none" />
+
+            <div>
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="w-9 h-9 sm:w-14 sm:h-14 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform shadow-lg shadow-red-500/20">
+                  <Mail className="w-4 h-4 sm:w-7 sm:h-7" />
+                </div>
+                <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-400 text-[9px] sm:text-xs font-black uppercase tracking-wider">
+                  OFFICIAL MAIL
+                </span>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-400 text-[10px] font-bold uppercase tracking-wider">
-                Official Mail
-              </span>
+
+              <h3 className="font-display text-base sm:text-2xl font-black text-white uppercase tracking-tight mb-1">
+                EMAIL HELPDESK
+              </h3>
+              <p className="text-[11px] sm:text-sm text-gray-300 mb-3 sm:mb-4 leading-relaxed line-clamp-2 sm:line-clamp-none">
+                স্পনসরশিপ বা টুর্নামেন্ট পার্টনারশিপ বিষয়ে ইমেইল করুন।
+              </p>
+
+              <div className="space-y-1 mb-4 sm:mb-6 text-[10px] sm:text-xs text-red-300 font-semibold font-mono bg-black/40 p-2.5 sm:p-3 rounded-2xl border border-red-500/20 overflow-hidden">
+                <div className="flex items-center gap-1.5 truncate">
+                  <Mail className="w-3 h-3 text-red-500 shrink-0" />
+                  <span className="truncate">kongkaal2026@gmail.com</span>
+                </div>
+                <div className="flex items-center gap-1.5 truncate text-gray-400 font-normal">
+                  <Sparkles className="w-3 h-3 text-red-500 shrink-0" />
+                  <span className="truncate">support@kongkaal.com</span>
+                </div>
+              </div>
             </div>
-            <h3 className="font-display text-xl font-bold text-white uppercase mb-1">
-              Email Helpdesk
-            </h3>
-            <p className="text-xs text-gray-400 mb-4">
-              স্পনসরশিপ, টুর্নামেন্ট পার্টনারশিপ বা বিজনেস সংক্রান্ত বিষয়ে ইমেইল করুন।
-            </p>
-            <div className="space-y-1 mb-5 text-xs text-gray-300 font-semibold font-mono">
-              <div className="flex items-center gap-2">
-                <Mail className="w-3.5 h-3.5 text-red-500" />
-                <span>kongkaal2026@gmail.com</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-red-500" />
-                <span>support@kongkaalgaming.com</span>
-              </div>
-            </div>
+
             <a
               href="mailto:kongkaal2026@gmail.com?subject=KongKaaL%20Esports%20Inquiry"
-              className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-gaming font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 no-underline shadow-lg shadow-red-600/20 transition-colors"
+              className="w-full py-2.5 sm:py-3 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-gaming font-extrabold text-[11px] sm:text-sm uppercase tracking-wider flex items-center justify-center gap-1.5 no-underline shadow-lg shadow-red-600/30 transition-all hover:scale-[1.02] active:scale-95"
             >
-              <Mail className="w-4 h-4" />
-              Send Email
+              <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>SEND EMAIL</span>
             </a>
           </div>
 
-          {/* Card 3: WhatsApp Official Channel */}
-          <div className="bg-[#0e121d] border border-emerald-500/30 hover:border-emerald-500/60 rounded-2xl p-6 transition-all hover:-translate-y-1 shadow-xl group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                <Sparkles className="w-6 h-6 text-yellow-400" />
+          {/* Card 3: WhatsApp Channel (Half Row 2 on Mobile col-span-1) */}
+          <div className="col-span-1 md:col-span-1 bg-gradient-to-b from-teal-950/40 via-[#0d121c] to-[#080b12] border border-teal-500/40 hover:border-teal-500 rounded-3xl p-4 sm:p-7 transition-all duration-300 hover:-translate-y-1.5 shadow-2xl shadow-teal-950/30 group flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 blur-2xl rounded-full pointer-events-none" />
+
+            <div>
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="w-9 h-9 sm:w-14 sm:h-14 rounded-2xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400 group-hover:scale-110 transition-transform shadow-lg shadow-teal-500/20">
+                  <Zap className="w-4 h-4 sm:w-7 sm:h-7 text-amber-400" />
+                </div>
+                <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-teal-500/20 border border-teal-500/40 text-teal-400 text-[9px] sm:text-xs font-black uppercase tracking-wider">
+                  OFFICIAL CHANNEL
+                </span>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                Official Channel
-              </span>
+
+              <h3 className="font-display text-base sm:text-2xl font-black text-white uppercase tracking-tight mb-1">
+                WHATSAPP CHANNEL
+              </h3>
+              <p className="text-[11px] sm:text-sm text-gray-300 mb-3 sm:mb-4 leading-relaxed line-clamp-2 sm:line-clamp-none">
+                হোয়াটসঅ্যাপ চ্যানেলে জয়েন করুন রুম আইডি ও পাসওয়ার্ড আপডেটের জন্য।
+              </p>
+
+              <div className="space-y-1 mb-4 sm:mb-6 text-[10px] sm:text-xs text-teal-300 font-semibold font-mono bg-black/40 p-2.5 sm:p-3 rounded-2xl border border-teal-500/20 overflow-hidden">
+                <div className="flex items-center gap-1.5 truncate">
+                  <MessageCircle className="w-3 h-3 text-teal-400 shrink-0" />
+                  <span className="truncate">KongKaaL Gaming Official</span>
+                </div>
+                <div className="flex items-center gap-1.5 truncate text-gray-400 font-normal">
+                  <HelpCircle className="w-3 h-3 text-teal-400 shrink-0" />
+                  <span className="truncate">Instant Room ID & Notices</span>
+                </div>
+              </div>
             </div>
-            <h3 className="font-display text-xl font-bold text-white uppercase mb-1">
-              WhatsApp Channel
-            </h3>
-            <p className="text-xs text-gray-400 mb-4">
-              কংকাল গেইমিং অফিসিয়াল হোয়াটসঅ্যাপ চ্যানেলে জয়েন করুন রুম আইডি ও পাসওয়ার্ড আপডেটের জন্য।
-            </p>
-            <div className="space-y-1 mb-5 text-xs text-gray-300 font-semibold font-mono">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
-                <span>KongKaaL Gaming Official</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <HelpCircle className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Instant Room ID & Match Notices</span>
-              </div>
-            </div>
+
             <a
               href="https://whatsapp.com/channel/0029Vb8kbvtK5cDCZ4I3rf0K"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-gray-950 font-gaming font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 no-underline shadow-lg shadow-emerald-500/20 transition-colors"
+              className="w-full py-2.5 sm:py-3 rounded-2xl bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 text-black font-gaming font-extrabold text-[10px] sm:text-sm uppercase tracking-wider flex items-center justify-center gap-1.5 no-underline shadow-lg shadow-teal-500/30 transition-all hover:scale-[1.02] active:scale-95"
             >
-              <ExternalLink className="w-4 h-4" />
-              Join Official Channel
+              <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
+              <span className="truncate">JOIN CHANNEL</span>
             </a>
           </div>
+
         </div>
 
         {/* Main Support Form & Direct Message Box */}
-        <div className="bg-[#0b0e15] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+        <div className="bg-[#0b0e15] border border-white/10 rounded-3xl p-5 sm:p-10 shadow-2xl relative overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left Description Column */}
             <div className="lg:col-span-5 space-y-4">
               <span className="px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 font-gaming text-[11px] font-bold uppercase tracking-widest inline-block">
                 Direct Message Form
               </span>
-              <h3 className="font-display text-3xl sm:text-4xl font-black text-white uppercase leading-tight">
+              <h3 className="font-display text-2xl sm:text-4xl font-black text-white uppercase leading-tight">
                 HAVE A QUESTION? <br />
                 <span className="text-red-500">SEND US A MESSAGE</span>
               </h3>
@@ -202,8 +225,8 @@ export default function ContactSection() {
               </p>
 
               <div className="space-y-3 pt-2">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
+                <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
                     ✓
                   </div>
                   <div>
@@ -212,8 +235,8 @@ export default function ContactSection() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs">
+                <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">
                     ⚡
                   </div>
                   <div>
@@ -225,7 +248,7 @@ export default function ContactSection() {
             </div>
 
             {/* Right Form Column */}
-            <div className="lg:col-span-7 bg-[#121622] border border-white/10 rounded-2xl p-6 sm:p-8">
+            <div className="lg:col-span-7 bg-[#121622] border border-white/10 rounded-2xl p-5 sm:p-8">
               {submitted ? (
                 <div className="text-center py-10 space-y-4 animate-in fade-in zoom-in duration-300">
                   <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
