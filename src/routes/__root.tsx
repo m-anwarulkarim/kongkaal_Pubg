@@ -35,6 +35,11 @@ export const Route = createRootRoute({
         crossOrigin: 'anonymous',
       },
       {
+        rel: 'preconnect',
+        href: 'https://kwdywkrfcvdogquimdyj.supabase.co',
+        crossOrigin: 'anonymous',
+      },
+      {
         rel: 'stylesheet',
         href: appCss,
       },

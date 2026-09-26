@@ -83,12 +83,22 @@ function saveLocalMatches(matches: MatchItem[]) {
   if (typeof window !== 'undefined') {
     localStorage.setItem('kongkaal_matches', JSON.stringify(matches))
   }
+  matchesCache = null
 }
 
-// 1. Fetch Active Tournament Matches
+let matchesCache: { data: MatchItem[]; timestamp: number } | null = null
+const CACHE_TTL_MS = 10000 // 10 seconds SWR cache for 100k scale
+
+// 1. Fetch Active Tournament Matches (Ultra-fast cached response)
 export async function getMatches(): Promise<MatchItem[]> {
+  if (matchesCache && Date.now() - matchesCache.timestamp < CACHE_TTL_MS) {
+    return matchesCache.data
+  }
+
   if (!isSupabaseConfigured()) {
-    return getLocalMatches()
+    const local = getLocalMatches()
+    matchesCache = { data: local, timestamp: Date.now() }
+    return local
   }
 
   try {
@@ -98,10 +108,12 @@ export async function getMatches(): Promise<MatchItem[]> {
       .order('created_at', { ascending: false })
 
     if (error || !data || data.length === 0) {
-      return getLocalMatches()
+      const local = getLocalMatches()
+      matchesCache = { data: local, timestamp: Date.now() }
+      return local
     }
 
-    return data.map((m) => ({
+    const matches: MatchItem[] = data.map((m) => ({
       id: m.id,
       title: m.title,
       mode: m.mode,
@@ -119,9 +131,15 @@ export async function getMatches(): Promise<MatchItem[]> {
       status: m.status,
       whatsappGroupLink: m.whatsapp_group_link,
     }))
+
+    matchesCache = { data: matches, timestamp: Date.now() }
+    saveLocalMatches(matches)
+    return matches
   } catch (err) {
     console.error('[DB Service] Supabase query failed:', err)
-    return getLocalMatches()
+    const local = getLocalMatches()
+    matchesCache = { data: local, timestamp: Date.now() }
+    return local
   }
 }
 
