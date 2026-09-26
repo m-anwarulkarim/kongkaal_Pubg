@@ -384,17 +384,18 @@ export const INITIAL_LEADERBOARD: LeaderboardItem[] = [
     kills: 18,
     prizeWon: 6440,
     status: 'VERIFIED PAYOUT',
+    isPinned: true,
   },
   {
     id: 'lb-2',
-    matchTitle: 'Solo Erangel Rush #100',
-    teamName: 'SOLO PLAYER',
-    playerIgn: 'CYCLONE_99',
-    pubgUid: '5987654321',
-    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=SkullKing&backgroundColor=101422',
+    matchTitle: 'Squad Sanhok War #307',
+    teamName: 'DARK HUNTERS',
+    playerIgn: 'HUNTER_X',
+    pubgUid: '5678901234',
+    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=ShadowNinja&backgroundColor=d97706',
     rank: '1ST PLACE',
-    kills: 11,
-    prizeWon: 1720,
+    kills: 21,
+    prizeWon: 7680,
     status: 'VERIFIED PAYOUT',
   },
   {
@@ -411,14 +412,14 @@ export const INITIAL_LEADERBOARD: LeaderboardItem[] = [
   },
   {
     id: 'lb-4',
-    matchTitle: 'Squad Sanhok War #307',
-    teamName: 'DARK HUNTERS',
-    playerIgn: 'HUNTER_X',
-    pubgUid: '5678901234',
-    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=ShadowNinja&backgroundColor=d97706',
+    matchTitle: 'Solo Erangel Rush #100',
+    teamName: 'SOLO PLAYER',
+    playerIgn: 'CYCLONE_99',
+    pubgUid: '5987654321',
+    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=SkullKing&backgroundColor=101422',
     rank: '1ST PLACE',
-    kills: 21,
-    prizeWon: 7680,
+    kills: 11,
+    prizeWon: 1720,
     status: 'VERIFIED PAYOUT',
   },
 ]
@@ -471,6 +472,7 @@ export async function getLeaderboard(): Promise<LeaderboardItem[]> {
       kills: Number(d.kills),
       prizeWon: Number(d.prize_won),
       status: d.status || 'VERIFIED PAYOUT',
+      isPinned: Boolean(d.is_pinned),
     }))
   } catch {
     return getLocalLeaderboard()
@@ -507,6 +509,7 @@ export async function createLeaderboardItem(
         kills: item.kills,
         prize_won: item.prizeWon,
         status: item.status,
+        is_pinned: item.isPinned || false,
       },
     ])
     if (error) {
@@ -542,6 +545,7 @@ export async function updateLeaderboardItem(
           kills: updates.kills,
           prize_won: updates.prizeWon,
           status: updates.status,
+          is_pinned: updates.isPinned,
         })
         .eq('id', id)
     } catch (err) {

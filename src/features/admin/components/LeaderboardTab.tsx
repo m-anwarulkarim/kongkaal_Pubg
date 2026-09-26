@@ -11,6 +11,7 @@ import {
   Sparkles,
   X,
   Upload,
+  Pin,
 } from 'lucide-react'
 import {
   getLeaderboard,
@@ -46,6 +47,7 @@ export default function LeaderboardTab() {
     kills: 10,
     prizeWon: 1000,
     status: 'VERIFIED PAYOUT' as 'VERIFIED PAYOUT' | 'PENDING',
+    isPinned: false,
   })
   const [submitting, setSubmitting] = useState(false)
 
@@ -77,6 +79,7 @@ export default function LeaderboardTab() {
       kills: 10,
       prizeWon: 1000,
       status: 'VERIFIED PAYOUT',
+      isPinned: false,
     })
     setIsModalOpen(true)
   }
@@ -93,6 +96,7 @@ export default function LeaderboardTab() {
       kills: item.kills,
       prizeWon: item.prizeWon,
       status: item.status,
+      isPinned: Boolean(item.isPinned),
     })
     setIsModalOpen(true)
   }
@@ -155,6 +159,16 @@ export default function LeaderboardTab() {
       setItems((prev) => prev.filter((item) => item.id !== id))
     } else {
       alert(`Failed to delete: ${res.message}`)
+    }
+  }
+
+  const handleTogglePin = async (item: LeaderboardItem) => {
+    const updatedIsPinned = !item.isPinned
+    const res = await updateLeaderboardItem(item.id, { isPinned: updatedIsPinned })
+    if (res.success) {
+      setItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, isPinned: updatedIsPinned } : i))
+      )
     }
   }
 
@@ -253,19 +267,31 @@ export default function LeaderboardTab() {
                   <tr key={item.id} className="hover:bg-amber-500/5 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        {item.avatarUrl ? (
-                          <img
-                            src={item.avatarUrl}
-                            alt={item.playerIgn}
-                            className="w-10 h-10 rounded-full border border-amber-500/40 object-cover shadow-md"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold">
-                            {item.playerIgn[0]?.toUpperCase()}
-                          </div>
-                        )}
+                        <div className="relative">
+                          {item.avatarUrl ? (
+                            <img
+                              src={item.avatarUrl}
+                              alt={item.playerIgn}
+                              className="w-10 h-10 rounded-full border border-amber-500/40 object-cover shadow-md"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold">
+                              {item.playerIgn[0]?.toUpperCase()}
+                            </div>
+                          )}
+                          {item.isPinned && (
+                            <span className="absolute -top-1 -right-1 bg-amber-500 text-black p-0.5 rounded-full shadow" title="Pinned Top Champion">
+                              <Pin className="w-3 h-3 fill-black" />
+                            </span>
+                          )}
+                        </div>
                         <div>
-                          <span className="text-white font-bold block leading-none">{item.playerIgn}</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-white font-bold block leading-none">{item.playerIgn}</span>
+                            {item.isPinned && (
+                              <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9px] font-bold">PINNED #1</span>
+                            )}
+                          </div>
                           <span className="text-[11px] text-gray-400 font-mono">UID: {item.pubgUid || 'N/A'}</span>
                         </div>
                       </div>
@@ -297,6 +323,17 @@ export default function LeaderboardTab() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
+                      <button
+                        onClick={() => handleTogglePin(item)}
+                        className={`p-1.5 rounded-lg border transition-colors ${
+                          item.isPinned
+                            ? 'bg-amber-500 text-black border-amber-500'
+                            : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-amber-400 border-white/10'
+                        }`}
+                        title={item.isPinned ? 'Unpin Winner' : 'Pin Winner as #1'}
+                      >
+                        <Pin className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handleOpenEditModal(item)}
                         className="p-1.5 rounded-lg bg-white/5 hover:bg-amber-500/20 text-gray-300 hover:text-amber-400 transition-colors border border-white/10"
@@ -522,6 +559,32 @@ export default function LeaderboardTab() {
                   <option value="VERIFIED PAYOUT">VERIFIED PAYOUT (Paid via bKash/Nagad)</option>
                   <option value="PENDING">PENDING (Processing)</option>
                 </select>
+              </div>
+
+              {/* Pin Toggle Checkbox */}
+              <div
+                onClick={() => setFormData((prev) => ({ ...prev, isPinned: !prev.isPinned }))}
+                className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors ${
+                  formData.isPinned
+                    ? 'bg-amber-500/15 border-amber-500/50 text-white'
+                    : 'bg-black/30 border-white/10 text-gray-400 hover:border-white/20'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  id="isPinnedCheck"
+                  checked={formData.isPinned}
+                  onChange={(e) => setFormData({ ...formData, isPinned: e.target.checked })}
+                  className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+                />
+                <div className="flex-1">
+                  <label htmlFor="isPinnedCheck" className="text-xs font-bold text-amber-400 uppercase cursor-pointer flex items-center gap-1.5">
+                    <Pin className="w-3.5 h-3.5 fill-amber-400" /> Pin as Top Winner (#1 Position)
+                  </label>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    এই প্লেয়ারকে লিডারবোর্ডের শীর্ষ বিজয়ী (Recent Winners / #1 Rank) হিসেবে পিন করে রাখা হবে।
+                  </p>
+                </div>
               </div>
 
               {/* Form Actions */}

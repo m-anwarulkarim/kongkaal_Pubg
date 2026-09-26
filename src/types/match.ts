@@ -57,4 +57,5 @@ export interface LeaderboardItem {
   kills: number
   prizeWon: number
   status: 'VERIFIED PAYOUT' | 'PENDING'
+  isPinned?: boolean
 }
