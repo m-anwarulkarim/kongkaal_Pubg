@@ -2,7 +2,6 @@ import { useState } from 'react'
 import {
   MessageCircle,
   Mail,
-  MapPin,
   Send,
   CheckCircle2,
   Headphones,
@@ -133,40 +132,40 @@ export default function ContactSection() {
             </a>
           </div>
 
-          {/* Card 3: Community & Office Hub */}
-          <div className="bg-[#0e121d] border border-amber-500/30 hover:border-amber-500/60 rounded-2xl p-6 transition-all hover:-translate-y-1 shadow-xl group">
+          {/* Card 3: WhatsApp Official Channel */}
+          <div className="bg-[#0e121d] border border-emerald-500/30 hover:border-emerald-500/60 rounded-2xl p-6 transition-all hover:-translate-y-1 shadow-xl group">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
-                <MapPin className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                <Sparkles className="w-6 h-6 text-yellow-400" />
               </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-wider">
-                Dhaka, BD
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                Official Channel
               </span>
             </div>
             <h3 className="font-display text-xl font-bold text-white uppercase mb-1">
-              Esports Gaming Hub
+              WhatsApp Channel
             </h3>
             <p className="text-xs text-gray-400 mb-4">
-              কংকাল গেইমিং অফিসিয়াল হেডকোয়ার্টার এবং ডিসকর্ড কমিউনিটি হাব।
+              কংকাল গেইমিং অফিসিয়াল হোয়াটসঅ্যাপ চ্যানেলে জয়েন করুন রুম আইডি ও পাসওয়ার্ড আপডেটের জন্য।
             </p>
             <div className="space-y-1 mb-5 text-xs text-gray-300 font-semibold font-mono">
               <div className="flex items-center gap-2">
-                <MapPin className="w-3.5 h-3.5 text-amber-400" />
-                <span>Dhaka, Bangladesh</span>
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                <span>KongKaaL Gaming Official</span>
               </div>
               <div className="flex items-center gap-2">
-                <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
-                <span>Discord Room & Pass Channel</span>
+                <HelpCircle className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Instant Room ID & Match Notices</span>
               </div>
             </div>
             <a
-              href="https://wa.me/8801602867954"
+              href="https://whatsapp.com/channel/0029Vb8kbvtK5cDCZ4I3rf0K"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-gaming font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 no-underline shadow-lg shadow-amber-500/20 transition-colors"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-gray-950 font-gaming font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 no-underline shadow-lg shadow-emerald-500/20 transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
-              Join Community
+              Join Official Channel
             </a>
           </div>
         </div>

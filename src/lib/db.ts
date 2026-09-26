@@ -25,6 +25,7 @@ export const DEFAULT_MATCHES: MatchItem[] = [
     maxSlots: 100,
     image: '/solo_battle.jpg',
     status: 'OPEN',
+    whatsappGroupLink: 'https://whatsapp.com/channel/0029Vb8kbvtK5cDCZ4I3rf0K',
   },
   {
     id: 'duo-13sep',
@@ -42,6 +43,7 @@ export const DEFAULT_MATCHES: MatchItem[] = [
     maxSlots: 50,
     image: '/duo_battle.jpg',
     status: 'OPEN',
+    whatsappGroupLink: 'https://whatsapp.com/channel/0029Vb8kbvtK5cDCZ4I3rf0K',
   },
   {
     id: 'squad-14sep',
@@ -59,6 +61,7 @@ export const DEFAULT_MATCHES: MatchItem[] = [
     maxSlots: 50,
     image: '/squad_showdown.jpg',
     status: 'OPEN',
+    whatsappGroupLink: 'https://whatsapp.com/channel/0029Vb8kbvtK5cDCZ4I3rf0K',
   },
 ]
 

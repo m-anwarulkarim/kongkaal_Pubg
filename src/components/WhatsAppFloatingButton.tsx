@@ -81,21 +81,34 @@ export default function WhatsAppFloatingButton({
           <div className="p-4 bg-[#0a0d14]/90 space-y-3">
             <div className="bg-[#141b26] p-3 rounded-2xl rounded-tl-none border border-emerald-500/10 text-xs text-gray-200 leading-relaxed shadow-sm">
               <p className="font-medium text-emerald-400 mb-1">স্বাগতম KongKaaL Gaming এ! 👋</p>
-              <p>পেমেন্ট, রুম আইডি অথবা ম্যাচ সংক্রান্ত কোনো সাহায্য লাগবে? সরাসরি আমাদের সাথে চ্যাট করুন!</p>
+              <p>পেমেন্ট, রুম আইডি অথবা ম্যাচ আপডেট পেতে আমাদের অফিশিয়াল ওয়াটসঅ্যাপ চ্যানেলে যুক্ত থাকুন!</p>
               <span className="block text-[10px] text-gray-400 mt-1.5 text-right">এখনই অনলাইন</span>
             </div>
 
-            {/* Direct Action Button */}
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setHasInteracted(true)}
-              className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-gray-950 font-bold font-gaming text-sm tracking-wide rounded-xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 no-underline"
-            >
-              <Send className="w-4 h-4" />
-              WhatsApp এ মেসেজ দিন
-            </a>
+            {/* Direct Action Buttons */}
+            <div className="space-y-2">
+              <a
+                href="https://whatsapp.com/channel/0029Vb8kbvtK5cDCZ4I3rf0K"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setHasInteracted(true)}
+                className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-gray-950 font-bold font-gaming text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 no-underline"
+              >
+                <Sparkles className="w-4 h-4 text-yellow-950" />
+                Join WhatsApp Channel
+              </a>
+
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setHasInteracted(true)}
+                className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-white/10 hover:bg-white/20 text-white font-bold font-gaming text-xs tracking-wide rounded-xl border border-white/10 transition-all no-underline"
+              >
+                <Send className="w-3.5 h-3.5 text-emerald-400" />
+                WhatsApp এ মেসেজ দিন
+              </a>
+            </div>
           </div>
         </div>
       )}

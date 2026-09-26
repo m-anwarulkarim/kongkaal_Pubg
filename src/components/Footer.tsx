@@ -35,10 +35,19 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Social Links */}
+          {/* Social Links & WhatsApp Channel */}
           <div className="flex flex-col md:items-end gap-3">
             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Connect With Us</span>
-            <div className="flex items-center gap-3 text-xs font-semibold text-gray-300">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-300">
+              <a
+                href="https://whatsapp.com/channel/0029Vb8kbvtK5cDCZ4I3rf0K"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-emerald-400 transition-colors no-underline bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-lg border border-emerald-500/30 flex items-center gap-1.5"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span>WhatsApp Channel</span>
+              </a>
               <Link href="#" className="hover:text-red-500 transition-colors no-underline bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">Facebook</Link>
               <Link href="#" className="hover:text-red-500 transition-colors no-underline bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">YouTube</Link>
               <Link href="#" className="hover:text-red-500 transition-colors no-underline bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">Discord</Link>

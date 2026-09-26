@@ -518,16 +518,16 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
               {/* Tournament WhatsApp Group Link Button */}
               <div className="p-4 bg-[#111625] border border-emerald-500/40 rounded-2xl space-y-2">
                 <span className="text-xs text-emerald-400 font-bold block">
-                  📢 টুর্নামেন্ট ওয়াটসঅ্যাপ অফিশিয়াল গ্রূপ লিংক:
+                  📢 টুর্নামেন্ট ওয়াটসঅ্যাপ অফিশিয়াল চ্যানেল লিংক:
                 </span>
                 <a
-                  href={match.whatsappGroupLink || 'https://chat.whatsapp.com/KongKaaLMatchGroup'}
+                  href={match.whatsappGroupLink || 'https://whatsapp.com/channel/0029Vb8kbvtK5cDCZ4I3rf0K'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-xs inline-flex items-center justify-center gap-2 no-underline shadow-lg shadow-emerald-600/30"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>JOIN MATCH WHATSAPP GROUP FOR ROOM CODE</span>
+                  <span>JOIN OFFICIAL WHATSAPP CHANNEL FOR ROOM CODE</span>
                 </a>
               </div>
 
