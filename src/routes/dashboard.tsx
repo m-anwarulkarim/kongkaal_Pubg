@@ -68,6 +68,7 @@ function CustomerDashboardPage() {
   const [wthMsg, setWthMsg] = useState('')
 
   // Profile Edit State
+  const [editName, setEditName] = useState('')
   const [editUid, setEditUid] = useState('')
   const [editPhone, setEditPhone] = useState('')
   const [editAvatarUrl, setEditAvatarUrl] = useState('')
@@ -90,6 +91,7 @@ function CustomerDashboardPage() {
 
     const userProfile = await getCustomerProfile(user.email, user.user_metadata?.full_name || user.email.split('@')[0])
     setProfile(userProfile)
+    setEditName(userProfile.name)
     setEditUid(userProfile.pubgUid)
     setEditPhone(userProfile.whatsappNumber)
     setEditAvatarUrl(userProfile.avatarUrl || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '')
@@ -142,6 +144,7 @@ function CustomerDashboardPage() {
 
     const updated = {
       ...profile,
+      name: editName.trim() || profile.name,
       pubgUid: editUid,
       whatsappNumber: editPhone,
       avatarUrl: editAvatarUrl,
@@ -729,6 +732,18 @@ function CustomerDashboardPage() {
                     className="bg-[#0b0d16] border-white/10 text-white font-mono text-[11px] h-8"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="text-gray-300 font-bold block mb-1">Full Name / Display Name</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Shakib Al Hasan"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="bg-[#161a29] border-white/10 text-white font-bold"
+                  required
+                />
               </div>
 
               <div>
