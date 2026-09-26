@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Home, LogOut, User as UserIcon } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Home, LogOut, User as UserIcon, ChevronDown } from 'lucide-react'
 import Link from '@/components/ui/Link'
 import { useCustomerAuth } from '@/lib/auth'
 import CustomerAuthModal from '@/components/CustomerAuthModal'
@@ -13,6 +13,27 @@ export default function Header({ onRegisterClick }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [userDropdownOpen, setUserDropdownOpen] = useState(false)
+
+  // Language & Flag Dropdown State
+  const [selectedLang, setSelectedLang] = useState<'BN' | 'EN'>('BN')
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('kongkaal_lang')
+      if (saved === 'EN' || saved === 'BN') {
+        setSelectedLang(saved)
+      }
+    }
+  }, [])
+
+  const handleSelectLang = (lang: 'BN' | 'EN') => {
+    setSelectedLang(lang)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('kongkaal_lang', lang)
+    }
+    setLangDropdownOpen(false)
+  }
 
   const { user, signOut } = useCustomerAuth()
 
@@ -163,12 +184,83 @@ export default function Header({ onRegisterClick }: HeaderProps) {
               Register
             </button>
 
-            {/* BD Country Selector */}
-            <div className="hidden sm:flex items-center gap-1.5 bg-[#12151e] border border-white/10 rounded-full px-2.5 py-1 text-xs text-gray-300">
-              <span className="font-bold text-[10px] text-emerald-400 bg-emerald-950/80 px-1 rounded border border-emerald-500/30">BD</span>
-              <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
-              </svg>
+            {/* Flag & Language Selector Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                className="flex items-center gap-1.5 bg-[#12151e] hover:bg-[#1a1f2e] border border-white/10 rounded-full px-2.5 py-1 text-xs text-gray-300 transition-all cursor-pointer select-none"
+                title="Select Language / ভাষা সিলেক্ট করুন"
+              >
+                {selectedLang === 'BN' ? (
+                  <div className="flex items-center gap-1.5">
+                    {/* Bangladesh Flag SVG */}
+                    <svg className="w-4 h-3 rounded-[2px] overflow-hidden shrink-0 shadow-sm border border-black/40" viewBox="0 0 20 12">
+                      <rect width="20" height="12" fill="#006a4e" />
+                      <circle cx="9" cy="6" r="3.6" fill="#f42a41" />
+                    </svg>
+                    <span className="font-bold text-[10px] text-emerald-400 bg-emerald-950/80 px-1 rounded border border-emerald-500/30">BD</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    {/* US Flag SVG */}
+                    <svg className="w-4 h-3 rounded-[2px] overflow-hidden shrink-0 shadow-sm border border-black/40" viewBox="0 0 190 100">
+                      <rect width="190" height="100" fill="#bb133e"/>
+                      <rect y="15.38" width="190" height="15.38" fill="#fff"/>
+                      <rect y="46.15" width="190" height="15.38" fill="#fff"/>
+                      <rect y="76.92" width="190" height="15.38" fill="#fff"/>
+                      <rect width="76" height="53.85" fill="#002147"/>
+                    </svg>
+                    <span className="font-bold text-[10px] text-blue-400 bg-blue-950/80 px-1 rounded border border-blue-500/30">US</span>
+                  </div>
+                )}
+                <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${langDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Language Dropdown Menu */}
+              {langDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-44 bg-[#0e101a] border border-white/10 rounded-2xl shadow-2xl py-1 z-50 animate-in fade-in duration-150">
+                  <div className="px-3 py-1.5 border-b border-white/5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    Select Language / ভাষা
+                  </div>
+
+                  {/* Bangladesh Option */}
+                  <button
+                    onClick={() => handleSelectLang('BN')}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold transition-colors ${
+                      selectedLang === 'BN' ? 'bg-emerald-950/40 text-emerald-400' : 'text-gray-300 hover:bg-white/5'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-3 rounded-[2px] overflow-hidden shrink-0 shadow-sm border border-black/40" viewBox="0 0 20 12">
+                        <rect width="20" height="12" fill="#006a4e" />
+                        <circle cx="9" cy="6" r="3.6" fill="#f42a41" />
+                      </svg>
+                      <span>বাংলা (BD)</span>
+                    </div>
+                    {selectedLang === 'BN' && <span className="text-emerald-400 font-black">✓</span>}
+                  </button>
+
+                  {/* United States Option */}
+                  <button
+                    onClick={() => handleSelectLang('EN')}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold transition-colors ${
+                      selectedLang === 'EN' ? 'bg-blue-950/40 text-blue-400' : 'text-gray-300 hover:bg-white/5'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-3 rounded-[2px] overflow-hidden shrink-0 shadow-sm border border-black/40" viewBox="0 0 190 100">
+                        <rect width="190" height="100" fill="#bb133e"/>
+                        <rect y="15.38" width="190" height="15.38" fill="#fff"/>
+                        <rect y="46.15" width="190" height="15.38" fill="#fff"/>
+                        <rect y="76.92" width="190" height="15.38" fill="#fff"/>
+                        <rect width="76" height="53.85" fill="#002147"/>
+                      </svg>
+                      <span>English (US)</span>
+                    </div>
+                    {selectedLang === 'EN' && <span className="text-blue-400 font-black">✓</span>}
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Mobile Menu Icon */}
