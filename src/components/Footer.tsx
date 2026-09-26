@@ -65,22 +65,18 @@ export default function Footer() {
           </div>
 
           {/* HaqPlus IT Developer Credit */}
-          <div className="flex items-center gap-2 bg-[#0e121d] px-4 py-2 rounded-full border border-emerald-500/30 shadow-md">
-            <span className="text-gray-300 text-xs font-bold flex items-center gap-1">
-              Developed   by{' '}
-              <strong className="text-white font-black">HaqPlus IT</strong>
+          <a
+            href="https://wa.me/8801602867954?text=Hello%20HaqPlus%20IT!%20I%20saw%20KongKaaL%20Gaming%20website%20and%20want%20to%20build%20a%20project."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 bg-[#0e121d] hover:bg-emerald-950/60 px-4 py-2 rounded-full border border-emerald-500/30 hover:border-emerald-500/60 text-xs font-bold no-underline transition-all shadow-md group"
+            title="Click to contact HaqPlus IT on WhatsApp"
+          >
+            <span className="text-gray-400 group-hover:text-gray-300">Developed by</span>
+            <span className="text-emerald-400 group-hover:text-emerald-300 font-black tracking-wide flex items-center gap-1">
+              HaqPlus IT
             </span>
-
-            <a
-              href="https://wa.me/8801602867954?text=Hello%20HaqPlus%20IT!%20I%20saw%20KongKaaL%20Gaming%20website%20and%20want%20to%20build%20a%20project."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] px-2.5 py-1 rounded-full inline-flex items-center gap-1 no-underline transition-all shadow-sm"
-            >
-              <MessageCircle className="w-3 h-3" />
-              <span>WhatsApp: 01602867954</span>
-            </a>
-          </div>
+          </a>
 
         </div>
 
