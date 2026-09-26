@@ -490,6 +490,7 @@ export async function adminApproveTransaction(
 export async function getWalletTransactions(userEmail?: string): Promise<WalletTransaction[]> {
   const normEmail = userEmail ? userEmail.trim().toLowerCase() : undefined
   const localTxs = getLocalTxs()
+  let dbTxs: WalletTransaction[] = []
 
   if (isSupabaseConfigured()) {
     try {
@@ -499,7 +500,7 @@ export async function getWalletTransactions(userEmail?: string): Promise<WalletT
       }
       const { data } = await query
       if (data && data.length > 0) {
-        const dbTxs: WalletTransaction[] = data.map((d: any) => ({
+        dbTxs = data.map((d: any) => ({
           id: d.id,
           userEmail: d.user_email,
           userName: d.user_name || d.user_email.split('@')[0],
@@ -512,28 +513,25 @@ export async function getWalletTransactions(userEmail?: string): Promise<WalletT
           createdAt: d.created_at,
           note: d.note,
         }))
-
-        const txMap = new Map<string, WalletTransaction>()
-        dbTxs.forEach((t) => txMap.set(t.id, t))
-
-        const filteredLocal = normEmail ? localTxs.filter((t) => t.userEmail.toLowerCase() === normEmail) : localTxs
-        filteredLocal.forEach((t) => {
-          if (!txMap.has(t.id)) {
-            txMap.set(t.id, t)
-          }
-        })
-
-        return Array.from(txMap.values())
       }
     } catch (err) {
       console.log('Supabase getWalletTransactions err:', err)
     }
   }
 
-  if (normEmail) {
-    return localTxs.filter((t) => t.userEmail.toLowerCase() === normEmail)
-  }
-  return localTxs
+  const txMap = new Map<string, WalletTransaction>()
+  dbTxs.forEach((t) => txMap.set(t.id, t))
+
+  const filteredLocal = normEmail ? localTxs.filter((t) => t.userEmail.toLowerCase() === normEmail) : localTxs
+  filteredLocal.forEach((t) => {
+    // Check if not already present in map by id or trxId
+    const exists = Array.from(txMap.values()).some((dbT) => dbT.id === t.id || (t.trxId && dbT.trxId === t.trxId))
+    if (!exists) {
+      txMap.set(t.id, t)
+    }
+  })
+
+  return Array.from(txMap.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 }
 
 // 9. Get All Customer Profiles for Admin
