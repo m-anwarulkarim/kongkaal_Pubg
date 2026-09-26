@@ -130,39 +130,39 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
                 BANGLADESH'S PUBG MOBILE TOURNAMENT PLATFORM
               </p>
 
-              {/* 3 Feature Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mb-8">
+              {/* 3 Feature Cards (1 Single Row on Mobile & Desktop) */}
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-3 max-w-2xl mb-8">
                 
                 {/* Fair Play */}
-                <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-3 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
-                    <Trophy className="w-4 h-4" />
+                <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-2 sm:p-3 flex items-center gap-1.5 sm:gap-3 min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
+                    <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
-                  <div>
-                    <span className="text-xs font-bold text-white block leading-none mb-0.5">Fair Play</span>
-                    <span className="text-[10px] text-gray-400 block">100% Fair Tournament</span>
+                  <div className="min-w-0">
+                    <span className="text-[11px] sm:text-xs font-bold text-white block leading-tight mb-0.5 truncate">Fair Play</span>
+                    <span className="text-[9px] sm:text-[10px] text-gray-400 block truncate">100% Fair</span>
                   </div>
                 </div>
 
                 {/* Secure Payment */}
-                <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-3 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
-                    <Shield className="w-4 h-4" />
+                <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-2 sm:p-3 flex items-center gap-1.5 sm:gap-3 min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
+                    <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
-                  <div>
-                    <span className="text-xs font-bold text-white block leading-none mb-0.5">Secure Payment</span>
-                    <span className="text-[10px] text-gray-400 block">bKash / Nagad</span>
+                  <div className="min-w-0">
+                    <span className="text-[11px] sm:text-xs font-bold text-white block leading-tight mb-0.5 truncate">Secure Pay</span>
+                    <span className="text-[9px] sm:text-[10px] text-gray-400 block truncate">bKash/Nagad</span>
                   </div>
                 </div>
 
                 {/* Fast Support */}
-                <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-3 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
-                    <Zap className="w-4 h-4" />
+                <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-2 sm:p-3 flex items-center gap-1.5 sm:gap-3 min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
+                    <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
-                  <div>
-                    <span className="text-xs font-bold text-white block leading-none mb-0.5">Fast Support</span>
-                    <span className="text-[10px] text-gray-400 block">Always With You</span>
+                  <div className="min-w-0">
+                    <span className="text-[11px] sm:text-xs font-bold text-white block leading-tight mb-0.5 truncate">Fast Support</span>
+                    <span className="text-[9px] sm:text-[10px] text-gray-400 block truncate">Always Active</span>
                   </div>
                 </div>
 
