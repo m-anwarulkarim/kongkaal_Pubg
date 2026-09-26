@@ -16,6 +16,7 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
   const [selectedMode, setSelectedMode] = useState<MatchFilterMode>('ALL')
   const [matches, setMatches] = useState<MatchItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [isPaused, setIsPaused] = useState(false)
 
   const sliderRef = useRef<HTMLDivElement>(null)
 
@@ -51,7 +52,7 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
 
   // Auto-Slide Timer Logic (3.5 seconds)
   useEffect(() => {
-    if (loading || filteredMatches.length <= 1) return
+    if (loading || filteredMatches.length <= 1 || isPaused) return
 
     const interval = setInterval(() => {
       if (sliderRef.current) {
@@ -66,7 +67,7 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
     }, 3500)
 
     return () => clearInterval(interval)
-  }, [loading, filteredMatches.length])
+  }, [loading, filteredMatches.length, isPaused])
 
   const scrollSlider = (direction: 'left' | 'right') => {
     if (sliderRef.current) {

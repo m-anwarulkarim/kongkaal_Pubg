@@ -51,7 +51,23 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootDocument,
+  notFoundComponent: NotFound,
 })
+
+function NotFound() {
+  return (
+    <div className="min-h-screen bg-[#07080b] flex flex-col items-center justify-center p-6 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-red-600/20 border border-red-500/40 text-red-500 flex items-center justify-center mb-4 text-2xl font-bold">
+        404
+      </div>
+      <h1 className="font-display text-2xl font-black text-white uppercase mb-2">Page Not Found</h1>
+      <p className="text-xs text-gray-400 max-w-sm mb-6">The page you are looking for does not exist or has been moved.</p>
+      <a href="/" className="px-5 py-2.5 rounded-xl bg-[#e50914] text-white font-bold text-xs no-underline hover:bg-red-600 transition-colors">
+        Return to Home
+      </a>
+    </div>
+  )
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
