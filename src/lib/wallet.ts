@@ -245,6 +245,22 @@ export async function updateCustomerProfile(profile: CustomerProfile): Promise<b
   return true
 }
 
+// 2.5 Deposit Cooldown Management
+const DEPOSIT_COOLDOWN_KEY = 'kongkaal_deposit_cooldown_mins'
+
+export function getDepositCooldownMinutes(): number {
+  if (typeof window === 'undefined') return 5
+  const val = localStorage.getItem(DEPOSIT_COOLDOWN_KEY)
+  const parsed = val ? parseInt(val, 10) : 5
+  return isNaN(parsed) || parsed < 0 ? 5 : parsed
+}
+
+export function saveDepositCooldownMinutes(mins: number): void {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(DEPOSIT_COOLDOWN_KEY, String(mins))
+  window.dispatchEvent(new Event('storage'))
+}
+
 // 3. Customer Add Money (Deposit Request)
 export async function requestDeposit(data: {
   userEmail: string
@@ -254,6 +270,43 @@ export async function requestDeposit(data: {
   trxId: string
 }): Promise<{ success: boolean; message: string }> {
   const normEmail = data.userEmail.trim().toLowerCase()
+  const cleanTrxId = data.trxId.trim().toUpperCase()
+  const txs = getLocalTxs()
+
+  // 1. Duplicate TrxID Check
+  const isDuplicateTrx = txs.some(
+    (t) => t.trxId && t.trxId.trim().toUpperCase() === cleanTrxId
+  )
+  if (isDuplicateTrx) {
+    return {
+      success: false,
+      message: 'এই Transaction ID (TrxID) দিয়ে ইতোমধ্যে একটি অনুরোধ জমা দেওয়া হয়েছে!',
+    }
+  }
+
+  // 2. Cooldown Time Check
+  const cooldownMins = getDepositCooldownMinutes()
+  if (cooldownMins > 0) {
+    const lastUserDep = txs.find(
+      (t) => t.userEmail.toLowerCase() === normEmail && t.type === 'DEPOSIT'
+    )
+    if (lastUserDep && lastUserDep.createdAt) {
+      const lastTime = new Date(lastUserDep.createdAt).getTime()
+      const diffMs = Date.now() - lastTime
+      const diffMins = diffMs / (1000 * 60)
+      if (diffMins < cooldownMins) {
+        const remainingSecs = Math.ceil(cooldownMins * 60 - diffMs / 1000)
+        const minsLeft = Math.floor(remainingSecs / 60)
+        const secsLeft = remainingSecs % 60
+        const timeStr = minsLeft > 0 ? `${minsLeft} মিনিট ${secsLeft} সেকেন্ড` : `${secsLeft} সেকেন্ড`
+        return {
+          success: false,
+          message: `আপনি মাত্র কিছুক্ষন আগে রিকোয়েস্ট পাঠিয়েছেন! পুনঃরায় অনুরোধ পাঠাতে আরও ${timeStr} অপেক্ষা করুন।`,
+        }
+      }
+    }
+  }
+
   const tx: WalletTransaction = {
     id: 'tx-dep-' + Date.now(),
     userEmail: normEmail,
@@ -261,13 +314,12 @@ export async function requestDeposit(data: {
     type: 'DEPOSIT',
     amount: data.amount,
     paymentMethod: data.paymentMethod,
-    trxId: data.trxId,
+    trxId: cleanTrxId,
     status: 'PENDING',
     createdAt: new Date().toISOString(),
-    note: `Deposit via ${data.paymentMethod} (TrxID: ${data.trxId})`,
+    note: `Deposit via ${data.paymentMethod} (TrxID: ${cleanTrxId})`,
   }
 
-  const txs = getLocalTxs()
   txs.unshift(tx)
   saveLocalTxs(txs)
 
@@ -280,7 +332,7 @@ export async function requestDeposit(data: {
           type: 'DEPOSIT',
           amount: data.amount,
           payment_method: data.paymentMethod,
-          trx_id: data.trxId,
+          trx_id: cleanTrxId,
           status: 'PENDING',
           note: tx.note,
         },

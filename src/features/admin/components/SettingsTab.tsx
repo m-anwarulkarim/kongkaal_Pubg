@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
-import { Database, Crown, Calendar, Save, CheckCircle2, Shield } from 'lucide-react'
+import { Database, Crown, Calendar, Save, CheckCircle2, Shield, Clock } from 'lucide-react'
 import { getHeroBannerSettings, saveHeroBannerSettings, type HeroBannerSettings } from '@/lib/db'
+import { getDepositCooldownMinutes, saveDepositCooldownMinutes } from '@/lib/wallet'
+import { toast } from 'sonner'
 
 export default function SettingsTab() {
   const [heroSettings, setHeroSettings] = useState<HeroBannerSettings>(() => getHeroBannerSettings())
   const [savedSuccess, setSavedSuccess] = useState(false)
+  const [cooldownMins, setCooldownMins] = useState<number>(() => getDepositCooldownMinutes())
+  const [cooldownSaved, setCooldownSaved] = useState(false)
 
   useEffect(() => {
     setHeroSettings(getHeroBannerSettings())
+    setCooldownMins(getDepositCooldownMinutes())
   }, [])
 
   const handleSaveBannerSettings = (e: React.FormEvent) => {
@@ -16,6 +21,14 @@ export default function SettingsTab() {
     saveHeroBannerSettings(heroSettings)
     setSavedSuccess(true)
     setTimeout(() => setSavedSuccess(false), 3000)
+  }
+
+  const handleSaveCooldown = (e: React.FormEvent) => {
+    e.preventDefault()
+    saveDepositCooldownMinutes(cooldownMins)
+    setCooldownSaved(true)
+    toast.success(`Deposit Cooldown ${cooldownMins} মিনিটে আপডেট করা হয়েছে!`)
+    setTimeout(() => setCooldownSaved(false), 3000)
   }
 
   return (
@@ -166,7 +179,62 @@ export default function SettingsTab() {
         </form>
       </Card>
 
-      {/* 2. Platform & Security Settings */}
+      {/* 2. Deposit Request Cooldown & Security Settings */}
+      <Card className="bg-[#101422] border-white/10 p-6 rounded-2xl space-y-5">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div>
+            <h3 className="font-display text-xl font-black text-white uppercase flex items-center gap-2">
+              <Clock className="w-5 h-5 text-amber-500" />
+              <span>Deposit Request Cooldown & Spam Filter</span>
+            </h3>
+            <span className="text-xs text-gray-400">
+              ভুলবশত বারবার ক্লিক বা স্প্যামিং বন্ধ করতে টাকা জমা (Deposit Request) দেওয়ার বিরতি সময় নির্ধারণ করুন
+            </span>
+          </div>
+          {cooldownSaved && (
+            <div className="flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-3 py-1 rounded-full animate-in fade-in">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>Cooldown Updated!</span>
+            </div>
+          )}
+        </div>
+
+        <form onSubmit={handleSaveCooldown} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+            <div>
+              <label className="text-xs font-bold text-gray-300 block mb-1">
+                Deposit Request Cooldown (মিনিট)
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="60"
+                  value={cooldownMins}
+                  onChange={(e) => setCooldownMins(Math.max(0, parseInt(e.target.value || '0', 10)))}
+                  className="w-full bg-[#080b12] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-bold"
+                />
+                <span className="text-xs font-bold text-amber-400 shrink-0">মিনিট</span>
+              </div>
+              <span className="text-[11px] text-gray-400 block mt-1">
+                * ইউজার ১টি ডিপোজিট রিকোয়েস্ট সাবমিট করার পর এই নির্দিষ্ট মিনিট সময় অতিবাহিত না হওয়া পর্যন্ত ২য় রিকোয়েস্ট দিতে পারবে না। (0 দিলে কোন কুলডাউন থাকবে না)
+              </span>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer shadow-lg shadow-amber-600/30"
+              >
+                <Save className="w-4 h-4" />
+                <span>Save Cooldown Settings</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </Card>
+
+      {/* 3. Platform & Security Settings */}
       <Card className="bg-[#101422] border-white/10 p-6 rounded-2xl space-y-6">
         <div className="border-b border-white/10 pb-4">
           <h3 className="font-display text-2xl font-black text-white uppercase">

@@ -43,6 +43,7 @@ import {
   MessageCircle,
   LogOut,
   CheckCircle2,
+  Loader2,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/dashboard')({ component: CustomerDashboardPage })
@@ -74,6 +75,7 @@ function CustomerDashboardPage() {
   const [depTrxId, setDepTrxId] = useState('')
   const [depMsg, setDepMsg] = useState('')
   const [depSuccess, setDepSuccess] = useState(false)
+  const [isDepSubmitting, setIsDepSubmitting] = useState(false)
 
   // Withdraw Form State
   const [wthAmount, setWthAmount] = useState('200')
@@ -223,24 +225,37 @@ function CustomerDashboardPage() {
 
   const handleDepositSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user?.email || !profile) return
+    if (!user?.email || !profile || isDepSubmitting) return
     if (!depTrxId || depTrxId.length < 6) {
       setDepMsg('দয়া করে সঠিক Transaction ID (TrxID) দিন!')
       return
     }
 
-    const res = await requestDeposit({
-      userEmail: user.email,
-      userName: profile.name,
-      amount: Number(depAmount),
-      paymentMethod: depMethod,
-      trxId: depTrxId,
-    })
+    setDepMsg('')
+    setIsDepSubmitting(true)
+    try {
+      const res = await requestDeposit({
+        userEmail: user.email,
+        userName: profile.name,
+        amount: Number(depAmount),
+        paymentMethod: depMethod,
+        trxId: depTrxId.trim(),
+      })
 
-    if (res.success) {
-      setDepSuccess(true)
-      toast.success('টাকা জমার অনুরোধ সফলভাবে পাঠানো হয়েছে!')
-      loadDashboardData()
+      if (res.success) {
+        setDepSuccess(true)
+        toast.success('টাকা জমার অনুরোধ সফলভাবে পাঠানো হয়েছে!')
+        loadDashboardData()
+      } else {
+        setDepMsg(res.message)
+        toast.error(res.message)
+      }
+    } catch (err) {
+      const errMsg = 'অনুরোধ পাঠাতে সমস্যা হয়েছে, পুনরায় চেষ্টা করুন!'
+      setDepMsg(errMsg)
+      toast.error(errMsg)
+    } finally {
+      setIsDepSubmitting(false)
     }
   }
 
@@ -801,8 +816,19 @@ function CustomerDashboardPage() {
                     />
                   </div>
 
-                  <Button type="submit" className="w-full bg-[#e50914] hover:bg-red-600 font-bold py-3 text-xs rounded-xl">
-                    Submit Deposit Request
+                  <Button
+                    type="submit"
+                    disabled={isDepSubmitting}
+                    className="w-full bg-[#e50914] hover:bg-red-600 font-bold py-3 text-xs rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {isDepSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>প্রসেসিং হচ্ছে...</span>
+                      </>
+                    ) : (
+                      <span>Submit Deposit Request</span>
+                    )}
                   </Button>
                 </form>
               </>
