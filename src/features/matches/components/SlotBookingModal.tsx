@@ -200,43 +200,41 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="kong-card max-w-2xl bg-[#0e1420] text-gray-100 border-2 border-red-900/50 max-h-[90vh] overflow-y-auto p-0">
+      <DialogContent className="kong-card w-[95vw] sm:w-full max-w-2xl bg-[#0e1420] text-gray-100 border-2 border-red-900/50 max-h-[92vh] overflow-y-auto p-0 rounded-2xl sm:rounded-3xl shadow-2xl">
         
         {/* Modal Header */}
-        <DialogHeader className="bg-gradient-to-r from-[#121826] via-[#1a2336] to-[#121826] px-6 py-4 border-b border-red-900/30">
-          <Badge className="bg-red-600/20 text-red-500 font-gaming text-[10px] uppercase font-bold tracking-widest border border-red-600/30 w-fit mb-1">
+        <DialogHeader className="bg-gradient-to-r from-[#121826] via-[#1a2336] to-[#121826] px-4 sm:px-6 py-3.5 sm:py-4 border-b border-red-900/30 sticky top-0 z-20 backdrop-blur-md">
+          <Badge className="bg-red-600/20 text-red-500 font-gaming text-[9px] sm:text-[10px] uppercase font-bold tracking-widest border border-red-600/30 w-fit mb-1">
             SLOT REGISTRATION & PAYMENT
           </Badge>
-          <DialogTitle className="font-display text-2xl font-bold text-white uppercase leading-none">
+          <DialogTitle className="font-display text-xl sm:text-2xl font-bold text-white uppercase leading-none">
             {match.title}
           </DialogTitle>
         </DialogHeader>
 
         {/* Modal Body */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
 
           {/* STEP 1: PLAYER & TEAM DETAILS */}
           {step === 'DETAILS' && (
-            <form onSubmit={handleProceedToPayment}>
+            <form onSubmit={handleProceedToPayment} className="space-y-4 sm:space-y-5">
               {/* Google Auth Suggestion Banner for Unauthenticated Users */}
               {!user ? (
-                <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-red-950/50 via-[#131726] to-[#0c0e18] border border-red-500/40 shadow-xl relative overflow-hidden group">
-                  <div className="absolute -right-6 -top-6 w-24 h-24 bg-red-600/10 rounded-full blur-xl pointer-events-none group-hover:bg-red-600/20 transition-all" />
-                  
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative z-10">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 shrink-0 mt-0.5 shadow-sm">
-                        <ShieldAlert className="w-5 h-5 text-red-400" />
+                <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-red-950/50 via-[#131726] to-[#0c0e18] border border-red-500/40 shadow-xl relative overflow-hidden group">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 relative z-10">
+                    <div className="flex items-start gap-2.5">
+                      <div className="p-1.5 sm:p-2 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 shrink-0 mt-0.5 shadow-sm">
+                        <ShieldAlert className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
                       </div>
-                      <div>
-                        <h5 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                      <div className="min-w-0">
+                        <h5 className="text-xs font-bold text-white uppercase tracking-wider flex flex-wrap items-center gap-1.5">
                           <span>গুগল দিয়ে লগইন করার অনুরোধ!</span>
-                          <span className="bg-[#e50914] text-white text-[9px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider shadow-sm">
+                          <span className="bg-[#e50914] text-white text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider shadow-sm">
                             Recommended
                           </span>
                         </h5>
-                        <p className="text-[11px] text-gray-300 mt-1 leading-relaxed">
-                          গুগল দিয়ে লগইন থাকলে টুর্নামেন্টের <strong className="text-red-400 font-bold">Room ID & Password</strong> সহজেই ড্যাশবোর্ড থেকে দেখতে পারবেন।
+                        <p className="text-[10px] sm:text-[11px] text-gray-300 mt-1 leading-normal">
+                          গুগল দিয়ে লগইন থাকলে টুর্নামেন্টের <strong className="text-red-400 font-bold">Room ID & Password</strong> ড্যাশবোর্ডে পাবেন।
                         </p>
                       </div>
                     </div>
@@ -245,7 +243,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                       type="button"
                       onClick={handleGoogleSignIn}
                       disabled={authLoading}
-                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white hover:bg-gray-100 text-gray-900 font-bold text-xs flex items-center justify-center gap-2 shadow-md hover:shadow-red-500/20 transition-all shrink-0 cursor-pointer active:scale-95 disabled:opacity-50"
+                      className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl bg-white hover:bg-gray-100 text-gray-900 font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all shrink-0 cursor-pointer active:scale-95 disabled:opacity-50 mt-1 sm:mt-0"
                     >
                       <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -258,10 +256,10 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                   </div>
                 </div>
               ) : (
-                <div className="mb-6 p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-between gap-2 text-xs text-emerald-400">
-                  <div className="flex items-center gap-2">
+                <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 flex flex-wrap items-center justify-between gap-2 text-xs text-emerald-400">
+                  <div className="flex items-center gap-2 min-w-0">
                     <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>কানেক্টেড অ্যাকাউন্ট: <strong className="text-white">{user.user_metadata?.full_name || user.email}</strong></span>
+                    <span className="truncate">কানেক্টেড অ্যাকাউন্ট: <strong className="text-white">{user.user_metadata?.full_name || user.email}</strong></span>
                   </div>
                   <span className="text-[10px] bg-emerald-500/20 px-2.5 py-0.5 rounded-full text-emerald-300 font-bold shrink-0 flex items-center gap-1 border border-emerald-500/30">
                     <Sparkles className="w-3 h-3 text-emerald-400" />
@@ -271,28 +269,28 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
               )}
 
               {/* Match Summary Pill */}
-              <div className="bg-[#0b0e14] border border-red-900/20 rounded-xl p-4 mb-6 flex flex-wrap justify-between items-center gap-4">
-                <div>
-                  <span className="text-xs text-gray-400 font-bold block uppercase">SELECTED MODE</span>
-                  <span className="font-gaming text-lg font-black text-red-500">{match.mode} (1v{match.mode === 'SOLO' ? '1' : match.mode === 'DUO' ? '2' : '4'})</span>
+              <div className="bg-[#0b0e14] border border-red-900/20 rounded-xl p-3 sm:p-4 grid grid-cols-3 gap-2 text-center shadow-inner">
+                <div className="border-r border-white/5 pr-1">
+                  <span className="text-[10px] sm:text-xs text-gray-400 font-bold block uppercase">MODE</span>
+                  <span className="font-gaming text-sm sm:text-lg font-black text-red-500 truncate block">{match.mode}</span>
                 </div>
-                <div>
-                  <span className="text-xs text-gray-400 font-bold block uppercase">ENTRY FEE</span>
-                  <span className="font-display text-2xl font-black text-white">৳{match.entryFee}</span>
+                <div className="border-r border-white/5 px-1">
+                  <span className="text-[10px] sm:text-xs text-gray-400 font-bold block uppercase">ENTRY FEE</span>
+                  <span className="font-display text-base sm:text-2xl font-black text-white">৳{match.entryFee}</span>
                 </div>
-                <div>
-                  <span className="text-xs text-gray-400 font-bold block uppercase">MATCH TIME</span>
-                  <span className="text-xs font-bold text-green-400">{match.time}</span>
+                <div className="pl-1">
+                  <span className="text-[10px] sm:text-xs text-gray-400 font-bold block uppercase">TIME</span>
+                  <span className="text-[11px] sm:text-xs font-bold text-green-400 truncate block">{match.time}</span>
                 </div>
               </div>
 
-              <h4 className="font-gaming text-lg font-bold text-white mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
-                <ClipboardList className="w-5 h-5 text-red-500" />
+              <h4 className="font-gaming text-sm sm:text-base font-bold text-white border-b border-gray-800 pb-2 flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 shrink-0" />
                 <span>১. খেলোয়াড় ও টিম সংক্রান্ত তথ্য পূরণ করুন</span>
               </h4>
 
               {match.mode !== 'SOLO' && (
-                <div className="mb-4">
+                <div>
                   <Label className="text-xs font-bold text-gray-300 uppercase mb-1 block">
                     টিম এর নাম (TEAM NAME) <span className="text-red-500">*</span>
                   </Label>
@@ -301,13 +299,13 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
                     placeholder="e.g. VIP ESPORTS / VAMPIRE SQUAD"
-                    className="bg-[#0b0e14] border-gray-700 text-white"
+                    className="bg-[#0b0e14] border-gray-700 text-white text-xs sm:text-sm"
                   />
                 </div>
               )}
 
               {/* Player 1 (Captain) */}
-              <div className="grid sm:grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <Label className="text-xs font-bold text-gray-300 uppercase mb-1 block">
                     {match.mode === 'SOLO' ? 'খেলোয়াড়ের IGN' : 'ক্যাপ্টেনের IGN'} <span className="text-red-500">*</span>
@@ -317,7 +315,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                     value={player1Name}
                     onChange={(e) => setPlayer1Name(e.target.value)}
                     placeholder="e.g. OP_DEADSHOT"
-                    className="bg-[#0b0e14] border-gray-700 text-white"
+                    className="bg-[#0b0e14] border-gray-700 text-white text-xs sm:text-sm"
                   />
                 </div>
                 <div>
@@ -328,16 +326,16 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                     required
                     value={player1Uid}
                     onChange={(e) => setPlayer1Uid(e.target.value)}
-                    placeholder="e.g. 5123456789 (10-digits)"
-                    className="bg-[#0b0e14] border-gray-700 text-white"
+                    placeholder="e.g. 5123456789"
+                    className="bg-[#0b0e14] border-gray-700 text-white text-xs sm:text-sm font-mono"
                   />
                 </div>
               </div>
 
               {/* WhatsApp Contact Number */}
-              <div className="mb-6">
+              <div>
                 <Label className="text-xs font-bold text-gray-300 uppercase mb-1 block">
-                  WhatsApp মোবাইল নাম্বার (Room ID পাঠানোর জন্য) <span className="text-red-500">*</span>
+                  WhatsApp নাম্বার (Room ID পাঠানোর জন্য) <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   type="tel"
@@ -345,26 +343,26 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                   value={whatsappNumber}
                   onChange={(e) => setWhatsappNumber(e.target.value)}
                   placeholder="e.g. 01700000000"
-                  className="bg-[#0b0e14] border-gray-700 text-white"
+                  className="bg-[#0b0e14] border-gray-700 text-white text-xs sm:text-sm font-mono"
                 />
               </div>
 
               {/* Duo Teammate */}
               {match.mode === 'DUO' && (
-                <div className="bg-[#0b0e14] p-4 rounded-xl border border-gray-800 mb-6">
-                  <h5 className="text-xs font-bold text-red-400 uppercase mb-3">PLAYER 2 DETAILS</h5>
-                  <div className="grid sm:grid-cols-2 gap-4">
+                <div className="bg-[#0b0e14] p-3.5 sm:p-4 rounded-xl border border-gray-800 space-y-3">
+                  <h5 className="text-xs font-bold text-red-400 uppercase">PLAYER 2 DETAILS</h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Input
                       placeholder="Player 2 IGN"
                       value={player2Name}
                       onChange={(e) => setPlayer2Name(e.target.value)}
-                      className="bg-[#121826] border-gray-700 text-white"
+                      className="bg-[#121826] border-gray-700 text-white text-xs sm:text-sm"
                     />
                     <Input
                       placeholder="Player 2 Character UID"
                       value={player2Uid}
                       onChange={(e) => setPlayer2Uid(e.target.value)}
-                      className="bg-[#121826] border-gray-700 text-white"
+                      className="bg-[#121826] border-gray-700 text-white text-xs sm:text-sm font-mono"
                     />
                   </div>
                 </div>
@@ -372,9 +370,9 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
               {/* Squad Teammates */}
               {match.mode === 'SQUAD' && (
-                <div className="bg-[#0b0e14] p-4 rounded-xl border border-gray-800 mb-6 space-y-3">
-                  <h5 className="text-xs font-bold text-red-400 uppercase mb-2">TEAM MEMBERS DETAILS</h5>
-                  <div className="grid sm:grid-cols-2 gap-3">
+                <div className="bg-[#0b0e14] p-3.5 sm:p-4 rounded-xl border border-gray-800 space-y-3">
+                  <h5 className="text-xs font-bold text-red-400 uppercase">TEAM MEMBERS DETAILS</h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Input
                       placeholder="Player 2 IGN & UID"
                       value={player2Name}
@@ -388,7 +386,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                       className="bg-[#121826] border-gray-700 text-white text-xs"
                     />
                   </div>
-                  <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Input
                       placeholder="Player 4 IGN & UID"
                       value={player4Name}
@@ -401,26 +399,26 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
               <Button
                 type="submit"
-                className="w-full btn-kong-red py-3.5 rounded-xl font-gaming text-base font-extrabold flex items-center justify-center gap-2 group"
+                className="w-full btn-kong-red py-3.5 rounded-xl font-gaming text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 group shadow-lg"
               >
                 <span>পেমেন্ট ধাপে যান (PAYMENT STEP)</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </form>
           )}
 
           {/* STEP 2: PAYMENT METHOD & TRANSACTION ID */}
           {step === 'PAYMENT' && (
-            <form onSubmit={handleConfirmPayment}>
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
-                <h4 className="font-gaming text-lg font-bold text-white flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-red-500" />
-                  <span>২. বিকাশ / নগদ / রকেট এ পেমেন্ট সম্পন্ন করুন</span>
+            <form onSubmit={handleConfirmPayment} className="space-y-4 sm:space-y-5">
+              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+                <h4 className="font-gaming text-sm sm:text-lg font-bold text-white flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 shrink-0" />
+                  <span>২. বিকাশ / নগদ / রকেট এ পেমেন্ট করুন</span>
                 </h4>
                 <button
                   type="button"
                   onClick={() => setStep('DETAILS')}
-                  className="text-xs font-bold text-red-400 underline hover:text-white flex items-center gap-1"
+                  className="text-xs font-bold text-red-400 underline hover:text-white flex items-center gap-1 shrink-0"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                   <span>পরিবর্তন</span>
@@ -428,63 +426,63 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
               </div>
 
               {/* Payment Method Selector */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('bKash')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 font-bold transition-all ${
+                  className={`p-2.5 sm:p-3 rounded-xl border flex flex-col items-center justify-center gap-1 font-bold transition-all ${
                     paymentMethod === 'bKash'
                       ? 'bg-pink-950/40 border-pink-500 text-pink-400 shadow-lg shadow-pink-500/20'
                       : 'bg-[#0b0e14] border-gray-800 text-gray-400 hover:border-gray-700'
                   }`}
                 >
-                  <Heart className="w-5 h-5 text-pink-500" />
+                  <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
                   <span className="text-xs">bKash</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('Nagad')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 font-bold transition-all ${
+                  className={`p-2.5 sm:p-3 rounded-xl border flex flex-col items-center justify-center gap-1 font-bold transition-all ${
                     paymentMethod === 'Nagad'
                       ? 'bg-orange-950/40 border-orange-500 text-orange-400 shadow-lg shadow-orange-500/20'
                       : 'bg-[#0b0e14] border-gray-800 text-gray-400 hover:border-gray-700'
                   }`}
                 >
-                  <Flame className="w-5 h-5 text-orange-500" />
+                  <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
                   <span className="text-xs">Nagad</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('Rocket')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 font-bold transition-all ${
+                  className={`p-2.5 sm:p-3 rounded-xl border flex flex-col items-center justify-center gap-1 font-bold transition-all ${
                     paymentMethod === 'Rocket'
                       ? 'bg-purple-950/40 border-purple-500 text-purple-400 shadow-lg shadow-purple-500/20'
                       : 'bg-[#0b0e14] border-gray-800 text-gray-400 hover:border-gray-700'
                   }`}
                 >
-                  <Rocket className="w-5 h-5 text-purple-400" />
+                  <Rocket className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
                   <span className="text-xs">Rocket</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('WALLET')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 font-bold transition-all ${
+                  className={`p-2.5 sm:p-3 rounded-xl border flex flex-col items-center justify-center gap-1 font-bold transition-all ${
                     paymentMethod === 'WALLET'
                       ? 'bg-emerald-950/60 border-emerald-500 text-emerald-400 shadow-lg shadow-emerald-500/30'
                       : 'bg-[#0b0e14] border-emerald-500/30 text-emerald-300 hover:border-emerald-500'
                   }`}
                 >
-                  <Copy className="w-5 h-5 text-emerald-400" />
+                  <Copy className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
                   <span className="text-xs font-black">Pay Wallet</span>
                 </button>
               </div>
 
               {/* WALLET PAYMENT INSTANT CHECKOUT */}
               {paymentMethod === 'WALLET' ? (
-                <div className="bg-emerald-950/30 border border-emerald-500/40 rounded-2xl p-5 mb-6 space-y-3">
+                <div className="bg-emerald-950/30 border border-emerald-500/40 rounded-2xl p-4 sm:p-5 space-y-3">
                   <div className="flex justify-between items-center text-xs text-emerald-300 font-bold">
                     <span>Pay with Account Wallet Balance:</span>
                     <span className="text-sm font-display text-white">Entry Fee: ৳{match.entryFee}</span>
@@ -495,7 +493,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-gaming text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-gaming text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30"
                   >
                     {isSubmitting ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -508,18 +506,18 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
               ) : (
                 /* MANUAL BKASH/NAGAD TRXiD CHECKOUT */
                 <>
-                  <div className="bg-[#0b0e14] border border-red-900/30 rounded-xl p-5 mb-6">
-                    <div className="flex justify-between items-center border-b border-gray-800 pb-3 mb-3">
+                  <div className="bg-[#0b0e14] border border-red-900/30 rounded-xl p-4 sm:p-5 space-y-3">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-gray-800 pb-3">
                       <div>
-                        <span className="text-xs text-gray-400 font-bold block">SEND MONEY NUMBER ({paymentMethod})</span>
-                        <span className="font-display text-2xl font-black text-red-500 tracking-wider">
+                        <span className="text-[10px] sm:text-xs text-gray-400 font-bold block uppercase">SEND MONEY NUMBER ({paymentMethod})</span>
+                        <span className="font-display text-xl sm:text-2xl font-black text-red-500 tracking-wider">
                           {paymentNumbers[paymentMethod as keyof typeof paymentNumbers] || '01712-345678'}
                         </span>
                       </div>
                       <Button
                         type="button"
                         onClick={() => handleCopy(paymentNumbers[paymentMethod as keyof typeof paymentNumbers] || '01712-345678', paymentMethod)}
-                        className="btn-kong-outline px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-1"
+                        className="btn-kong-outline px-3.5 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1 w-full sm:w-auto justify-center"
                       >
                         {copiedNumber === paymentMethod ? (
                           <>
@@ -535,14 +533,14 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                       </Button>
                     </div>
 
-                    <div className="text-xs text-gray-300 space-y-2 font-medium">
+                    <div className="text-[11px] sm:text-xs text-gray-300 space-y-1.5 font-medium">
                       <p>১. আপনার <strong>{paymentMethod}</strong> অ্যাপ এ গিয়ে <strong>Send Money</strong> সিলেক্ট করুন।</p>
                       <p>২. সেন্ড মানি করুন মোট <strong>৳{match.entryFee}</strong> টাকা।</p>
                       <p>৩. পেমেন্ট সম্পন্ন হলে প্রাপ্ত <strong>Transaction ID (TrxID)</strong> টি কপি করে নিচে বসান।</p>
                     </div>
                   </div>
 
-                  <div className="mb-6">
+                  <div>
                     <Label className="text-xs font-bold text-red-400 uppercase mb-1 block">
                       TRANSACTION ID (TrxID) দিন <span className="text-red-500">*</span>
                     </Label>
@@ -551,14 +549,14 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                       value={trxId}
                       onChange={(e) => setTrxId(e.target.value.toUpperCase())}
                       placeholder="e.g. BAX8912K9L"
-                      className="bg-[#0b0e14] border-2 border-red-600/60 text-lg font-mono font-bold text-red-400 text-center tracking-widest uppercase"
+                      className="bg-[#0b0e14] border-2 border-red-600/60 text-base sm:text-lg font-mono font-bold text-red-400 text-center tracking-widest uppercase py-2.5"
                     />
                   </div>
 
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-gaming text-base font-extrabold flex items-center justify-center gap-2"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-gaming text-xs sm:text-base font-extrabold flex items-center justify-center gap-2 shadow-lg"
                   >
                     {isSubmitting ? (
                       <>
@@ -579,36 +577,36 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
           {/* STEP 3: SUCCESS CONFIRMATION & WHATSAPP MATCH GROUP LINK */}
           {step === 'SUCCESS' && (
-            <div className="text-center py-6 space-y-5 animate-in fade-in zoom-in duration-300">
-              <div className="w-20 h-20 bg-gradient-to-tr from-emerald-600/30 to-green-500/20 border-2 border-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(16,185,129,0.3)]">
-                <CheckCircle2 className="w-12 h-12 text-emerald-400" />
+            <div className="text-center py-4 sm:py-6 space-y-4 sm:space-y-5 animate-in fade-in zoom-in duration-300">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-tr from-emerald-600/30 to-green-500/20 border-2 border-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 text-emerald-400" />
               </div>
 
               <div className="space-y-1">
-                <Badge className="bg-emerald-950 border border-emerald-500/50 text-emerald-400 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                <Badge className="bg-emerald-950 border border-emerald-500/50 text-emerald-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">
                   {paymentMethod === 'WALLET' ? '✓ INSTANTLY VERIFIED VIA WALLET' : '⏳ RESERVED (PENDING ADMIN VERIFICATION)'}
                 </Badge>
 
-                <h3 className="font-display text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-white to-emerald-400 uppercase tracking-wide pt-2">
+                <h3 className="font-display text-xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-white to-emerald-400 uppercase tracking-wide pt-2">
                   THANK YOU FOR REGISTERING! 🎉
                 </h3>
-                <p className="text-xs font-bold text-gray-300 uppercase tracking-wider">
+                <p className="text-[11px] sm:text-xs font-bold text-gray-300 uppercase tracking-wider">
                   ধন্যবাদ! আপনার টুর্নামেন্ট স্লট বুকিং সফলভাবে জমা হয়েছে।
                 </p>
               </div>
 
               {/* Registration Summary Card */}
-              <div className="bg-[#0b0e16] border border-white/10 rounded-2xl p-4 max-w-lg mx-auto text-left space-y-2 text-xs">
-                <div className="flex justify-between border-b border-white/5 pb-2">
+              <div className="bg-[#0b0e16] border border-white/10 rounded-2xl p-3.5 sm:p-4 max-w-lg mx-auto text-left space-y-2 text-[11px] sm:text-xs">
+                <div className="flex justify-between border-b border-white/5 pb-1.5">
                   <span className="text-gray-400 font-bold">MATCH:</span>
                   <span className="text-white font-bold">{match.title} ({match.mode})</span>
                 </div>
-                <div className="flex justify-between border-b border-white/5 pb-2">
+                <div className="flex justify-between border-b border-white/5 pb-1.5">
                   <span className="text-gray-400 font-bold">PLAYER IGN & UID:</span>
                   <span className="text-amber-400 font-mono font-bold">{player1Name} ({player1Uid})</span>
                 </div>
                 {teamName && (
-                  <div className="flex justify-between border-b border-white/5 pb-2">
+                  <div className="flex justify-between border-b border-white/5 pb-1.5">
                     <span className="text-gray-400 font-bold">TEAM NAME:</span>
                     <span className="text-white font-bold">{teamName}</span>
                   </div>
@@ -619,34 +617,34 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                 </div>
               </div>
 
-              <p className="text-xs text-gray-400 max-w-md mx-auto leading-relaxed">
+              <p className="text-[11px] sm:text-xs text-gray-400 max-w-md mx-auto leading-relaxed">
                 ম্যাচ শুরুর ১৫ মিনিট আগে আপনার ড্যাশবোর্ডে **Room ID & Password** অপশন দেখতে পাবেন।
               </p>
 
               {/* Tournament WhatsApp Group Link Button */}
-              <div className="p-4 bg-emerald-950/20 border border-emerald-500/40 rounded-2xl space-y-2 max-w-lg mx-auto">
-                <span className="text-xs text-emerald-400 font-bold block">
+              <div className="p-3.5 sm:p-4 bg-emerald-950/20 border border-emerald-500/40 rounded-2xl space-y-2 max-w-lg mx-auto">
+                <span className="text-[11px] sm:text-xs text-emerald-400 font-bold block">
                   📢 টুর্নামেন্ট রুম কোডের জন্য অফিশিয়াল ওয়াটসঅ্যাপ চ্যানেলে জয়েন করুন:
                 </span>
                 <a
                   href={match.whatsappGroupLink || 'https://whatsapp.com/channel/0029Vb8kbvtK5cDCZ4I3rf0K'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl text-xs inline-flex items-center justify-center gap-2 no-underline shadow-lg shadow-emerald-600/30 transition-all"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-xs inline-flex items-center justify-center gap-2 no-underline shadow-lg shadow-emerald-600/30 transition-all"
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>JOIN OFFICIAL WHATSAPP CHANNEL FOR ROOM CODE</span>
                 </a>
               </div>
 
-              <div className="pt-2 flex justify-center gap-3">
+              <div className="pt-2 flex flex-wrap justify-center gap-3">
                 <a
                   href="/dashboard"
-                  className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-2.5 px-5 rounded-xl border border-white/20 no-underline transition-colors"
+                  className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-2.5 px-4 rounded-xl border border-white/20 no-underline transition-colors"
                 >
                   View My Dashboard
                 </a>
-                <Button onClick={onClose} className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-colors cursor-pointer">
+                <Button onClick={onClose} className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-colors cursor-pointer">
                   Close Window
                 </Button>
               </div>
