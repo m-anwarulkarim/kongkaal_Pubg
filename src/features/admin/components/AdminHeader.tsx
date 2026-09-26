@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Link from '@/components/ui/Link'
-import { ChevronRight, Search, RefreshCw, Plus, Gamepad2, Globe, Menu } from 'lucide-react'
+import { ChevronRight, Search, RefreshCw, Plus, Gamepad2, Globe, PanelLeft } from 'lucide-react'
 
 interface AdminHeaderProps {
   activeTab: AdminTabType
@@ -36,14 +36,14 @@ export default function AdminHeader({
 }: AdminHeaderProps) {
   return (
     <header className="bg-[#0c0f17]/95 backdrop-blur-md border-b border-white/10 px-4 sm:px-6 py-3.5 sticky top-0 z-40 flex flex-wrap items-center justify-between gap-3">
-      {/* Active Section Title / Breadcrumb + Mobile Menu Toggle */}
-      <div className="flex items-center gap-2">
+      {/* Active Section Title / Breadcrumb + Menu Toggle */}
+      <div className="flex items-center gap-2.5">
         <button
           onClick={onToggleSidebar}
-          className="p-1.5 text-gray-300 hover:text-white rounded-lg bg-white/5 hover:bg-white/10 md:hidden"
-          title="Open Navigation"
+          className="p-2 text-gray-300 hover:text-white rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors flex items-center justify-center shadow-sm"
+          title="Toggle Navigation Menu"
         >
-          <Menu className="w-5 h-5 text-red-500" />
+          <PanelLeft className="w-4.5 h-4.5 text-red-500" />
         </button>
 
         <span className="text-xs text-gray-400 font-bold uppercase tracking-wider hidden sm:inline">Admin Portal</span>
