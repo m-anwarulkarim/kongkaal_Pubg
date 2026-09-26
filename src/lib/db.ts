@@ -6,6 +6,8 @@ export interface RegistrationRecord extends PlayerRegistration {
   id: string
   status: 'PENDING' | 'VERIFIED' | 'REJECTED'
   createdAt: string
+  roomId?: string
+  roomPassword?: string
 }
 
 export const DEFAULT_MATCHES: MatchItem[] = [
@@ -499,6 +501,8 @@ export async function getAllRegistrations(): Promise<RegistrationRecord[]> {
           amount: Number(r.amount),
           status: r.status,
           createdAt: r.created_at,
+          roomId: r.room_id || '',
+          roomPassword: r.room_password || '',
         }))
       }
     } catch (err) {
@@ -550,6 +554,36 @@ export async function updateRegistrationStatus(id: string, status: 'VERIFIED' | 
   }
 
   return { success: true, message: `Status updated to ${status} successfully!` }
+}
+
+// 6b. Update Registration Room Credentials (Set Room ID & Password)
+export async function updateRegistrationRoomCredentials(
+  id: string,
+  roomId: string,
+  roomPassword: string
+): Promise<{ success: boolean; message: string }> {
+  if (typeof window !== 'undefined') {
+    const current = getLocalRegistrationRecords()
+    const updated = current.map((r) => (r.id === id ? { ...r, roomId, roomPassword } : r))
+    localStorage.setItem('kongkaal_registrations', JSON.stringify(updated))
+  }
+
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase
+        .from('registrations')
+        .update({ room_id: roomId, room_password: roomPassword })
+        .eq('id', id)
+    } catch (err: any) {
+      console.warn('Supabase update room credentials exception:', err)
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('registrations_updated'))
+  }
+
+  return { success: true, message: 'Room ID and Password updated successfully!' }
 }
 
 // Initial default leaderboard entries

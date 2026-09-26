@@ -179,19 +179,36 @@ export async function updateCustomerProfile(profile: CustomerProfile): Promise<b
 
   if (isSupabaseConfigured()) {
     try {
-      const { error } = await supabase.from('customer_wallets').upsert(
-        {
-          email: normEmail,
-          name: updatedProfile.name,
-          pubg_uid: updatedProfile.pubgUid,
-          whatsapp_number: updatedProfile.whatsappNumber,
-          balance: updatedProfile.walletBalance,
-          avatar_url: updatedProfile.avatarUrl,
-        },
-        { onConflict: 'email' }
-      )
-      if (error) {
-        console.warn('Supabase profile upsert error:', error.message)
+      const { data: existing } = await supabase
+        .from('customer_wallets')
+        .select('email')
+        .ilike('email', normEmail)
+        .maybeSingle()
+
+      if (existing) {
+        const { error } = await supabase
+          .from('customer_wallets')
+          .update({
+            name: updatedProfile.name,
+            pubg_uid: updatedProfile.pubgUid,
+            whatsapp_number: updatedProfile.whatsappNumber,
+            balance: updatedProfile.walletBalance,
+            avatar_url: updatedProfile.avatarUrl,
+          })
+          .ilike('email', normEmail)
+        if (error) console.warn('Supabase profile update error:', error.message)
+      } else {
+        const { error } = await supabase.from('customer_wallets').insert([
+          {
+            email: normEmail,
+            name: updatedProfile.name,
+            pubg_uid: updatedProfile.pubgUid,
+            whatsapp_number: updatedProfile.whatsappNumber,
+            balance: updatedProfile.walletBalance,
+            avatar_url: updatedProfile.avatarUrl,
+          },
+        ])
+        if (error) console.warn('Supabase profile insert error:', error.message)
       }
 
       if (typeof window !== 'undefined') {

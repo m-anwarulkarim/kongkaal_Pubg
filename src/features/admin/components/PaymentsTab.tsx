@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import type { RegistrationRecord } from '@/lib/db'
+import { updateRegistrationRoomCredentials, type RegistrationRecord } from '@/lib/db'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import Link from '@/components/ui/Link'
-import { RefreshCw, Smartphone, CheckCircle2, XCircle, MessageSquare, X, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
+import { RefreshCw, Smartphone, CheckCircle2, XCircle, MessageSquare, X, AlertCircle, Key, Send } from 'lucide-react'
 
 interface PaymentsTabProps {
   loading: boolean
@@ -21,10 +22,46 @@ export default function PaymentsTab({
 }: PaymentsTabProps) {
   const [confirmModalItem, setConfirmModalItem] = useState<{ id: string; name: string; amount: number; trxId: string } | null>(null)
 
+  // Room ID & Password Modal State
+  const [roomModalItem, setRoomModalItem] = useState<RegistrationRecord | null>(null)
+  const [editRoomId, setEditRoomId] = useState('1234567')
+  const [editRoomPassword, setEditRoomPassword] = useState('8899')
+  const [savingRoom, setSavingRoom] = useState(false)
+
   const handleConfirmApproval = () => {
     if (confirmModalItem) {
       handleStatusUpdate(confirmModalItem.id, 'VERIFIED')
       setConfirmModalItem(null)
+    }
+  }
+
+  const handleOpenRoomModal = (reg: RegistrationRecord) => {
+    setRoomModalItem(reg)
+    setEditRoomId(reg.roomId || '1234567')
+    setEditRoomPassword(reg.roomPassword || '8899')
+  }
+
+  const handleSaveAndSendRoom = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!roomModalItem) return
+
+    setSavingRoom(true)
+    const res = await updateRegistrationRoomCredentials(roomModalItem.id, editRoomId.trim(), editRoomPassword.trim())
+    setSavingRoom(false)
+
+    if (res.success) {
+      toast.success('🎉 রুম আইডি এবং পাসওয়ার্ড ওয়েবসাইটে আপডেট করা হয়েছে! কাস্টমার ড্যাশবোর্ড থেকে দেখতে পাবেন।')
+      
+      // WhatsApp Redirect
+      const whatsappMsg = encodeURIComponent(
+        `Hello ${roomModalItem.player1Name}! Your slot booking for PUBG Match is VERIFIED!\nRoom ID: ${editRoomId.trim()}\nPassword: ${editRoomPassword.trim()}\nMatch Starts soon. Good luck!`
+      )
+      const cleanPhone = roomModalItem.whatsappNumber.replace(/[^0-9]/g, '')
+      window.open(`https://wa.me/${cleanPhone}?text=${whatsappMsg}`, '_blank')
+      
+      setRoomModalItem(null)
+    } else {
+      toast.error(`Error: ${res.message}`)
     }
   }
 
@@ -68,10 +105,6 @@ export default function PaymentsTab({
             </thead>
             <tbody className="divide-y divide-white/5 font-medium">
               {filteredRegistrations.map((reg) => {
-                const whatsappMsg = encodeURIComponent(
-                  `Hello ${reg.player1Name}! Your slot booking for PUBG Match is VERIFIED!\nRoom ID: 1234567\nPassword: 8899\nMatch Starts in 15 mins. Good luck!`
-                )
-
                 return (
                   <tr key={reg.id} className="hover:bg-white/5 transition-colors">
                     <td className="p-3.5">
@@ -136,12 +169,14 @@ export default function PaymentsTab({
                       )}
 
                       {reg.status === 'VERIFIED' && (
-                        <Link
-                          href={`https://wa.me/${reg.whatsappNumber.replace(/[^0-9]/g, '')}?text=${whatsappMsg}`}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 px-3 rounded-lg inline-flex items-center gap-1.5 no-underline shadow-md shadow-emerald-600/20"
+                        <Button
+                          onClick={() => handleOpenRoomModal(reg)}
+                          size="sm"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 px-3 rounded-lg inline-flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
                         >
-                          <MessageSquare className="w-3.5 h-3.5" /> Send Room ID
-                        </Link>
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>Send / Set Room ID</span>
+                        </Button>
                       )}
                     </td>
                   </tr>
@@ -206,6 +241,76 @@ export default function PaymentsTab({
           </div>
         </div>
       )}
+
+      {/* MODAL: SET ROOM ID & PASSWORD & SEND WHATSAPP */}
+      {roomModalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0f121d] border border-emerald-500/40 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl relative overflow-hidden">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                  <Key className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-white">Send Room ID & Password</h3>
+                  <span className="text-[11px] text-gray-400">Player: {roomModalItem.player1Name}</span>
+                </div>
+              </div>
+              <button onClick={() => setRoomModalItem(null)} className="text-gray-400 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveAndSendRoom} className="space-y-4 text-xs">
+              <div>
+                <label className="text-gray-300 font-bold block mb-1">Room ID (ইন-গেম রুম আইডি)</label>
+                <Input
+                  type="text"
+                  required
+                  value={editRoomId}
+                  onChange={(e) => setEditRoomId(e.target.value)}
+                  placeholder="e.g. 1234567"
+                  className="bg-[#161a29] border-white/10 text-white font-mono text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="text-gray-300 font-bold block mb-1">Room Password (ইন-গেম পাসওয়ার্ড)</label>
+                <Input
+                  type="text"
+                  required
+                  value={editRoomPassword}
+                  onChange={(e) => setEditRoomPassword(e.target.value)}
+                  placeholder="e.g. 8899"
+                  className="bg-[#161a29] border-white/10 text-white font-mono text-sm"
+                />
+              </div>
+
+              <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-[11px] text-emerald-300">
+                ✓ এটি সেভ করলে কাস্টমার তার <strong>`/dashboard`</strong> এ তাৎক্ষণিক Room ID এবং Password দেখতে পাবেন।
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  type="button"
+                  onClick={() => setRoomModalItem(null)}
+                  className="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2.5 rounded-xl border border-white/20"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={savingRoom}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-1.5"
+                >
+                  <Send className="w-4 h-4" /> Save & Send WhatsApp
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </Card>
   )
 }
+
