@@ -672,6 +672,7 @@ export interface HeroBannerSettings {
   liveStatusText: string
   activePlayersCount: number
   heroVideoUrl?: string
+  youtubeVideoUrl?: string
 }
 
 export const DEFAULT_HERO_SETTINGS: HeroBannerSettings = {
@@ -680,6 +681,7 @@ export const DEFAULT_HERO_SETTINGS: HeroBannerSettings = {
   liveStatusText: 'Tournament Ongoing',
   activePlayersCount: 128,
   heroVideoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-gameplay-of-a-first-person-shooter-game-41554-large.mp4',
+  youtubeVideoUrl: 'https://www.youtube.com/watch?v=L6P3nI6VnlY',
 }
 
 export function getHeroBannerSettings(): HeroBannerSettings {
@@ -688,9 +690,11 @@ export function getHeroBannerSettings(): HeroBannerSettings {
   if (!stored) return DEFAULT_HERO_SETTINGS
   try {
     const parsed = JSON.parse(stored)
-    // Migrate broken YouTube embed link if present
     if (!parsed.heroVideoUrl || parsed.heroVideoUrl.includes('uCd6tbLv6XY')) {
       parsed.heroVideoUrl = DEFAULT_HERO_SETTINGS.heroVideoUrl
+    }
+    if (!parsed.youtubeVideoUrl) {
+      parsed.youtubeVideoUrl = DEFAULT_HERO_SETTINGS.youtubeVideoUrl
     }
     return { ...DEFAULT_HERO_SETTINGS, ...parsed }
   } catch {

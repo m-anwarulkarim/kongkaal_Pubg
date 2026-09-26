@@ -102,16 +102,30 @@ export default function SettingsTab() {
               />
             </div>
 
-            {/* Hero Video URL */}
-            <div className="md:col-span-2">
+            {/* Hero Background AI Video URL */}
+            <div>
               <label className="block text-xs font-bold text-gray-300 mb-1.5 uppercase">
-                Hero Section Video URL / YouTube Embed (ভিডিও লিঙ্ক)
+                Hero Background AI Video URL (ব্যাকগ্রাউন্ড ভিডিও MP4)
               </label>
               <input
                 type="text"
                 value={heroSettings.heroVideoUrl || ''}
                 onChange={(e) => setHeroSettings({ ...heroSettings, heroVideoUrl: e.target.value })}
-                placeholder="https://www.youtube.com/embed/uCd6tbLv6XY"
+                placeholder="https://example.com/video.mp4"
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-500 font-mono"
+              />
+            </div>
+
+            {/* YouTube Gameplay / Trailer Video URL */}
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5 uppercase">
+                YouTube Gameplay Video URL (পপআপ ট্রেইলার ভিডিও)
+              </label>
+              <input
+                type="text"
+                value={heroSettings.youtubeVideoUrl || ''}
+                onChange={(e) => setHeroSettings({ ...heroSettings, youtubeVideoUrl: e.target.value })}
+                placeholder="https://www.youtube.com/watch?v=..."
                 className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-500 font-mono"
               />
             </div>
