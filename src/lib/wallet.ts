@@ -4,6 +4,36 @@ import type { WalletTransaction, CustomerProfile } from '@/types/wallet'
 const LOCAL_WALLET_KEY = 'kongkaal_customer_wallets'
 const LOCAL_TX_KEY = 'kongkaal_wallet_transactions'
 
+// Subscribe to Realtime DB events for wallets & transactions
+if (typeof window !== 'undefined' && isSupabaseConfigured()) {
+  try {
+    supabase
+      .channel('kongkaal_wallet_realtime_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'customer_wallets' },
+        () => {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('profile_updated'))
+            window.dispatchEvent(new Event('wallet_updated'))
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'wallet_transactions' },
+        () => {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('wallet_updated'))
+          }
+        }
+      )
+      .subscribe()
+  } catch (err) {
+    console.warn('[Wallet Service] Supabase realtime subscription error:', err)
+  }
+}
+
 // Helper to get local mock storage
 function getLocalWallets(): Record<string, CustomerProfile> {
   if (typeof window === 'undefined') return {}
@@ -78,44 +108,48 @@ if (typeof window !== 'undefined' && getLocalTxs().length === 0) {
 
 // 1. Get or Create Customer Profile
 export async function getCustomerProfile(email: string, name?: string, avatarUrl?: string): Promise<CustomerProfile> {
+  const normEmail = email.trim().toLowerCase()
   const wallets = getLocalWallets()
-  let profile = wallets[email]
+  let profile = wallets[normEmail]
 
   if (!profile) {
     profile = {
-      email,
-      name: name || email.split('@')[0],
+      email: normEmail,
+      name: name || normEmail.split('@')[0],
       pubgUid: '',
       whatsappNumber: '',
       walletBalance: 0,
       avatarUrl: avatarUrl || '',
     }
-    wallets[email] = profile
+    wallets[normEmail] = profile
     saveLocalWallets(wallets)
   } else if (avatarUrl && !profile.avatarUrl) {
     profile.avatarUrl = avatarUrl
-    wallets[email] = profile
+    wallets[normEmail] = profile
     saveLocalWallets(wallets)
   }
 
-  // If Supabase is available, sync balance
+  // Sync with Supabase if configured
   if (isSupabaseConfigured()) {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('customer_wallets')
         .select('*')
-        .eq('email', email)
-        .single()
+        .ilike('email', normEmail)
+        .maybeSingle()
 
       if (data) {
-        profile.walletBalance = Number(data.balance)
+        profile.walletBalance = Number(data.balance !== undefined ? data.balance : profile.walletBalance)
+        profile.name = data.name || profile.name
         profile.pubgUid = data.pubg_uid || profile.pubgUid
         profile.whatsappNumber = data.whatsapp_number || profile.whatsappNumber
         profile.avatarUrl = data.avatar_url || profile.avatarUrl
-      } else {
-        // Upsert new profile to Supabase if not created yet
+        wallets[normEmail] = profile
+        saveLocalWallets(wallets)
+      } else if (!error) {
+        // Upsert new profile to Supabase if not present yet
         await supabase.from('customer_wallets').upsert({
-          email: profile.email,
+          email: normEmail,
           name: profile.name,
           pubg_uid: profile.pubgUid,
           whatsapp_number: profile.whatsappNumber,
@@ -133,20 +167,27 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
 
 // 2. Save / Update Customer Profile
 export async function updateCustomerProfile(profile: CustomerProfile): Promise<boolean> {
+  const normEmail = profile.email.trim().toLowerCase()
+  const updatedProfile = { ...profile, email: normEmail }
+
   const wallets = getLocalWallets()
-  wallets[profile.email] = profile
+  wallets[normEmail] = updatedProfile
   saveLocalWallets(wallets)
 
   if (isSupabaseConfigured()) {
     try {
       await supabase.from('customer_wallets').upsert({
-        email: profile.email,
-        name: profile.name,
-        pubg_uid: profile.pubgUid,
-        whatsapp_number: profile.whatsappNumber,
-        balance: profile.walletBalance,
-        avatar_url: profile.avatarUrl,
+        email: normEmail,
+        name: updatedProfile.name,
+        pubg_uid: updatedProfile.pubgUid,
+        whatsapp_number: updatedProfile.whatsappNumber,
+        balance: updatedProfile.walletBalance,
+        avatar_url: updatedProfile.avatarUrl,
       })
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('wallet_updated'))
+        window.dispatchEvent(new Event('profile_updated'))
+      }
     } catch (err) {
       console.error('Supabase profile update error:', err)
     }
@@ -162,9 +203,10 @@ export async function requestDeposit(data: {
   paymentMethod: 'bKash' | 'Nagad' | 'Rocket'
   trxId: string
 }): Promise<{ success: boolean; message: string }> {
+  const normEmail = data.userEmail.trim().toLowerCase()
   const tx: WalletTransaction = {
     id: 'tx-dep-' + Date.now(),
-    userEmail: data.userEmail,
+    userEmail: normEmail,
     userName: data.userName,
     type: 'DEPOSIT',
     amount: data.amount,
@@ -178,6 +220,25 @@ export async function requestDeposit(data: {
   const txs = getLocalTxs()
   txs.unshift(tx)
   saveLocalTxs(txs)
+
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.from('wallet_transactions').insert([
+        {
+          user_email: normEmail,
+          user_name: data.userName,
+          type: 'DEPOSIT',
+          amount: data.amount,
+          payment_method: data.paymentMethod,
+          trx_id: data.trxId,
+          status: 'PENDING',
+          note: tx.note,
+        },
+      ])
+    } catch (err) {
+      console.warn('Supabase deposit insert warning:', err)
+    }
+  }
 
   return {
     success: true,
@@ -193,7 +254,8 @@ export async function requestWithdraw(data: {
   paymentMethod: 'bKash' | 'Nagad' | 'Rocket'
   accountNumber: string
 }): Promise<{ success: boolean; message: string }> {
-  const profile = await getCustomerProfile(data.userEmail, data.userName)
+  const normEmail = data.userEmail.trim().toLowerCase()
+  const profile = await getCustomerProfile(normEmail, data.userName)
 
   if (profile.walletBalance < data.amount) {
     return { success: false, message: 'Insufficient wallet balance!' }
@@ -205,7 +267,7 @@ export async function requestWithdraw(data: {
 
   const tx: WalletTransaction = {
     id: 'tx-wth-' + Date.now(),
-    userEmail: data.userEmail,
+    userEmail: normEmail,
     userName: data.userName,
     type: 'WITHDRAW',
     amount: data.amount,
@@ -220,6 +282,25 @@ export async function requestWithdraw(data: {
   txs.unshift(tx)
   saveLocalTxs(txs)
 
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.from('wallet_transactions').insert([
+        {
+          user_email: normEmail,
+          user_name: data.userName,
+          type: 'WITHDRAW',
+          amount: data.amount,
+          payment_method: data.paymentMethod,
+          account_number: data.accountNumber,
+          status: 'PENDING',
+          note: tx.note,
+        },
+      ])
+    } catch (err) {
+      console.warn('Supabase withdraw insert warning:', err)
+    }
+  }
+
   return {
     success: true,
     message: 'Withdrawal request submitted! Amount deducted from balance.',
@@ -233,7 +314,8 @@ export async function payMatchWithWallet(
   amount: number,
   matchTitle: string
 ): Promise<{ success: boolean; message: string }> {
-  const profile = await getCustomerProfile(userEmail, userName)
+  const normEmail = userEmail.trim().toLowerCase()
+  const profile = await getCustomerProfile(normEmail, userName)
 
   if (profile.walletBalance < amount) {
     return { success: false, message: 'Insufficient wallet balance! Please add money first.' }
@@ -244,7 +326,7 @@ export async function payMatchWithWallet(
 
   const tx: WalletTransaction = {
     id: 'tx-pay-' + Date.now(),
-    userEmail,
+    userEmail: normEmail,
     userName,
     type: 'ENTRY_FEE',
     amount,
@@ -257,6 +339,24 @@ export async function payMatchWithWallet(
   const txs = getLocalTxs()
   txs.unshift(tx)
   saveLocalTxs(txs)
+
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.from('wallet_transactions').insert([
+        {
+          user_email: normEmail,
+          user_name: userName,
+          type: 'ENTRY_FEE',
+          amount,
+          payment_method: 'WALLET',
+          status: 'APPROVED',
+          note: tx.note,
+        },
+      ])
+    } catch (err) {
+      console.warn('Supabase pay entry fee insert warning:', err)
+    }
+  }
 
   return {
     success: true,
@@ -271,7 +371,8 @@ export async function adminAdjustCustomerWallet(
   action: 'ADD' | 'DEDUCT',
   note?: string
 ): Promise<{ success: boolean; message: string }> {
-  const profile = await getCustomerProfile(userEmail)
+  const normEmail = userEmail.trim().toLowerCase()
+  const profile = await getCustomerProfile(normEmail)
 
   if (action === 'DEDUCT' && profile.walletBalance < amount) {
     profile.walletBalance = 0
@@ -283,24 +384,42 @@ export async function adminAdjustCustomerWallet(
 
   await updateCustomerProfile(profile)
 
+  const txNote = note || (action === 'ADD' ? 'Added by Admin (+)' : 'Deducted by Admin (-)')
   const tx: WalletTransaction = {
     id: 'tx-admin-' + Date.now(),
-    userEmail,
+    userEmail: normEmail,
     userName: profile.name,
     type: action === 'ADD' ? 'ADMIN_CREDIT' : 'WITHDRAW',
     amount,
     status: 'APPROVED',
     createdAt: new Date().toISOString(),
-    note: note || (action === 'ADD' ? 'Added by Admin (+)' : 'Deducted by Admin (-)'),
+    note: txNote,
   }
 
   const txs = getLocalTxs()
   txs.unshift(tx)
   saveLocalTxs(txs)
 
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.from('wallet_transactions').insert([
+        {
+          user_email: normEmail,
+          user_name: profile.name,
+          type: action === 'ADD' ? 'ADMIN_CREDIT' : 'WITHDRAW',
+          amount,
+          status: 'APPROVED',
+          note: txNote,
+        },
+      ])
+    } catch (err) {
+      console.warn('Supabase admin credit insert error:', err)
+    }
+  }
+
   return {
     success: true,
-    message: `${action === 'ADD' ? '+' : '-'}৳${amount} ${action === 'ADD' ? 'added to' : 'deducted from'} ${userEmail} successfully!`,
+    message: `${action === 'ADD' ? '+' : '-'}৳${amount} ${action === 'ADD' ? 'added to' : 'deducted from'} ${normEmail} successfully!`,
   }
 }
 
@@ -312,58 +431,133 @@ export async function adminApproveTransaction(
   const txs = getLocalTxs()
   const tx = txs.find((t) => t.id === id)
 
-  if (!tx) return { success: false, message: 'Transaction not found' }
+  if (tx) {
+    if (tx.status !== 'PENDING') {
+      return { success: false, message: 'Transaction is already processed' }
+    }
+    tx.status = status
 
-  if (tx.status !== 'PENDING') {
-    return { success: false, message: 'Transaction is already processed' }
+    const normEmail = tx.userEmail.trim().toLowerCase()
+    // If Deposit is APPROVED, add to user balance
+    if (tx.type === 'DEPOSIT' && status === 'APPROVED') {
+      const profile = await getCustomerProfile(normEmail, tx.userName)
+      profile.walletBalance += tx.amount
+      await updateCustomerProfile(profile)
+    }
+
+    // If Withdraw is REJECTED, refund balance back to user
+    if (tx.type === 'WITHDRAW' && status === 'REJECTED') {
+      const profile = await getCustomerProfile(normEmail, tx.userName)
+      profile.walletBalance += tx.amount
+      await updateCustomerProfile(profile)
+    }
+
+    saveLocalTxs(txs)
   }
 
-  tx.status = status
-
-  // If Deposit is APPROVED, add to user balance
-  if (tx.type === 'DEPOSIT' && status === 'APPROVED') {
-    const profile = await getCustomerProfile(tx.userEmail, tx.userName)
-    profile.walletBalance += tx.amount
-    await updateCustomerProfile(profile)
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.from('wallet_transactions').update({ status }).eq('id', id)
+      // If transaction was deposit approved or withdraw rejected in Supabase DB:
+      if (tx) {
+        const normEmail = tx.userEmail.trim().toLowerCase()
+        if (tx.type === 'DEPOSIT' && status === 'APPROVED') {
+          const { data: dbWallet } = await supabase.from('customer_wallets').select('balance').ilike('email', normEmail).maybeSingle()
+          if (dbWallet) {
+            await supabase.from('customer_wallets').update({ balance: Number(dbWallet.balance) + tx.amount }).ilike('email', normEmail)
+          }
+        } else if (tx.type === 'WITHDRAW' && status === 'REJECTED') {
+          const { data: dbWallet } = await supabase.from('customer_wallets').select('balance').ilike('email', normEmail).maybeSingle()
+          if (dbWallet) {
+            await supabase.from('customer_wallets').update({ balance: Number(dbWallet.balance) + tx.amount }).ilike('email', normEmail)
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Supabase update transaction error:', err)
+    }
   }
 
-  // If Withdraw is REJECTED, refund balance back to user
-  if (tx.type === 'WITHDRAW' && status === 'REJECTED') {
-    const profile = await getCustomerProfile(tx.userEmail, tx.userName)
-    profile.walletBalance += tx.amount
-    await updateCustomerProfile(profile)
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('wallet_updated'))
+    window.dispatchEvent(new Event('profile_updated'))
   }
 
-  saveLocalTxs(txs)
   return { success: true, message: `Transaction status updated to ${status}` }
 }
 
 // 8. Get Transactions for User or Admin
 export async function getWalletTransactions(userEmail?: string): Promise<WalletTransaction[]> {
-  const txs = getLocalTxs()
-  if (userEmail) {
-    return txs.filter((t) => t.userEmail.toLowerCase() === userEmail.toLowerCase())
+  const normEmail = userEmail ? userEmail.trim().toLowerCase() : undefined
+  const localTxs = getLocalTxs()
+
+  if (isSupabaseConfigured()) {
+    try {
+      let query = supabase.from('wallet_transactions').select('*').order('created_at', { ascending: false })
+      if (normEmail) {
+        query = query.ilike('user_email', normEmail)
+      }
+      const { data } = await query
+      if (data && data.length > 0) {
+        const dbTxs: WalletTransaction[] = data.map((d: any) => ({
+          id: d.id,
+          userEmail: d.user_email,
+          userName: d.user_name || d.user_email.split('@')[0],
+          type: d.type,
+          amount: Number(d.amount),
+          paymentMethod: d.payment_method,
+          trxId: d.trx_id,
+          accountNumber: d.account_number,
+          status: d.status,
+          createdAt: d.created_at,
+          note: d.note,
+        }))
+
+        const txMap = new Map<string, WalletTransaction>()
+        dbTxs.forEach((t) => txMap.set(t.id, t))
+
+        const filteredLocal = normEmail ? localTxs.filter((t) => t.userEmail.toLowerCase() === normEmail) : localTxs
+        filteredLocal.forEach((t) => {
+          if (!txMap.has(t.id)) {
+            txMap.set(t.id, t)
+          }
+        })
+
+        return Array.from(txMap.values())
+      }
+    } catch (err) {
+      console.log('Supabase getWalletTransactions err:', err)
+    }
   }
-  return txs
+
+  if (normEmail) {
+    return localTxs.filter((t) => t.userEmail.toLowerCase() === normEmail)
+  }
+  return localTxs
 }
 
 // 9. Get All Customer Profiles for Admin
 export async function getAllCustomerProfiles(): Promise<CustomerProfile[]> {
-  const wallets = getLocalWallets()
-  const map: Record<string, CustomerProfile> = { ...wallets }
+  const localWallets = getLocalWallets()
+  const map: Record<string, CustomerProfile> = {}
+
+  Object.entries(localWallets).forEach(([key, val]) => {
+    map[key.toLowerCase()] = { ...val, email: val.email.toLowerCase() }
+  })
 
   if (isSupabaseConfigured()) {
     try {
       const { data } = await supabase.from('customer_wallets').select('*')
       if (data && data.length > 0) {
         data.forEach((d: any) => {
-          map[d.email] = {
-            email: d.email,
-            name: d.name || d.email.split('@')[0],
-            pubgUid: d.pubg_uid || map[d.email]?.pubgUid || '',
-            whatsappNumber: d.whatsapp_number || map[d.email]?.whatsappNumber || '',
-            walletBalance: Number(d.balance !== undefined ? d.balance : (map[d.email]?.walletBalance || 0)),
-            avatarUrl: d.avatar_url || map[d.email]?.avatarUrl || '',
+          const normKey = d.email.trim().toLowerCase()
+          map[normKey] = {
+            email: normKey,
+            name: d.name || normKey.split('@')[0],
+            pubgUid: d.pubg_uid || map[normKey]?.pubgUid || '',
+            whatsappNumber: d.whatsapp_number || map[normKey]?.whatsappNumber || '',
+            walletBalance: Number(d.balance !== undefined ? d.balance : (map[normKey]?.walletBalance || 0)),
+            avatarUrl: d.avatar_url || map[normKey]?.avatarUrl || '',
           }
         })
       }
@@ -374,3 +568,4 @@ export async function getAllCustomerProfiles(): Promise<CustomerProfile[]> {
 
   return Object.values(map)
 }
+

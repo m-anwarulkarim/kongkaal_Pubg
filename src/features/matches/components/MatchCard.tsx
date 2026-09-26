@@ -12,6 +12,12 @@ interface MatchCardProps {
 export default function MatchCard({ match, onSelect }: MatchCardProps) {
   const [prizeModalOpen, setPrizeModalOpen] = useState(false)
 
+  // Dynamic Date formatting (Extract day & month from match.time or fallback to current date)
+  const dateMatch = match.time.match(/(\d{1,2})\s*([A-Za-z]{3})/i)
+  const now = new Date()
+  const dayStr = dateMatch ? dateMatch[1] : now.getDate().toString()
+  const monthStr = dateMatch ? dateMatch[2].toUpperCase() : now.toLocaleString('en-US', { month: 'short' }).toUpperCase()
+
   const fillPercentage = Math.round((match.joinedSlots / match.maxSlots) * 100)
 
   const isSolo = match.mode === 'SOLO'
@@ -51,10 +57,10 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
 
           <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-md px-3 py-1 rounded-xl text-center border border-white/10 z-20">
             <span className="font-display text-lg font-black text-white block leading-none">
-              {match.time.includes('7:00') ? '12' : match.time.includes('8:15') ? '13' : '14'}
+              {dayStr}
             </span>
             <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">
-              SEP
+              {monthStr}
             </span>
           </div>
         </div>
