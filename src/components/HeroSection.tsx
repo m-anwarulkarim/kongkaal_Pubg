@@ -89,17 +89,17 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
             {videoUrl && (
               <div
                 className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                  showVideoBg ? 'opacity-60 sm:opacity-50' : 'opacity-0 pointer-events-none'
+                  showVideoBg ? 'opacity-75 sm:opacity-65' : 'opacity-0 pointer-events-none'
                 }`}
               >
-                {videoUrl.endsWith('.mp4') || videoUrl.includes('.mp4') ? (
+                {!videoUrl.includes('youtube.com') && !videoUrl.includes('youtu.be') ? (
                   <video
                     src={videoUrl}
                     autoPlay
                     muted
                     loop
                     playsInline
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-center"
                   />
                 ) : (
                   <iframe
