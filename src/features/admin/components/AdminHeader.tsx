@@ -218,7 +218,7 @@ export default function AdminHeader({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Label className="text-xs font-bold text-gray-300">Match Time</Label>
                   <Input
@@ -240,6 +240,24 @@ export default function AdminHeader({
                     required
                     className="bg-[#07080b] border-gray-700 text-white rounded-xl"
                   />
+                </div>
+                <div>
+                  <Label className="text-xs font-bold text-gray-300">Status / Button</Label>
+                  <Select
+                    value={newMatchForm.status || 'OPEN'}
+                    onValueChange={(v: any) => setNewMatchForm((prev) => ({ ...prev, status: v }))}
+                  >
+                    <SelectTrigger className="bg-[#07080b] border-gray-700 text-white rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#101420] text-white">
+                      <SelectItem value="OPEN">🟢 OPEN (Register Now)</SelectItem>
+                      <SelectItem value="COMING_SOON">⏳ COMING SOON</SelectItem>
+                      <SelectItem value="FILLING_FAST">🔥 FILLING FAST</SelectItem>
+                      <SelectItem value="LIVE_SOON">⚡ LIVE SOON</SelectItem>
+                      <SelectItem value="COMPLETED">✅ COMPLETED</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

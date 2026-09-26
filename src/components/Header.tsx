@@ -176,13 +176,6 @@ export default function Header({ onRegisterClick }: HeaderProps) {
                 <span>Login</span>
               </button>
             )}
-            
-            <button
-              onClick={onRegisterClick}
-              className="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold font-gaming bg-[#e50914] text-white hover:bg-red-600 transition-colors shadow-md shadow-red-600/30 cursor-pointer shrink-0"
-            >
-              Register
-            </button>
 
             {/* Flag & Language Selector Dropdown (Hidden on Mobile, Visible on Desktop) */}
             <div className="relative hidden md:block">

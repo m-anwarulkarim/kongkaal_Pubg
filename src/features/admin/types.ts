@@ -1,3 +1,5 @@
+import type { MatchStatus } from '@/types/match'
+
 export type AdminTabType = 'OVERVIEW' | 'PAYMENTS' | 'WALLET' | 'MATCHES' | 'PLAYERS' | 'LEADERBOARD' | 'MESSAGES' | 'SETTINGS'
 
 export interface NewMatchFormData {
@@ -13,5 +15,6 @@ export interface NewMatchFormData {
   perKillPrize: number
   maxSlots: number
   image: string
+  status?: MatchStatus
 }
 

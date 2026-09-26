@@ -174,7 +174,7 @@ function AdminDashboard() {
       joinedSlots: 0,
       maxSlots: newMatchForm.maxSlots,
       image: newMatchForm.image,
-      status: 'OPEN',
+      status: newMatchForm.status || 'OPEN',
     })
 
     if (res.success) {

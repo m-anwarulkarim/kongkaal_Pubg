@@ -2,7 +2,7 @@ export type GameMode = 'SOLO' | 'DUO' | 'SQUAD'
 
 export type MapName = 'Erangel' | 'Miramar' | 'Sanhok' | 'Livik'
 
-export type MatchStatus = 'OPEN' | 'FILLING_FAST' | 'LIVE_SOON' | 'COMPLETED'
+export type MatchStatus = 'OPEN' | 'FILLING_FAST' | 'LIVE_SOON' | 'COMING_SOON' | 'COMPLETED'
 
 export interface RankPrize {
   rank: string

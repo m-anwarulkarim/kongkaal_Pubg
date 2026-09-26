@@ -311,7 +311,7 @@ export default function MatchesTab({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Label className="text-gray-300 font-bold block mb-1">Match Time</Label>
                   <Input
@@ -328,6 +328,24 @@ export default function MatchesTab({
                     onChange={(e) => setEditingMatch({ ...editingMatch, maxSlots: Number(e.target.value) })}
                     className="bg-[#07080b] border-gray-700 text-white"
                   />
+                </div>
+                <div>
+                  <Label className="text-gray-300 font-bold block mb-1">Status / Button</Label>
+                  <Select
+                    value={editingMatch.status || 'OPEN'}
+                    onValueChange={(v: any) => setEditingMatch({ ...editingMatch, status: v })}
+                  >
+                    <SelectTrigger className="bg-[#07080b] border-gray-700 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#101420] text-white">
+                      <SelectItem value="OPEN">🟢 OPEN (Register Now)</SelectItem>
+                      <SelectItem value="COMING_SOON">⏳ COMING SOON</SelectItem>
+                      <SelectItem value="FILLING_FAST">🔥 FILLING FAST</SelectItem>
+                      <SelectItem value="LIVE_SOON">⚡ LIVE SOON</SelectItem>
+                      <SelectItem value="COMPLETED">✅ COMPLETED</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

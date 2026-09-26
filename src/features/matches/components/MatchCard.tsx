@@ -42,7 +42,13 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#10131a] via-transparent to-black/40 z-10" />
 
-          {/* Date Badge Top Right */}
+          {/* Date Badge Top Right & Coming Soon Badge Left */}
+          {match.status === 'COMING_SOON' && (
+            <div className="absolute top-3 left-3 bg-amber-500/90 text-black backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
+              <span>COMING SOON ⏳</span>
+            </div>
+          )}
+
           <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-md px-3 py-1 rounded-xl text-center border border-white/10 z-20">
             <span className="font-display text-lg font-black text-white block leading-none">
               {match.time.includes('7:00') ? '12' : match.time.includes('8:15') ? '13' : '14'}
@@ -105,26 +111,39 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
             </button>
           </div>
 
-          {/* Progress Bar & Register Button */}
+          {/* Progress Bar & Register / Coming Soon Button */}
           <div>
             <div className="flex justify-between text-xs font-semibold mb-1.5">
               <span className="text-gray-400">{match.joinedSlots}/{match.maxSlots} Slots</span>
+              {match.status === 'COMING_SOON' && (
+                <span className="text-amber-400 font-bold text-[11px]">Coming Soon</span>
+              )}
             </div>
 
             <div className="w-full h-2 bg-[#0b0d14] rounded-full overflow-hidden mb-4 border border-white/5">
               <div
-                className={`h-full rounded-full ${progressBg}`}
+                className={`h-full rounded-full ${match.status === 'COMING_SOON' ? 'bg-amber-500' : progressBg}`}
                 style={{ width: `${fillPercentage}%` }}
               />
             </div>
 
-            <button
-              onClick={() => onSelect(match)}
-              className={`w-full py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-colors cursor-pointer ${btnBg}`}
-            >
-              <span>Register Now</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            {match.status === 'COMING_SOON' ? (
+              <button
+                disabled
+                className="w-full py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500/20 via-amber-600/30 to-amber-500/20 text-amber-400 border border-amber-500/40 shadow-lg shadow-amber-500/10 cursor-not-allowed select-none"
+              >
+                <span>COMING SOON</span>
+                <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+              </button>
+            ) : (
+              <button
+                onClick={() => onSelect(match)}
+                className={`w-full py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-colors cursor-pointer ${btnBg}`}
+              >
+                <span>Register Now</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
         </div>
