@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Trophy, Shield, Zap, ArrowRight, Eye, Gamepad2, Calendar, Crown } from 'lucide-react'
+import { Trophy, Shield, Zap, ArrowRight, Eye, Gamepad2, Calendar, Crown, Clock } from 'lucide-react'
 import Image from '@/components/ui/Image'
 import { getHeroBannerSettings, getMatches, type HeroBannerSettings } from '@/lib/db'
 
@@ -179,16 +179,46 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
                 </div>
               </div>
 
-              {/* Widget 2: Next Match Timer */}
-              <div className="bg-[#10131a]/90 backdrop-blur-md border border-white/10 rounded-xl p-4">
-                <div className="flex items-center gap-2 text-xs font-bold text-gray-300 mb-1">
-                  <Calendar className="w-3.5 h-3.5 text-red-500" /> <span>Next Match</span>
-                </div>
-                <div className="text-sm font-extrabold text-white">
-                  {displayNextTime}
-                </div>
-                <div className="text-[11px] text-gray-400 font-medium mt-0.5 flex items-center gap-1">
-                  <Shield className="w-3 h-3 text-red-500" /> {displayNextMap}
+              {/* Widget 2: Next Match Timer (Animated Glowing Card) */}
+              <div
+                onClick={onJoinClick}
+                className="relative overflow-hidden bg-gradient-to-r from-[#121624] via-[#161c2e] to-[#121624] backdrop-blur-md border border-red-500/30 hover:border-red-500 rounded-xl p-4 transition-all duration-300 shadow-[0_0_20px_rgba(229,9,20,0.15)] hover:shadow-[0_0_30px_rgba(229,9,20,0.35)] hover:-translate-y-0.5 cursor-pointer group"
+              >
+                {/* Glowing Radar Light Pulse in Corner */}
+                <div className="absolute -top-10 -right-10 w-24 h-24 bg-red-600/20 rounded-full blur-xl pointer-events-none group-hover:bg-red-500/35 transition-all duration-500" />
+                
+                {/* Animated Light Sheen Effect */}
+                <div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
+
+                <div className="relative z-10 flex items-center justify-between">
+                  <div className="space-y-1">
+                    {/* Header with Pulsing Live Radar Badge */}
+                    <div className="flex items-center gap-2 text-xs font-extrabold text-amber-400">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                      </span>
+                      <Calendar className="w-3.5 h-3.5 text-red-500" />
+                      <span className="uppercase tracking-wider">Next Match</span>
+                    </div>
+
+                    {/* Time Display with Neon Glow Text */}
+                    <div className="font-display text-base sm:text-lg font-black text-white tracking-wide flex items-center gap-2 group-hover:text-amber-400 transition-colors">
+                      <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span>{displayNextTime}</span>
+                    </div>
+
+                    {/* Map & Mode with Shield Badge */}
+                    <div className="text-[11px] text-gray-300 font-bold flex items-center gap-1.5 uppercase font-mono">
+                      <Shield className="w-3.5 h-3.5 text-red-500 fill-red-500/20 shrink-0" />
+                      <span>{displayNextMap}</span>
+                    </div>
+                  </div>
+
+                  {/* Right Animated Arrow Badge */}
+                  <div className="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/30 group-hover:bg-red-600 group-hover:text-white flex items-center justify-center text-red-400 transition-all duration-300 shrink-0 shadow-md">
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
                 </div>
               </div>
 
