@@ -3,7 +3,7 @@ import ModeSelector, { type MatchFilterMode } from './ModeSelector'
 import MatchCard from '@/features/matches/components/MatchCard'
 import RightSidebar from './RightSidebar'
 import type { MatchItem } from '@/types/match'
-import { Trophy, Loader2, ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react'
+import { Trophy, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getMatches, DEFAULT_MATCHES } from '@/lib/db'
 
 export const KONGKAAL_MATCHES: MatchItem[] = DEFAULT_MATCHES
@@ -16,7 +16,6 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
   const [selectedMode, setSelectedMode] = useState<MatchFilterMode>('ALL')
   const [matches, setMatches] = useState<MatchItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [isPaused, setIsPaused] = useState(false)
 
   const sliderRef = useRef<HTMLDivElement>(null)
 
@@ -52,7 +51,7 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
 
   // Auto-Slide Timer Logic (3.5 seconds)
   useEffect(() => {
-    if (loading || filteredMatches.length <= 1 || isPaused) return
+    if (loading || filteredMatches.length <= 1) return
 
     const interval = setInterval(() => {
       if (sliderRef.current) {
@@ -67,7 +66,7 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
     }, 3500)
 
     return () => clearInterval(interval)
-  }, [loading, filteredMatches.length, isPaused])
+  }, [loading, filteredMatches.length])
 
   const scrollSlider = (direction: 'left' | 'right') => {
     if (sliderRef.current) {
@@ -87,45 +86,23 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
           
           {/* Left Column: Upcoming Tournaments Auto Slider */}
           <div className="lg:col-span-8 min-w-0">
-            {/* Header with Slider Navigation Controls & Auto Status */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
-              <div className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-red-500" />
-                <h3 className="font-display text-2xl font-bold text-white uppercase leading-none">
+            {/* Header with Slider Navigation Controls */}
+            <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3 mb-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Trophy className="w-5 h-5 text-red-500 shrink-0" />
+                <h3 className="font-display text-lg sm:text-2xl font-bold text-white uppercase leading-none">
                   Upcoming Tournaments
                 </h3>
-                <span className="text-xs font-bold text-gray-400 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full">
+                <span className="text-[10px] sm:text-xs font-bold text-gray-400 bg-white/5 border border-white/10 px-2 sm:px-2.5 py-0.5 rounded-full shrink-0">
                   {filteredMatches.length} Available
                 </span>
               </div>
 
-              {/* Slider Left/Right Scroll Arrows & Auto Indicator */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsPaused(!isPaused)}
-                  className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border flex items-center gap-1 transition-colors cursor-pointer ${
-                    isPaused
-                      ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                      : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                  }`}
-                  title={isPaused ? 'Resume Auto Slide' : 'Pause Auto Slide'}
-                >
-                  {isPaused ? (
-                    <>
-                      <Play className="w-3 h-3 fill-current" />
-                      <span>Paused</span>
-                    </>
-                  ) : (
-                    <>
-                      <Pause className="w-3 h-3 fill-current" />
-                      <span className="animate-pulse">Auto Slide</span>
-                    </>
-                  )}
-                </button>
-
+              {/* Slider Left/Right Scroll Arrows */}
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <button
                   onClick={() => scrollSlider('left')}
-                  className="p-2 rounded-xl bg-[#10131a] hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                  className="p-1.5 sm:p-2 rounded-xl bg-[#10131a] hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
                   title="Scroll Left"
                   aria-label="Previous tournaments"
                 >
@@ -133,7 +110,7 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
                 </button>
                 <button
                   onClick={() => scrollSlider('right')}
-                  className="p-2 rounded-xl bg-[#10131a] hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                  className="p-1.5 sm:p-2 rounded-xl bg-[#10131a] hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
                   title="Scroll Right"
                   aria-label="Next tournaments"
                 >
