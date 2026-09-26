@@ -228,21 +228,42 @@ function CustomerDashboardPage() {
   const handleWithdrawSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user?.email || !profile) return
+
+    const numAmount = Number(wthAmount)
+    const currentBalance = profile.walletBalance ?? 0
+
+    if (isNaN(numAmount) || numAmount <= 0) {
+      const errMsg = 'দয়া করে সঠিক উইথড্র অ্যামাউন্ট লিখুন!'
+      setWthMsg(errMsg)
+      toast.error(errMsg)
+      return
+    }
+
+    if (numAmount > currentBalance) {
+      const errMsg = `আপনার ব্যালেন্সের (৳${currentBalance}) বেশি উইথড্র করা সম্ভব নয়!`
+      setWthMsg(errMsg)
+      toast.error(errMsg)
+      return
+    }
+
     if (!wthAccount || wthAccount.length < 11) {
-      setWthMsg('দয়া করে সঠিক ১১ ডিজিটের বিকাশ/নগদ নাম্বার দিন!')
+      const errMsg = 'দয়া করে সঠিক ১১ ডিজিটের বিকাশ/নগদ নাম্বার দিন!'
+      setWthMsg(errMsg)
+      toast.error(errMsg)
       return
     }
 
     const res = await requestWithdraw({
       userEmail: user.email,
       userName: profile.name,
-      amount: Number(wthAmount),
+      amount: numAmount,
       paymentMethod: wthMethod,
       accountNumber: wthAccount,
     })
 
     if (res.success) {
       setWthMsg(res.message)
+      toast.success(res.message)
       loadDashboardData()
       setTimeout(() => {
         setWithdrawOpen(false)
@@ -250,6 +271,7 @@ function CustomerDashboardPage() {
       }, 2500)
     } else {
       setWthMsg(res.message)
+      toast.error(res.message)
     }
   }
 
@@ -704,14 +726,25 @@ function CustomerDashboardPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           <div className="bg-[#0f121d] border border-emerald-500/30 rounded-3xl p-6 max-w-md w-full space-y-5">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <h3 className="font-bold text-lg text-white">Withdraw Money (টাকা ক্যাশ আউট)</h3>
+              <div>
+                <h3 className="font-bold text-lg text-white">Withdraw Money (টাকা ক্যাশ আউট)</h3>
+                <p className="text-xs text-emerald-400 font-semibold mt-0.5">
+                  বর্তমান ব্যালেন্স: ৳{profile?.walletBalance ?? 0}
+                </p>
+              </div>
               <button onClick={() => setWithdrawOpen(false)} className="text-gray-400 hover:text-white">
                 ✕
               </button>
             </div>
 
             {wthMsg && (
-              <div className="p-3 bg-emerald-950/50 border border-emerald-500/40 rounded-xl text-xs text-emerald-300">
+              <div
+                className={`p-3 border rounded-xl text-xs ${
+                  Number(wthAmount) > (profile?.walletBalance ?? 0)
+                    ? 'bg-red-950/50 border-red-500/40 text-red-300'
+                    : 'bg-emerald-950/50 border-emerald-500/40 text-emerald-300'
+                }`}
+              >
                 {wthMsg}
               </div>
             )}
@@ -738,14 +771,31 @@ function CustomerDashboardPage() {
               </div>
 
               <div>
-                <label className="text-gray-300 font-bold block mb-1">Withdraw Amount (৳)</label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-gray-300 font-bold block">Withdraw Amount (৳)</label>
+                  <span className="text-[11px] text-gray-400 font-medium">
+                    সর্বোচ্চ: <strong className="text-emerald-400 font-bold">৳{profile?.walletBalance ?? 0}</strong>
+                  </span>
+                </div>
                 <Input
                   type="number"
+                  min={1}
+                  max={profile?.walletBalance ?? 0}
+                  placeholder="উইথড্র অ্যামাউন্ট লিখুন"
                   value={wthAmount}
                   onChange={(e) => setWthAmount(e.target.value)}
-                  className="bg-[#161a29] border-white/10 text-white"
+                  className={`bg-[#161a29] text-white transition-all ${
+                    Number(wthAmount) > (profile?.walletBalance ?? 0)
+                      ? 'border-red-500/80 focus-visible:ring-red-500 text-red-300'
+                      : 'border-white/10'
+                  }`}
                   required
                 />
+                {Number(wthAmount) > (profile?.walletBalance ?? 0) && (
+                  <p className="text-red-400 text-[11px] mt-1.5 font-semibold flex items-center gap-1">
+                    ⚠️ ব্যালেন্সের বেশি উইথড্র করা সম্ভব নয়! (আপনার ব্যালেন্স: ৳{profile?.walletBalance ?? 0})
+                  </p>
+                )}
               </div>
 
               <div>
@@ -760,7 +810,11 @@ function CustomerDashboardPage() {
                 />
               </div>
 
-              <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold py-3 text-xs rounded-xl">
+              <Button
+                type="submit"
+                disabled={Number(wthAmount) > (profile?.walletBalance ?? 0) || Number(wthAmount) <= 0}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-bold py-3 text-xs rounded-xl transition-all"
+              >
                 Submit Cash Out Request
               </Button>
             </form>
