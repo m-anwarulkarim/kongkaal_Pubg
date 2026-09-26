@@ -439,73 +439,86 @@ export async function saveRegistration(registration: PlayerRegistration): Promis
   }
 }
 
+const INITIAL_MOCK_REGISTRATIONS: RegistrationRecord[] = [
+  {
+    id: 'reg-001',
+    matchId: 'solo-12sep',
+    teamName: 'VAMPIRE SQUAD',
+    player1Name: 'RIYAD_OP',
+    player1Uid: '5123456789',
+    whatsappNumber: '01700000000',
+    paymentMethod: 'bKash',
+    trxId: 'BAX9021K9L',
+    amount: 200,
+    status: 'PENDING',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'reg-002',
+    matchId: 'duo-13sep',
+    teamName: 'DEADLY DUO',
+    player1Name: 'SHAKIB_BD',
+    player1Uid: '5987654321',
+    whatsappNumber: '01800000000',
+    paymentMethod: 'Nagad',
+    trxId: 'NGD8821M0P',
+    amount: 100,
+    status: 'VERIFIED',
+    createdAt: new Date().toISOString(),
+  },
+]
+
 // 5. Fetch All Registrations for Admin Dashboard
 export async function getAllRegistrations(): Promise<RegistrationRecord[]> {
-  if (!isSupabaseConfigured()) {
-    return [
-      {
-        id: 'reg-001',
-        matchId: 'solo-12sep',
-        teamName: 'VAMPIRE SQUAD',
-        player1Name: 'RIYAD_OP',
-        player1Uid: '5123456789',
-        whatsappNumber: '01700000000',
-        paymentMethod: 'bKash',
-        trxId: 'BAX9021K9L',
-        amount: 200,
-        status: 'PENDING',
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 'reg-002',
-        matchId: 'duo-13sep',
-        teamName: 'DEADLY DUO',
-        player1Name: 'SHAKIB_BD',
-        player1Uid: '5987654321',
-        whatsappNumber: '01800000000',
-        paymentMethod: 'Nagad',
-        trxId: 'NGD8821M0P',
-        amount: 100,
-        status: 'VERIFIED',
-        createdAt: new Date().toISOString(),
-      },
-    ]
-  }
+  const localRegs = getLocalRegistrationRecords()
+  let dbRegs: RegistrationRecord[] = []
 
-  try {
-    const { data, error } = await supabase
-      .from('registrations')
-      .select('*')
-      .order('created_at', { ascending: false })
+  if (isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase
+        .from('registrations')
+        .select('*')
+        .order('created_at', { ascending: false })
 
-    if (error || !data) {
-      console.error('[DB Service] Error fetching registrations:', error)
-      return []
+      if (!error && data && data.length > 0) {
+        dbRegs = data.map((r) => ({
+          id: r.id,
+          matchId: r.match_id || 'general',
+          teamName: r.team_name,
+          player1Name: r.player1_name,
+          player1Uid: r.player1_uid,
+          whatsappNumber: r.whatsapp_number,
+          player2Name: r.player2_name,
+          player2Uid: r.player2_uid,
+          player3Name: r.player3_name,
+          player3Uid: r.player3_uid,
+          player4Name: r.player4_name,
+          player4Uid: r.player4_uid,
+          paymentMethod: r.payment_method,
+          trxId: r.trx_id,
+          amount: Number(r.amount),
+          status: r.status,
+          createdAt: r.created_at,
+        }))
+      }
+    } catch (err) {
+      console.error('[DB Service] Exception fetching registrations:', err)
     }
-
-    return data.map((r) => ({
-      id: r.id,
-      matchId: r.match_id || 'general',
-      teamName: r.team_name,
-      player1Name: r.player1_name,
-      player1Uid: r.player1_uid,
-      whatsappNumber: r.whatsapp_number,
-      player2Name: r.player2_name,
-      player2Uid: r.player2_uid,
-      player3Name: r.player3_name,
-      player3Uid: r.player3_uid,
-      player4Name: r.player4_name,
-      player4Uid: r.player4_uid,
-      paymentMethod: r.payment_method,
-      trxId: r.trx_id,
-      amount: Number(r.amount),
-      status: r.status,
-      createdAt: r.created_at,
-    }))
-  } catch (err) {
-    console.error('[DB Service] Exception fetching registrations:', err)
-    return []
   }
+
+  // Merge dbRegs and localRegs avoiding duplicate IDs
+  const map = new Map<string, RegistrationRecord>()
+  dbRegs.forEach((r) => map.set(r.id, r))
+  localRegs.forEach((r) => {
+    if (!map.has(r.id)) map.set(r.id, r)
+  })
+
+  const merged = Array.from(map.values())
+  if (merged.length === 0) {
+    return INITIAL_MOCK_REGISTRATIONS
+  }
+
+  return merged
 }
 
 // 6. Update Registration Status (Approve/Reject)
