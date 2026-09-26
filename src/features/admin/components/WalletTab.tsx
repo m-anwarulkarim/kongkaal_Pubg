@@ -5,13 +5,15 @@ import {
   getAllCustomerProfiles,
   adminAdjustCustomerWallet,
   adminApproveTransaction,
+  deleteWalletTransaction,
+  deleteCustomerProfile,
 } from '@/lib/wallet'
 import type { WalletTransaction, CustomerProfile } from '@/types/wallet'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Send, CheckCircle2, XCircle, Search, RefreshCw, PlusCircle, MinusCircle, X, AlertCircle } from 'lucide-react'
+import { Send, CheckCircle2, XCircle, Search, RefreshCw, PlusCircle, MinusCircle, X, AlertCircle, Trash2 } from 'lucide-react'
 
 export default function WalletTab() {
   const [customers, setCustomers] = useState<CustomerProfile[]>([])
@@ -27,12 +29,38 @@ export default function WalletTab() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [confirmModalTx, setConfirmModalTx] = useState<{ id: string; name: string; amount: number; type: string } | null>(null)
+  const [deleteModalTx, setDeleteModalTx] = useState<{ id: string; name: string; amount: number; type: string; trxId?: string } | null>(null)
+  const [deleteCustomerModal, setDeleteCustomerModal] = useState<{ email: string; name: string; balance: number } | null>(null)
 
   const loadWalletData = async () => {
     const custs = await getAllCustomerProfiles()
     const txs = await getWalletTransactions()
     setCustomers(custs)
     setTransactions(txs)
+  }
+
+  const handleDeleteTx = async () => {
+    if (!deleteModalTx) return
+    const res = await deleteWalletTransaction(deleteModalTx.id)
+    if (res.success) {
+      toast.success('রেকর্ডটি সফলভাবে মুছে ফেলা হয়েছে!')
+      loadWalletData()
+    } else {
+      toast.error(`Error: ${res.message}`)
+    }
+    setDeleteModalTx(null)
+  }
+
+  const handleDeleteCustomer = async () => {
+    if (!deleteCustomerModal) return
+    const res = await deleteCustomerProfile(deleteCustomerModal.email)
+    if (res.success) {
+      toast.success('কাস্টমার প্রোফাইলটি সফলভাবে মুছে ফেলা হয়েছে!')
+      loadWalletData()
+    } else {
+      toast.error(`Error: ${res.message}`)
+    }
+    setDeleteCustomerModal(null)
   }
 
   useEffect(() => {
@@ -243,16 +271,25 @@ export default function WalletTab() {
                     <td className="p-3 text-gray-300">{c.email}</td>
                     <td className="p-3 text-red-400 font-mono">{c.pubgUid || '—'}</td>
                     <td className="p-3 font-display font-bold text-emerald-400 text-sm">৳{c.walletBalance}</td>
-                    <td className="p-3 text-right">
+                    <td className="p-3 text-right space-x-1.5">
                       <Button
                         onClick={() => {
                           setSendEmail(c.email)
                           window.scrollTo({ top: 0, behavior: 'smooth' })
                         }}
                         size="sm"
-                        className="bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 text-[11px] py-1 px-2.5 h-auto"
+                        className="bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 text-[11px] py-1 px-2.5 h-auto cursor-pointer"
                       >
                         Credit Money
+                      </Button>
+                      <Button
+                        onClick={() => setDeleteCustomerModal({ email: c.email, name: c.name, balance: c.walletBalance })}
+                        size="sm"
+                        className="bg-red-950/60 hover:bg-red-900 border border-red-500/40 text-red-400 hover:text-white text-[11px] py-1 px-2 h-auto inline-flex items-center gap-1 cursor-pointer transition-all"
+                        title="Delete Customer Profile"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
                       </Button>
                     </td>
                   </tr>
@@ -366,6 +403,15 @@ export default function WalletTab() {
                           </Button>
                         </>
                       )}
+                      <Button
+                        onClick={() => setDeleteModalTx({ id: tx.id, name: tx.userName || tx.userEmail, amount: tx.amount, type: tx.type, trxId: tx.trxId })}
+                        size="sm"
+                        className="bg-red-950/60 hover:bg-red-900 border border-red-500/40 text-red-400 hover:text-white text-xs font-bold py-1.5 px-2.5 h-auto inline-flex items-center gap-1 cursor-pointer transition-all"
+                        title="Delete Record"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -427,6 +473,122 @@ export default function WalletTab() {
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-1.5"
               >
                 <CheckCircle2 className="w-4 h-4" /> Yes, Confirm Approve
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRMATION POPUP MODAL FOR DELETING A TRANSACTION RECORD */}
+      {deleteModalTx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0f121d] border border-red-500/50 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative overflow-hidden">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-white">Confirm Delete (রেকর্ড মুছে ফেলুন)</h3>
+              </div>
+              <button onClick={() => setDeleteModalTx(null)} className="text-gray-400 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-[#161a29] border border-white/10 rounded-2xl p-4 space-y-2 text-xs">
+              <div className="flex justify-between text-gray-300">
+                <span>Customer:</span>
+                <strong className="text-white">{deleteModalTx.name}</strong>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>Transaction Type:</span>
+                <strong className="text-amber-400">{deleteModalTx.type}</strong>
+              </div>
+              {deleteModalTx.trxId && (
+                <div className="flex justify-between text-gray-300">
+                  <span>TrxID / Acc:</span>
+                  <strong className="text-gray-200 font-mono">{deleteModalTx.trxId}</strong>
+                </div>
+              )}
+              <div className="flex justify-between text-gray-300">
+                <span>Amount:</span>
+                <strong className="text-red-400 text-sm font-display">৳{deleteModalTx.amount}</strong>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-300 leading-relaxed">
+              আপনি কি সত্যি এই <strong>{deleteModalTx.type}</strong> রেকর্ডটি স্থায়ীভাবে মুছতে চান? (এই অ্যাকশনটি বাতিল করা যাবে না)।
+            </p>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                onClick={() => setDeleteModalTx(null)}
+                className="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2.5 rounded-xl border border-white/20"
+              >
+                Cancel (বাতিল)
+              </Button>
+              <Button
+                type="button"
+                onClick={handleDeleteTx}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg shadow-red-600/30 flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" /> Yes, Confirm Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRMATION POPUP MODAL FOR DELETING A CUSTOMER PROFILE */}
+      {deleteCustomerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0f121d] border border-red-500/50 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative overflow-hidden">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-white">Confirm Delete (কাস্টমার মুছে ফেলুন)</h3>
+              </div>
+              <button onClick={() => setDeleteCustomerModal(null)} className="text-gray-400 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-[#161a29] border border-white/10 rounded-2xl p-4 space-y-2 text-xs">
+              <div className="flex justify-between text-gray-300">
+                <span>Customer Name:</span>
+                <strong className="text-white">{deleteCustomerModal.name}</strong>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>Email:</span>
+                <strong className="text-amber-400 font-mono">{deleteCustomerModal.email}</strong>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>Wallet Balance:</span>
+                <strong className="text-emerald-400 text-sm font-display">৳{deleteCustomerModal.balance}</strong>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-300 leading-relaxed">
+              আপনি কি সত্যি <strong>{deleteCustomerModal.name}</strong> ({deleteCustomerModal.email}) এর কাস্টমার প্রোফাইল ও ওয়ালেট স্থায়ীভাবে মুছতে চান? (এই অ্যাকশনটি বাতিল করা যাবে না)।
+            </p>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                onClick={() => setDeleteCustomerModal(null)}
+                className="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2.5 rounded-xl border border-white/20"
+              >
+                Cancel (বাতিল)
+              </Button>
+              <Button
+                type="button"
+                onClick={handleDeleteCustomer}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg shadow-red-600/30 flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" /> Yes, Confirm Delete
               </Button>
             </div>
           </div>

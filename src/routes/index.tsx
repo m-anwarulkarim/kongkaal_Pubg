@@ -7,20 +7,30 @@ import BottomSection from '../components/BottomSection'
 import HowItWorks from '../components/HowItWorks'
 import RulesAccordion from '@/features/rules/components/RulesAccordion'
 import SlotBookingModal from '@/features/matches/components/SlotBookingModal'
+import CustomerAuthModal from '@/components/CustomerAuthModal'
 import ContactSection from '../components/ContactSection'
 import Footer from '../components/Footer'
 import WhatsAppFloatingButton from '../components/WhatsAppFloatingButton'
+import { useCustomerAuth } from '@/lib/auth'
 import type { MatchItem } from '@/types/match'
 
 export const Route = createFileRoute('/')({ component: App })
 
 function App() {
+  const { user } = useCustomerAuth()
   const [selectedMatch, setSelectedMatch] = useState<MatchItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [authModalOpen, setAuthModalOpen] = useState(false)
 
   const handleOpenBooking = (match?: MatchItem) => {
-    setSelectedMatch(match || KONGKAAL_MATCHES[0])
-    setIsModalOpen(true)
+    const target = match || KONGKAAL_MATCHES[0]
+    setSelectedMatch(target)
+
+    if (!user) {
+      setAuthModalOpen(true)
+    } else {
+      setIsModalOpen(true)
+    }
   }
 
   const handleCloseModal = () => {
@@ -74,6 +84,13 @@ function App() {
         match={selectedMatch}
         open={isModalOpen}
         onClose={handleCloseModal}
+      />
+
+      {/* 10. Customer Auth Modal */}
+      <CustomerAuthModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        user={user}
       />
     </div>
   )

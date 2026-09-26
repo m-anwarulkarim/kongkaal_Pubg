@@ -35,6 +35,7 @@ export interface PlayerRegistration {
   player1Name: string
   player1Uid: string
   whatsappNumber: string
+  userEmail?: string
   player2Name?: string
   player2Uid?: string
   player3Name?: string

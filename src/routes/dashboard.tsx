@@ -83,6 +83,7 @@ function CustomerDashboardPage() {
   const [wthAccount, setWthAccount] = useState('')
   const [wthMsg, setWthMsg] = useState('')
   const [wthSuccess, setWthSuccess] = useState(false)
+  const [isWthSubmitting, setIsWthSubmitting] = useState(false)
 
   // Profile Edit State
   const [editName, setEditName] = useState('')
@@ -123,12 +124,30 @@ function CustomerDashboardPage() {
     setTransactions(txs)
 
     const allRegs = await getAllRegistrations()
-    const userRegs = allRegs.filter(
-      (r) =>
-        r.player1Name.toLowerCase().includes(userProfile.name.toLowerCase()) ||
-        r.whatsappNumber.includes(userProfile.whatsappNumber) ||
-        (userProfile.pubgUid && r.player1Uid.includes(userProfile.pubgUid))
-    )
+    const normEmail = user.email.toLowerCase().trim()
+    const normPhone = userProfile.whatsappNumber ? userProfile.whatsappNumber.trim() : ''
+    const normUid = userProfile.pubgUid ? userProfile.pubgUid.trim() : ''
+    const normName = userProfile.name ? userProfile.name.toLowerCase().trim() : ''
+
+    const userRegs = allRegs.filter((r) => {
+      // 1. Primary check: Exact email match
+      if (r.userEmail && r.userEmail.toLowerCase().trim() === normEmail) {
+        return true
+      }
+      // 2. Exact WhatsApp phone match (only if phone exists)
+      if (normPhone && normPhone.length > 5 && r.whatsappNumber && r.whatsappNumber.trim() === normPhone) {
+        return true
+      }
+      // 3. Exact PUBG UID match (only if UID exists)
+      if (normUid && normUid.length > 3 && r.player1Uid && r.player1Uid.trim() === normUid) {
+        return true
+      }
+      // 4. Exact Player Name match (only if name exists and >= 3 chars)
+      if (normName && normName.length >= 3 && r.player1Name && r.player1Name.toLowerCase().trim() === normName) {
+        return true
+      }
+      return false
+    })
     setMyMatches(userRegs)
 
     const userMsgs = await getUserSupportMessages(user.email)
@@ -223,45 +242,53 @@ function CustomerDashboardPage() {
     setEditProfileOpen(false)
   }
 
-  const handleDepositSubmit = async (e: React.FormEvent) => {
+  const handleDepositSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!user?.email || !profile || isDepSubmitting) return
-    if (!depTrxId || depTrxId.length < 6) {
+
+    const cleanTrx = depTrxId.trim()
+    if (!cleanTrx || cleanTrx.length < 5) {
       setDepMsg('দয়া করে সঠিক Transaction ID (TrxID) দিন!')
       return
     }
 
     setDepMsg('')
     setIsDepSubmitting(true)
-    try {
-      const res = await requestDeposit({
-        userEmail: user.email,
-        userName: profile.name,
-        amount: Number(depAmount),
-        paymentMethod: depMethod,
-        trxId: depTrxId.trim(),
-      })
 
-      if (res.success) {
-        setDepSuccess(true)
-        toast.success('টাকা জমার অনুরোধ সফলভাবে পাঠানো হয়েছে!')
-        loadDashboardData()
-      } else {
-        setDepMsg(res.message)
-        toast.error(res.message)
-      }
-    } catch (err) {
-      const errMsg = 'অনুরোধ পাঠাতে সমস্যা হয়েছে, পুনরায় চেষ্টা করুন!'
-      setDepMsg(errMsg)
-      toast.error(errMsg)
-    } finally {
-      setIsDepSubmitting(false)
-    }
+    // Instant transition to Thank You page!
+    setDepSuccess(true)
+    toast.success('টাকা জমার অনুরোধ সফলভাবে পাঠানো হয়েছে!')
+
+    // Background Async Execution
+    const targetEmail = user.email
+    const targetName = profile.name
+    const targetAmount = Number(depAmount)
+    const targetMethod = depMethod
+
+    requestDeposit({
+      userEmail: targetEmail,
+      userName: targetName,
+      amount: targetAmount,
+      paymentMethod: targetMethod,
+      trxId: cleanTrx,
+    })
+      .then((res) => {
+        setIsDepSubmitting(false)
+        if (res.success) {
+          loadDashboardData()
+        } else {
+          toast.error(res.message)
+        }
+      })
+      .catch((err) => {
+        setIsDepSubmitting(false)
+        console.error('Deposit request error:', err)
+      })
   }
 
-  const handleWithdrawSubmit = async (e: React.FormEvent) => {
+  const handleWithdrawSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user?.email || !profile) return
+    if (!user?.email || !profile || isWthSubmitting) return
 
     const numAmount = Number(wthAmount)
     const currentBalance = profile.walletBalance ?? 0
@@ -287,22 +314,38 @@ function CustomerDashboardPage() {
       return
     }
 
-    const res = await requestWithdraw({
-      userEmail: user.email,
-      userName: profile.name,
-      amount: numAmount,
-      paymentMethod: wthMethod,
-      accountNumber: wthAccount,
-    })
+    setWthMsg('')
+    setIsWthSubmitting(true)
 
-    if (res.success) {
-      setWthSuccess(true)
-      toast.success('ক্যাশ-আউট অনুরোধ সফলভাবে পাঠানো হয়েছে!')
-      loadDashboardData()
-    } else {
-      setWthMsg(res.message)
-      toast.error(res.message)
-    }
+    // Instant transition to Thank You page!
+    setWthSuccess(true)
+    toast.success('ক্যাশ-আউট অনুরোধ সফলভাবে পাঠানো হয়েছে!')
+
+    // Background Async Execution
+    const targetEmail = user.email
+    const targetName = profile.name
+    const targetMethod = wthMethod
+    const targetAccount = wthAccount.trim()
+
+    requestWithdraw({
+      userEmail: targetEmail,
+      userName: targetName,
+      amount: numAmount,
+      paymentMethod: targetMethod,
+      accountNumber: targetAccount,
+    })
+      .then((res) => {
+        setIsWthSubmitting(false)
+        if (res.success) {
+          loadDashboardData()
+        } else {
+          toast.error(res.message)
+        }
+      })
+      .catch((err) => {
+        setIsWthSubmitting(false)
+        console.error('Withdraw request error:', err)
+      })
   }
 
   const userAvatar = profile?.avatarUrl || user?.user_metadata?.avatar_url || user?.user_metadata?.picture
@@ -991,10 +1034,17 @@ function CustomerDashboardPage() {
 
                   <Button
                     type="submit"
-                    disabled={Number(wthAmount) > (profile?.walletBalance ?? 0) || Number(wthAmount) <= 0}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-bold py-3 text-xs rounded-xl transition-all"
+                    disabled={Number(wthAmount) > (profile?.walletBalance ?? 0) || Number(wthAmount) <= 0 || isWthSubmitting}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-bold py-3 text-xs rounded-xl transition-all cursor-pointer"
                   >
-                    Submit Cash Out Request
+                    {isWthSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-1.5 inline" />
+                        <span>প্রসেসিং হচ্ছে...</span>
+                      </>
+                    ) : (
+                      <span>Submit Cash Out Request</span>
+                    )}
                   </Button>
                 </form>
               </>
@@ -1094,10 +1144,10 @@ function CustomerDashboardPage() {
               </div>
 
               <div>
-                <label className="text-gray-300 font-bold block mb-1">Full Name / Display Name</label>
+                <label className="text-gray-300 font-bold block mb-1">PUBG IN-GAME NAME</label>
                 <Input
                   type="text"
-                  placeholder="e.g. Shakib Al Hasan"
+                  placeholder="e.g. KongKaaL"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   className="bg-[#161a29] border-white/10 text-white font-bold"

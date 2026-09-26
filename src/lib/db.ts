@@ -403,6 +403,7 @@ export async function saveRegistration(registration: PlayerRegistration): Promis
           player1_name: registration.player1Name,
           player1_uid: registration.player1Uid,
           whatsapp_number: registration.whatsappNumber,
+          user_email: registration.userEmail || null,
           player2_name: registration.player2Name || null,
           player2_uid: registration.player2Uid || null,
           player3_name: registration.player3Name || null,
@@ -427,6 +428,7 @@ export async function saveRegistration(registration: PlayerRegistration): Promis
         player1Name: registration.player1Name,
         player1Uid: registration.player1Uid,
         whatsappNumber: registration.whatsappNumber,
+        userEmail: registration.userEmail,
         paymentMethod: registration.paymentMethod,
         trxId: registration.trxId,
         amount: registration.amount,
@@ -455,6 +457,7 @@ export async function saveRegistration(registration: PlayerRegistration): Promis
       player1Name: registration.player1Name,
       player1Uid: registration.player1Uid,
       whatsappNumber: registration.whatsappNumber,
+      userEmail: registration.userEmail,
       paymentMethod: registration.paymentMethod,
       trxId: registration.trxId,
       amount: registration.amount,
@@ -474,6 +477,7 @@ const INITIAL_MOCK_REGISTRATIONS: RegistrationRecord[] = [
     player1Name: 'RIYAD_OP',
     player1Uid: '5123456789',
     whatsappNumber: '01700000000',
+    userEmail: 'riyad.vampire@gmail.com',
     paymentMethod: 'bKash',
     trxId: 'BAX9021K9L',
     amount: 200,
@@ -487,6 +491,7 @@ const INITIAL_MOCK_REGISTRATIONS: RegistrationRecord[] = [
     player1Name: 'SHAKIB_BD',
     player1Uid: '5987654321',
     whatsappNumber: '01800000000',
+    userEmail: 'shakib.bd@gmail.com',
     paymentMethod: 'Nagad',
     trxId: 'NGD8821M0P',
     amount: 100,
@@ -515,6 +520,7 @@ export async function getAllRegistrations(): Promise<RegistrationRecord[]> {
           player1Name: r.player1_name,
           player1Uid: r.player1_uid,
           whatsappNumber: r.whatsapp_number,
+          userEmail: r.user_email || r.email || '',
           player2Name: r.player2_name,
           player2Uid: r.player2_uid,
           player3Name: r.player3_name,
@@ -609,6 +615,29 @@ export async function updateRegistrationRoomCredentials(
   }
 
   return { success: true, message: 'Room ID and Password updated successfully!' }
+}
+
+// 6c. Delete Registration Record
+export async function deleteRegistrationRecord(id: string): Promise<{ success: boolean; message: string }> {
+  if (typeof window !== 'undefined') {
+    const current = getLocalRegistrationRecords()
+    const updated = current.filter((r) => r.id !== id)
+    localStorage.setItem('kongkaal_registrations', JSON.stringify(updated))
+  }
+
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.from('registrations').delete().eq('id', id)
+    } catch (err: any) {
+      console.warn('Supabase delete registration exception:', err)
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('registrations_updated'))
+  }
+
+  return { success: true, message: 'Registration record deleted successfully!' }
 }
 
 // Initial default leaderboard entries

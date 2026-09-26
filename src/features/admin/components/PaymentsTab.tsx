@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { updateRegistrationRoomCredentials, type RegistrationRecord } from '@/lib/db'
+import { updateRegistrationRoomCredentials, deleteRegistrationRecord, type RegistrationRecord } from '@/lib/db'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { RefreshCw, Smartphone, CheckCircle2, XCircle, MessageSquare, X, AlertCircle, Key, Send } from 'lucide-react'
+import { RefreshCw, Smartphone, CheckCircle2, XCircle, MessageSquare, X, AlertCircle, Key, Send, Mail, Trash2 } from 'lucide-react'
 
 interface PaymentsTabProps {
   loading: boolean
@@ -21,12 +21,24 @@ export default function PaymentsTab({
   handleStatusUpdate,
 }: PaymentsTabProps) {
   const [confirmModalItem, setConfirmModalItem] = useState<{ id: string; name: string; amount: number; trxId: string } | null>(null)
+  const [deleteModalReg, setDeleteModalReg] = useState<{ id: string; name: string; amount: number; trxId: string } | null>(null)
 
   // Room ID & Password Modal State
   const [roomModalItem, setRoomModalItem] = useState<RegistrationRecord | null>(null)
   const [editRoomId, setEditRoomId] = useState('1234567')
   const [editRoomPassword, setEditRoomPassword] = useState('8899')
   const [savingRoom, setSavingRoom] = useState(false)
+
+  const handleDeleteRegistration = async () => {
+    if (!deleteModalReg) return
+    const res = await deleteRegistrationRecord(deleteModalReg.id)
+    if (res.success) {
+      toast.success('রেকর্ডটি সফলভাবে মুছে ফেলা হয়েছে!')
+    } else {
+      toast.error(`Error: ${res.message}`)
+    }
+    setDeleteModalReg(null)
+  }
 
   const handleConfirmApproval = () => {
     if (confirmModalItem) {
@@ -94,7 +106,7 @@ export default function PaymentsTab({
           <table className="w-full text-left text-xs">
             <thead className="bg-[#070910] text-gray-400 font-gaming uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="p-3.5">Player / Team</th>
+                <th className="p-3.5">PUBG Player & Gmail</th>
                 <th className="p-3.5">PUBG UID</th>
                 <th className="p-3.5">Method</th>
                 <th className="p-3.5">TrxID</th>
@@ -108,18 +120,35 @@ export default function PaymentsTab({
                 return (
                   <tr key={reg.id} className="hover:bg-white/5 transition-colors">
                     <td className="p-3.5">
-                      <span className="font-bold text-white block text-sm">{reg.player1Name}</span>
-                      {reg.teamName && (
-                        <span className="text-[10px] text-red-400 font-bold block">
-                          Team: {reg.teamName}
+                      <div className="font-bold text-white block text-sm flex items-center gap-1.5">
+                        <span>{reg.player1Name}</span>
+                        {reg.teamName && reg.teamName !== 'SOLO PLAYER' && (
+                          <span className="text-[10px] bg-red-950 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded font-bold">
+                            {reg.teamName}
+                          </span>
+                        )}
+                      </div>
+                      {reg.userEmail ? (
+                        <span className="text-[11px] text-cyan-400 font-mono flex items-center gap-1 mt-1">
+                          <Mail className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                          {reg.userEmail}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-gray-500 font-mono flex items-center gap-1 mt-1">
+                          <Mail className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                          No email provided
                         </span>
                       )}
                       <span className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
-                        <Smartphone className="w-3 h-3 text-emerald-400" />
+                        <Smartphone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                         {reg.whatsappNumber}
                       </span>
                     </td>
-                    <td className="p-3.5 text-gray-300 font-mono text-xs">{reg.player1Uid}</td>
+                    <td className="p-3.5 text-gray-300 font-mono text-xs">
+                      <span className="bg-amber-500/10 text-amber-300 border border-amber-500/30 px-2 py-1 rounded-md font-bold font-mono inline-block">
+                        {reg.player1Uid}
+                      </span>
+                    </td>
                     <td className="p-3.5">
                       <Badge
                         className={
@@ -178,6 +207,16 @@ export default function PaymentsTab({
                           <span>Send / Set Room ID</span>
                         </Button>
                       )}
+
+                      <Button
+                        onClick={() => setDeleteModalReg({ id: reg.id, name: reg.player1Name, amount: reg.amount, trxId: reg.trxId })}
+                        size="sm"
+                        className="bg-red-950/60 hover:bg-red-900 border border-red-500/40 text-red-400 hover:text-white text-xs font-bold py-1.5 px-2.5 h-auto inline-flex items-center gap-1 cursor-pointer transition-all"
+                        title="Delete Record"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
+                      </Button>
                     </td>
                   </tr>
                 )
@@ -307,6 +346,61 @@ export default function PaymentsTab({
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRMATION POPUP MODAL FOR DELETING A REGISTRATION RECORD */}
+      {deleteModalReg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0f121d] border border-red-500/50 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative overflow-hidden">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-white">Confirm Delete (রেকর্ড মুছে ফেলুন)</h3>
+              </div>
+              <button onClick={() => setDeleteModalReg(null)} className="text-gray-400 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-[#161a29] border border-white/10 rounded-2xl p-4 space-y-2 text-xs">
+              <div className="flex justify-between text-gray-300">
+                <span>Player Name:</span>
+                <strong className="text-white">{deleteModalReg.name}</strong>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>TrxID:</span>
+                <strong className="text-amber-400 font-mono">{deleteModalReg.trxId}</strong>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>Amount:</span>
+                <strong className="text-red-400 text-sm font-display">৳{deleteModalReg.amount}</strong>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-300 leading-relaxed">
+              আপনি কি সত্যি এই রেজিষ্ট্রেশন ও পেমেন্ট রেকর্ডটি স্থায়ীভাবে মুছতে চান? (এই অ্যাকশনটি বাতিল করা যাবে না)।
+            </p>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                onClick={() => setDeleteModalReg(null)}
+                className="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2.5 rounded-xl border border-white/20"
+              >
+                Cancel (বাতিল)
+              </Button>
+              <Button
+                type="button"
+                onClick={handleDeleteRegistration}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg shadow-red-600/30 flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" /> Yes, Confirm Delete
+              </Button>
+            </div>
           </div>
         </div>
       )}

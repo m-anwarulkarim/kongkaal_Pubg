@@ -135,21 +135,48 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
   const wallets = getLocalWallets()
   let profile = wallets[normEmail]
 
+  let pendingIgn = ''
+  let pendingPhone = ''
+  if (typeof window !== 'undefined') {
+    pendingIgn = (localStorage.getItem('pending_pubg_ign') || '').trim()
+    pendingPhone = (localStorage.getItem('pending_whatsapp') || '').trim()
+  }
+
   if (!profile) {
     profile = {
       email: normEmail,
-      name: name || normEmail.split('@')[0],
+      name: pendingIgn || name || normEmail.split('@')[0],
       pubgUid: '',
-      whatsappNumber: '',
+      whatsappNumber: pendingPhone || '',
       walletBalance: 0,
       avatarUrl: avatarUrl || '',
     }
     wallets[normEmail] = profile
     saveLocalWallets(wallets)
-  } else if (avatarUrl && !profile.avatarUrl) {
-    profile.avatarUrl = avatarUrl
-    wallets[normEmail] = profile
-    saveLocalWallets(wallets)
+  } else {
+    let updated = false
+    if (pendingIgn && profile.name !== pendingIgn) {
+      profile.name = pendingIgn
+      updated = true
+    }
+    if (pendingPhone && profile.whatsappNumber !== pendingPhone) {
+      profile.whatsappNumber = pendingPhone
+      updated = true
+    }
+    if (avatarUrl && !profile.avatarUrl) {
+      profile.avatarUrl = avatarUrl
+      updated = true
+    }
+    if (updated) {
+      wallets[normEmail] = profile
+      saveLocalWallets(wallets)
+    }
+  }
+
+  // Clear pending items from storage
+  if (typeof window !== 'undefined' && (pendingIgn || pendingPhone)) {
+    localStorage.removeItem('pending_pubg_ign')
+    localStorage.removeItem('pending_whatsapp')
   }
 
   // Sync with Supabase if configured
@@ -163,12 +190,23 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
 
       if (data) {
         profile.walletBalance = Number(data.balance !== undefined ? data.balance : profile.walletBalance)
-        profile.name = data.name || profile.name
+        profile.name = pendingIgn || data.name || profile.name
         profile.pubgUid = data.pubg_uid || profile.pubgUid
-        profile.whatsappNumber = data.whatsapp_number || profile.whatsappNumber
+        profile.whatsappNumber = pendingPhone || data.whatsapp_number || profile.whatsappNumber
         profile.avatarUrl = data.avatar_url || profile.avatarUrl
         wallets[normEmail] = profile
         saveLocalWallets(wallets)
+
+        if (pendingIgn || pendingPhone) {
+          await supabase.from('customer_wallets').upsert({
+            email: normEmail,
+            name: profile.name,
+            pubg_uid: profile.pubgUid,
+            whatsapp_number: profile.whatsappNumber,
+            balance: profile.walletBalance,
+            avatar_url: profile.avatarUrl,
+          })
+        }
       } else if (!error) {
         // Upsert new profile to Supabase if not present yet
         await supabase.from('customer_wallets').upsert(
@@ -693,5 +731,52 @@ export async function getAllCustomerProfiles(): Promise<CustomerProfile[]> {
   }
 
   return Object.values(map)
+}
+
+// 10. Delete Wallet Transaction
+export async function deleteWalletTransaction(id: string): Promise<{ success: boolean; message: string }> {
+  if (typeof window !== 'undefined') {
+    const current = getLocalTxs()
+    const updated = current.filter((t) => t.id !== id)
+    localStorage.setItem(LOCAL_TX_KEY, JSON.stringify(updated))
+    notifyWalletUpdate()
+  }
+
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.from('wallet_transactions').delete().eq('id', id)
+    } catch (err: any) {
+      console.warn('Supabase delete transaction exception:', err)
+    }
+  }
+
+  return { success: true, message: 'Transaction deleted successfully!' }
+}
+
+// 11. Delete Customer Profile / Wallet
+export async function deleteCustomerProfile(email: string): Promise<{ success: boolean; message: string }> {
+  const normEmail = email.trim().toLowerCase()
+
+  if (typeof window !== 'undefined') {
+    const localWallets = getLocalWallets()
+    delete localWallets[normEmail]
+    localStorage.setItem(LOCAL_WALLET_KEY, JSON.stringify(localWallets))
+
+    // Remove customer profile storage
+    const profileKey = `kongkaal_customer_profile_${normEmail}`
+    localStorage.removeItem(profileKey)
+
+    notifyWalletUpdate()
+  }
+
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.from('customer_wallets').delete().eq('email', normEmail)
+    } catch (err: any) {
+      console.warn('Supabase delete customer wallet exception:', err)
+    }
+  }
+
+  return { success: true, message: 'Customer profile deleted successfully!' }
 }
 
