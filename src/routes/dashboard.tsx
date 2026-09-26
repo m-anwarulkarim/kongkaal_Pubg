@@ -175,7 +175,7 @@ function CustomerDashboardPage() {
       try {
         const webpDataUrl = await convertFileToWebP(file, 0.85)
         setEditAvatarUrl(webpDataUrl)
-        toast.success('প্রোফাইল ছবি অটোমেটিক WebP ফরম্যাটে কনভার্ট হয়েছে!')
+        toast.success('প্রোফাইল ছবি  WebP ফরম্যাটে কনভার্ট হয়েছে!')
       } catch (err) {
         toast.error('ছবি কনভার্ট করতে ব্যর্থ হয়েছে!')
       }
