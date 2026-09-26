@@ -95,3 +95,29 @@ export async function convertUrlToWebP(url: string, quality = 0.85): Promise<str
     img.onerror = () => resolve(url)
   })
 }
+
+/**
+ * Format any YouTube watch URL, shorts URL, or embed URL into a clean autoplaying embed URL
+ */
+export function formatYouTubeEmbedUrl(url: string, isMuted = true): string {
+  if (!url) return ''
+  if (url.endsWith('.mp4') || url.includes('.mp4?')) return url
+
+  let videoId = ''
+  if (url.includes('youtube.com/watch?v=')) {
+    videoId = url.split('v=')[1]?.split('&')[0] || ''
+  } else if (url.includes('youtu.be/')) {
+    videoId = url.split('youtu.be/')[1]?.split('?')[0] || ''
+  } else if (url.includes('youtube.com/shorts/')) {
+    videoId = url.split('shorts/')[1]?.split('?')[0] || ''
+  } else if (url.includes('youtube.com/embed/')) {
+    videoId = url.split('embed/')[1]?.split('?')[0] || ''
+  }
+
+  if (videoId) {
+    const muteParam = isMuted ? '&mute=1' : ''
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1${muteParam}&loop=1&playlist=${videoId}&controls=0&disablekb=1&modestbranding=1&rel=0&playsinline=1`
+  }
+
+  return url
+}

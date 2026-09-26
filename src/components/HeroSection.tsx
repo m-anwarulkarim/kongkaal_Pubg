@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Trophy, Shield, Zap, ArrowRight, Eye, Gamepad2, Calendar, Crown, Clock, Play, Film, X } from 'lucide-react'
 import Image from '@/components/ui/Image'
 import { getHeroBannerSettings, getMatches, type HeroBannerSettings } from '@/lib/db'
+import { formatYouTubeEmbedUrl } from '@/lib/imageUtils'
 
 interface HeroSectionProps {
   onJoinClick: () => void
@@ -65,7 +66,9 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
   const displayNextTime = upcomingMatchInfo?.time || heroSettings.nextMatchTime
   const displayNextMap = upcomingMatchInfo?.map || heroSettings.nextMatchMap
   const displayLiveCount = liveMatchInfo?.count || heroSettings.activePlayersCount
-  const videoUrl = heroSettings.heroVideoUrl || 'https://www.youtube.com/embed/uCd6tbLv6XY?autoplay=1'
+  const rawVideoUrl = heroSettings.heroVideoUrl || 'https://assets.mixkit.co/videos/preview/mixkit-gameplay-of-a-first-person-shooter-game-41554-large.mp4'
+  const bgVideoUrl = formatYouTubeEmbedUrl(rawVideoUrl, true)
+  const modalVideoUrl = formatYouTubeEmbedUrl(rawVideoUrl, false)
 
   return (
     <section className="relative overflow-hidden bg-[#07080b] py-8 border-b border-white/5">
@@ -86,15 +89,15 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
             />
 
             {/* 2. Video Layer - Fades in smoothly after 2 seconds */}
-            {videoUrl && (
+            {bgVideoUrl && (
               <div
                 className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
                   showVideoBg ? 'opacity-75 sm:opacity-65' : 'opacity-0 pointer-events-none'
                 }`}
               >
-                {!videoUrl.includes('youtube.com') && !videoUrl.includes('youtu.be') ? (
+                {!bgVideoUrl.includes('youtube.com') && !bgVideoUrl.includes('youtu.be') ? (
                   <video
-                    src={videoUrl}
+                    src={bgVideoUrl}
                     autoPlay
                     muted
                     loop
@@ -103,7 +106,7 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
                   />
                 ) : (
                   <iframe
-                    src={`${videoUrl}${videoUrl.includes('?') ? '&' : '?'}autoplay=1&mute=1&loop=1&controls=0&disablekb=1&modestbranding=1&rel=0&playsinline=1`}
+                    src={bgVideoUrl}
                     title="PUBG Gaming Video Background"
                     className="w-full h-full object-cover pointer-events-none scale-125"
                     allow="autoplay; encrypted-media"
@@ -351,14 +354,24 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
 
             {/* Video Player Frame */}
             <div className="relative aspect-video w-full bg-black">
-              {videoUrl ? (
-                <iframe
-                  src={`${videoUrl}${videoUrl.includes('?') ? '&' : '?'}autoplay=1`}
-                  title="KongKaaL Gaming PUBG Trailer"
-                  className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+              {modalVideoUrl ? (
+                !modalVideoUrl.includes('youtube.com') && !modalVideoUrl.includes('youtu.be') ? (
+                  <video
+                    src={modalVideoUrl}
+                    controls
+                    autoPlay
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <iframe
+                    src={modalVideoUrl}
+                    title="KongKaaL Gaming PUBG Trailer"
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                )
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 p-8 text-center">
                   <Film className="w-12 h-12 text-red-500 mb-2" />
