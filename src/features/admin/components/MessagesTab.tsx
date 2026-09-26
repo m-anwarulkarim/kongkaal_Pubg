@@ -16,6 +16,7 @@ import {
   getSupportMessages,
   replySupportMessage,
   deleteSupportMessage,
+  sendSupportMessage,
   type SupportMessage,
 } from '@/lib/support'
 
@@ -33,6 +34,11 @@ export default function MessagesTab({ initialSearch = '' }: MessagesTabProps) {
   const [selectedMessage, setSelectedMessage] = useState<SupportMessage | null>(null)
   const [replyText, setReplyText] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  // Direct Message Modal State for users without prior messages
+  const [showDirectModal, setShowDirectModal] = useState(false)
+  const [directSubject, setDirectSubject] = useState('Admin Notice / Account Support')
+  const [directContent, setDirectContent] = useState('')
 
   const loadData = async () => {
     setLoading(true)
@@ -83,12 +89,12 @@ export default function MessagesTab({ initialSearch = '' }: MessagesTabProps) {
     setReplyText(msg.adminReply || '')
   }
 
-  const handleSendReply = (e: React.FormEvent) => {
+  const handleSendReply = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedMessage || !replyText.trim()) return
 
     setSubmitting(true)
-    const res = replySupportMessage(selectedMessage.id, replyText.trim())
+    const res = await replySupportMessage(selectedMessage.id, replyText.trim())
     if (res.success) {
       const updatedReply = replyText.trim()
       setMessages((prev) =>
@@ -126,9 +132,9 @@ export default function MessagesTab({ initialSearch = '' }: MessagesTabProps) {
     setSubmitting(false)
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('আপনি কি নিশ্চিত যে এই মেসেজটি মুছে ফেলতে চান?')) return
-    const res = deleteSupportMessage(id)
+    const res = await deleteSupportMessage(id)
     if (res.success) {
       setMessages((prev) => {
         const remaining = prev.filter((m) => m.id !== id)
@@ -138,6 +144,28 @@ export default function MessagesTab({ initialSearch = '' }: MessagesTabProps) {
         return remaining
       })
     }
+  }
+
+  const handleSendDirectNotice = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!search.trim() || !directContent.trim()) return
+
+    const targetEmail = search.trim().toLowerCase()
+    setSubmitting(true)
+    const newMsg = await sendSupportMessage({
+      userId: targetEmail,
+      userName: targetEmail.split('@')[0],
+      userEmail: targetEmail,
+      subject: directSubject.trim(),
+      message: 'Notice from KongKaaL Admin:',
+    })
+    await replySupportMessage(newMsg.id, directContent.trim())
+
+    setSubmitting(false)
+    setShowDirectModal(false)
+    setDirectContent('')
+    toast.success(`সরাসরি মেসেজ ${targetEmail} এর ড্যাশবোর্ডে পাঠানো হয়েছে!`)
+    loadData()
   }
 
   const filteredMessages = messages.filter((m) => {
@@ -239,7 +267,7 @@ export default function MessagesTab({ initialSearch = '' }: MessagesTabProps) {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex items-center gap-4 bg-[#101422] p-4 rounded-xl border border-white/10">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-[#101422] p-4 rounded-xl border border-white/10">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -247,9 +275,27 @@ export default function MessagesTab({ initialSearch = '' }: MessagesTabProps) {
             placeholder="Search by Player Name, Email, Subject, or Message content..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50"
+            className="w-full pl-10 pr-10 py-2 bg-black/40 border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50"
           />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white text-xs font-bold"
+              title="Clear Search"
+            >
+              ✕
+            </button>
+          )}
         </div>
+
+        {search && (
+          <button
+            onClick={() => setSearch('')}
+            className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-lg text-xs font-bold shrink-0 transition-colors"
+          >
+            Clear Filter (সব মেসেজ দেখুন)
+          </button>
+        )}
       </div>
 
       {/* Split View Inbox Grid */}
@@ -272,8 +318,27 @@ export default function MessagesTab({ initialSearch = '' }: MessagesTabProps) {
               LOADING MESSAGES...
             </div>
           ) : filteredMessages.length === 0 ? (
-            <div className="p-8 text-center text-gray-400 text-xs">
-              কোনো সাপোর্ট মেসেজ পাওয়া যায়নি।
+            <div className="p-6 text-center text-gray-400 text-xs space-y-3">
+              <p>কোনো সাপোর্ট মেসেজ পাওয়া যায়নি{search ? ` ("${search}")` : ''}।</p>
+              {search && (
+                <div className="space-y-2 pt-2">
+                  <button
+                    onClick={() => setSearch('')}
+                    className="w-full py-2 px-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs border border-white/20"
+                  >
+                    Clear Filter (সব মেসেজ ইনবক্স দেখুন)
+                  </button>
+                  {search.includes('@') && (
+                    <button
+                      onClick={() => setShowDirectModal(true)}
+                      className="w-full py-2.5 px-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-red-600/20"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{search} কে সরাসরি এডমিন নোটিশ পাঠান</span>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -480,6 +545,72 @@ export default function MessagesTab({ initialSearch = '' }: MessagesTabProps) {
           )}
         </div>
       </div>
+
+      {/* DIRECT MESSAGE MODAL FOR USERS WHO HAVEN'T SENT A MESSAGE YET */}
+      {showDirectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0f121d] border border-red-500/40 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative overflow-hidden">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <div>
+                <h3 className="font-bold text-base text-white flex items-center gap-2">
+                  <Send className="w-4 h-4 text-red-500" /> Send Direct Admin Notice
+                </h3>
+                <span className="text-[11px] text-gray-400">Target User: {search}</span>
+              </div>
+              <button onClick={() => setShowDirectModal(false)} className="text-gray-400 hover:text-white p-1">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSendDirectNotice} className="space-y-4 text-xs">
+              <div>
+                <label className="text-gray-300 font-bold block mb-1">Subject (মেসেজের বিষয়)</label>
+                <input
+                  type="text"
+                  required
+                  value={directSubject}
+                  onChange={(e) => setDirectSubject(e.target.value)}
+                  placeholder="e.g. Admin Notice / Account Update"
+                  className="w-full px-3 py-2 bg-[#161a29] border border-white/10 rounded-xl text-white text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-gray-300 font-bold block mb-1">Message Content (মেসেজ)</label>
+                <textarea
+                  required
+                  rows={4}
+                  value={directContent}
+                  onChange={(e) => setDirectContent(e.target.value)}
+                  placeholder="ইউজারের ড্যাশবোর্ডে পাঠাতে চাওয়া মেসেজটি লিখুন..."
+                  className="w-full px-3 py-2 bg-[#161a29] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-red-500"
+                ></textarea>
+              </div>
+
+              <div className="p-3 bg-red-950/40 border border-red-500/30 rounded-xl text-[11px] text-red-300">
+                ✓ এটি পাঠালে ইউজার তার <strong>`/dashboard`</strong> এ <strong>Support Messages & Admin Replies</strong> সেকশনে মেসেজটি সাথে সাথে দেখতে পাবেন।
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowDirectModal(false)}
+                  className="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2.5 rounded-xl border border-white/20"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting || !directContent.trim()}
+                  className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg shadow-red-600/30 flex items-center justify-center gap-1.5 disabled:opacity-50"
+                >
+                  <Send className="w-4 h-4" /> Send to Dashboard
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

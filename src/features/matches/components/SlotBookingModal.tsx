@@ -80,9 +80,9 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
   const [_dbBookingId, setDbBookingId] = useState<string | null>(null)
 
   const paymentNumbers = {
-    bKash: '01712-345678',
-    Nagad: '01812-345678',
-    Rocket: '01912-345678',
+    bKash: '01930249023',
+    Nagad: '01930249023',
+    Rocket: '01930249023',
   }
 
   const handleCopy = (num: string, type: string) => {
@@ -511,12 +511,12 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                       <div>
                         <span className="text-[10px] sm:text-xs text-gray-400 font-bold block uppercase">SEND MONEY NUMBER ({paymentMethod})</span>
                         <span className="font-display text-xl sm:text-2xl font-black text-red-500 tracking-wider">
-                          {paymentNumbers[paymentMethod as keyof typeof paymentNumbers] || '01712-345678'}
+                          {paymentNumbers[paymentMethod as keyof typeof paymentNumbers] || '01930249023'}
                         </span>
                       </div>
                       <Button
                         type="button"
-                        onClick={() => handleCopy(paymentNumbers[paymentMethod as keyof typeof paymentNumbers] || '01712-345678', paymentMethod)}
+                        onClick={() => handleCopy(paymentNumbers[paymentMethod as keyof typeof paymentNumbers] || '01930249023', paymentMethod)}
                         className="btn-kong-outline px-3.5 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1 w-full sm:w-auto justify-center"
                       >
                         {copiedNumber === paymentMethod ? (

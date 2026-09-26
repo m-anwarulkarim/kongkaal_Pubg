@@ -8,7 +8,7 @@ interface HeaderProps {
   onRegisterClick?: () => void
 }
 
-export default function Header({ onRegisterClick }: HeaderProps) {
+export default function Header({ onRegisterClick: _onRegisterClick }: HeaderProps) {
   const [activeTab, setActiveTab] = useState('Home')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)

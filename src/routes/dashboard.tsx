@@ -43,7 +43,6 @@ import {
   MessageCircle,
   LogOut,
   CheckCircle2,
-  Clock,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/dashboard')({ component: CustomerDashboardPage })
@@ -98,9 +97,9 @@ function CustomerDashboardPage() {
   const [sendingMsg, setSendingMsg] = useState(false)
 
   const paymentNumbers = {
-    bKash: '01712-345678',
-    Nagad: '01812-345678',
-    Rocket: '01912-345678',
+    bKash: '01930249023',
+    Nagad: '01930249023',
+    Rocket: '01930249023',
   }
 
   useEffect(() => {

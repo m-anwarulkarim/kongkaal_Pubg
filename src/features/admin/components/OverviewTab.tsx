@@ -53,7 +53,7 @@ export default function OverviewTab({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Revenue Card */}
         <Card
-          onClick={() => setActiveTab('WALLETS')}
+          onClick={() => setActiveTab('WALLET')}
           className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-emerald-500/30 p-5 rounded-2xl shadow-xl cursor-pointer hover:border-emerald-500/60 transition-all hover:scale-[1.01]"
         >
           <div className="flex items-center justify-between mb-2">
@@ -110,7 +110,7 @@ export default function OverviewTab({
 
         {/* Total Gmail Customers & Registrations Card */}
         <Card 
-          onClick={() => setActiveTab('WALLETS')}
+          onClick={() => setActiveTab('WALLET')}
           className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-blue-500/30 p-5 rounded-2xl shadow-xl cursor-pointer hover:border-blue-500/60 transition-all hover:scale-[1.01]"
         >
           <div className="flex items-center justify-between mb-2">

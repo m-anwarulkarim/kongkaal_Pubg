@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Crown, Trophy, ArrowRight } from 'lucide-react'
-import Image from '@/components/ui/Image'
 import Link from '@/components/ui/Link'
 import { getLeaderboard, INITIAL_LEADERBOARD } from '@/lib/db'
 import type { LeaderboardItem } from '@/types/match'

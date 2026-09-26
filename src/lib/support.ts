@@ -43,6 +43,26 @@ const INITIAL_SUPPORT_MESSAGES: SupportMessage[] = [
   },
 ]
 
+// Subscribe to Supabase Realtime events for support_messages
+if (typeof window !== 'undefined' && isSupabaseConfigured()) {
+  try {
+    supabase
+      .channel('kongkaal_support_realtime_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'support_messages' },
+        () => {
+          if (typeof window !== 'undefined') {
+            notifySupportUpdate()
+          }
+        }
+      )
+      .subscribe()
+  } catch (err) {
+    console.warn('[Support Service] Supabase realtime subscription error:', err)
+  }
+}
+
 // BroadcastChannel for instant multi-tab sync
 let supportBroadcastChannel: BroadcastChannel | null = null
 if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
