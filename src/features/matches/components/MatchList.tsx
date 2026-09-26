@@ -15,7 +15,7 @@ export const MOCK_MATCHES: MatchItem[] = [
     perKillPrize: 20,
     joinedSlots: 88,
     maxSlots: 100,
-    image: '/solo_battle.jpg',
+    image: '/solo_battle.webp',
     status: 'FILLING_FAST',
   },
   {
@@ -29,7 +29,7 @@ export const MOCK_MATCHES: MatchItem[] = [
     perKillPrize: 40,
     joinedSlots: 38,
     maxSlots: 50,
-    image: '/duo_battle.jpg',
+    image: '/duo_battle.webp',
     status: 'OPEN',
   },
   {
@@ -43,7 +43,7 @@ export const MOCK_MATCHES: MatchItem[] = [
     perKillPrize: 80,
     joinedSlots: 18,
     maxSlots: 25,
-    image: '/squad_showdown.jpg',
+    image: '/squad_showdown.webp',
     status: 'LIVE_SOON',
   },
   {
@@ -57,7 +57,7 @@ export const MOCK_MATCHES: MatchItem[] = [
     perKillPrize: 15,
     joinedSlots: 45,
     maxSlots: 100,
-    image: '/solo_battle.jpg',
+    image: '/solo_battle.webp',
     status: 'OPEN',
   },
   {
@@ -71,7 +71,7 @@ export const MOCK_MATCHES: MatchItem[] = [
     perKillPrize: 50,
     joinedSlots: 22,
     maxSlots: 50,
-    image: '/duo_battle.jpg',
+    image: '/duo_battle.webp',
     status: 'OPEN',
   },
   {
@@ -85,7 +85,7 @@ export const MOCK_MATCHES: MatchItem[] = [
     perKillPrize: 100,
     joinedSlots: 10,
     maxSlots: 25,
-    image: '/squad_showdown.jpg',
+    image: '/squad_showdown.webp',
     status: 'OPEN',
   },
 ]

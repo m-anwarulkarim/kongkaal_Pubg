@@ -84,7 +84,7 @@ export default function WhatsAppFloatingButton({
               <div className="space-y-3 text-center animate-in fade-in zoom-in duration-200">
                 <div className="p-3 bg-white rounded-2xl border-2 border-emerald-500/50 shadow-inner max-w-[200px] mx-auto overflow-hidden">
                   <img
-                    src="/whatsapp_qr.png"
+                    src="/whatsapp_qr.webp"
                     alt="KongKaaL WhatsApp QR Code"
                     className="w-full h-auto object-contain rounded-xl"
                   />

@@ -391,7 +391,7 @@ export default function ContactSection() {
             <div className="p-4 bg-emerald-600/10 border border-emerald-500/30 rounded-2xl">
               <div className="p-3 bg-white rounded-2xl max-w-[220px] mx-auto shadow-xl">
                 <img
-                  src="/whatsapp_qr.png"
+                  src="/whatsapp_qr.webp"
                   alt="KongKaaL WhatsApp QR Code"
                   className="w-full h-auto object-contain rounded-xl"
                 />

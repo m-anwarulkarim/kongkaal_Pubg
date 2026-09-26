@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { updateMatch } from '@/lib/db'
+import { convertFileToWebP } from '@/lib/imageUtils'
 import { Plus, Trash2, Edit3, Image as ImageIcon } from 'lucide-react'
 
 interface MatchesTabProps {
@@ -164,10 +165,10 @@ export default function MatchesTab({
                 {/* Preset Banner Selector */}
                 <div className="grid grid-cols-4 gap-2 pt-1">
                   {[
-                    { label: 'Solo', url: '/solo_battle.jpg' },
-                    { label: 'Duo', url: '/duo_battle.jpg' },
-                    { label: 'Squad', url: '/squad_showdown.jpg' },
-                    { label: 'Banner', url: '/hero_banner.jpg' },
+                    { label: 'Solo', url: '/solo_battle.webp' },
+                    { label: 'Duo', url: '/duo_battle.webp' },
+                    { label: 'Squad', url: '/squad_showdown.webp' },
+                    { label: 'Banner', url: '/kongkaal_hero.webp' },
                   ].map((img) => (
                     <button
                       type="button"
@@ -198,16 +199,11 @@ export default function MatchesTab({
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const file = e.target.files?.[0]
                         if (file) {
-                          const reader = new FileReader()
-                          reader.onloadend = () => {
-                            if (reader.result) {
-                              setEditingMatch({ ...editingMatch, image: reader.result as string })
-                            }
-                          }
-                          reader.readAsDataURL(file)
+                          const webpUrl = await convertFileToWebP(file)
+                          setEditingMatch({ ...editingMatch, image: webpUrl })
                         }
                       }}
                     />

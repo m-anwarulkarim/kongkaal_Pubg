@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import { convertFileToWebP } from '@/lib/imageUtils'
 import {
   Trophy,
   Swords,
@@ -104,20 +106,20 @@ export default function LeaderboardTab() {
     setIsModalOpen(true)
   }
 
-  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (file.size > 3 * 1024 * 1024) {
-        alert('ছবি ৩ MB এর ছোট হতে হবে!')
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('ছবি ৫ MB এর ছোট হতে হবে!')
         return
       }
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setFormData((prev) => ({ ...prev, avatarUrl: reader.result as string }))
-        }
+      try {
+        const webpDataUrl = await convertFileToWebP(file, 0.85)
+        setFormData((prev) => ({ ...prev, avatarUrl: webpDataUrl }))
+        toast.success('ছবি অটোমেটিক WebP ফরম্যাটে কনভার্ট হয়েছে!')
+      } catch (err) {
+        toast.error('ছবি কনভার্ট করতে ব্যর্থ হয়েছে!')
       }
-      reader.readAsDataURL(file)
     }
   }
 

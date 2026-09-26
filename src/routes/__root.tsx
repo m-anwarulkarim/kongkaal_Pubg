@@ -40,7 +40,7 @@ export const Route = createRootRoute({
       },
       {
         rel: 'preload',
-        href: '/kongkaal_hero.jpg',
+        href: '/kongkaal_hero.webp',
         as: 'image',
       },
     ],

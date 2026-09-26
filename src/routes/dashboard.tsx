@@ -1,5 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import { convertFileToWebP } from '@/lib/imageUtils'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { useCustomerAuth } from '@/lib/auth'
@@ -163,20 +165,20 @@ function CustomerDashboardPage() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
-  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (file.size > 3 * 1024 * 1024) {
-        alert('ছবি ৩ MB এর ছোট হতে হবে!')
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('ছবি ৫ MB এর ছোট হতে হবে!')
         return
       }
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setEditAvatarUrl(reader.result)
-        }
+      try {
+        const webpDataUrl = await convertFileToWebP(file, 0.85)
+        setEditAvatarUrl(webpDataUrl)
+        toast.success('প্রোফাইল ছবি অটোমেটিক WebP ফরম্যাটে কনভার্ট হয়েছে!')
+      } catch (err) {
+        toast.error('ছবি কনভার্ট করতে ব্যর্থ হয়েছে!')
       }
-      reader.readAsDataURL(file)
     }
   }
 
@@ -848,7 +850,7 @@ function CustomerDashboardPage() {
                   <label className="text-[11px] text-gray-400 block text-left mb-1">Image URL (Optional):</label>
                   <Input
                     type="url"
-                    placeholder="https://example.com/avatar.jpg"
+                    placeholder="https://example.com/avatar.webp"
                     value={editAvatarUrl}
                     onChange={(e) => setEditAvatarUrl(e.target.value)}
                     className="bg-[#0b0d16] border-white/10 text-white font-mono text-[11px] h-8"

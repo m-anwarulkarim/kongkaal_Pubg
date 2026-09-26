@@ -4,11 +4,11 @@ import Link from '@/components/ui/Link'
 
 export default function RightSidebar() {
   const leaderboardData = [
-    { rank: 1, name: 'RIYAD', kills: 187, wins: 6, prize: '৳8,450', avatar: '/solo_battle.jpg' },
-    { rank: 2, name: 'SHAKIB*BD', kills: 164, wins: 5, prize: '৳6,200', avatar: '/duo_battle.jpg' },
-    { rank: 3, name: 'xXLegendXx', kills: 152, wins: 4, prize: '৳5,750', avatar: '/squad_showdown.jpg' },
-    { rank: 4, name: 'TuhinPlayz', kills: 141, wins: 4, prize: '৳4,900', avatar: '/solo_battle.jpg' },
-    { rank: 5, name: 'ZihadGaming', kills: 132, wins: 3, prize: '৳3,800', avatar: '/duo_battle.jpg' },
+    { rank: 1, name: 'RIYAD', kills: 187, wins: 6, prize: '৳8,450', avatar: '/solo_battle.webp' },
+    { rank: 2, name: 'SHAKIB*BD', kills: 164, wins: 5, prize: '৳6,200', avatar: '/duo_battle.webp' },
+    { rank: 3, name: 'xXLegendXx', kills: 152, wins: 4, prize: '৳5,750', avatar: '/squad_showdown.webp' },
+    { rank: 4, name: 'TuhinPlayz', kills: 141, wins: 4, prize: '৳4,900', avatar: '/solo_battle.webp' },
+    { rank: 5, name: 'ZihadGaming', kills: 132, wins: 3, prize: '৳3,800', avatar: '/duo_battle.webp' },
   ]
 
   return (

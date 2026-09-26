@@ -14,7 +14,7 @@ export default function Image({
   alt,
   priority = false,
   fill = false,
-  fallbackSrc = '/kongkaal_hero.jpg',
+  fallbackSrc = '/kongkaal_hero.webp',
   placeholder = 'blur',
   className = '',
   onLoad,

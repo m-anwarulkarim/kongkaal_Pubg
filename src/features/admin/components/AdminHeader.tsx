@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Link from '@/components/ui/Link'
+import { convertFileToWebP } from '@/lib/imageUtils'
 import { ChevronRight, Search, RefreshCw, Plus, Gamepad2, Globe, PanelLeft } from 'lucide-react'
 
 interface AdminHeaderProps {
@@ -249,10 +250,10 @@ export default function AdminHeader({
                 {/* Preset Image Options */}
                 <div className="grid grid-cols-4 gap-2">
                   {[
-                    { label: 'Solo', url: '/solo_battle.jpg' },
-                    { label: 'Duo', url: '/duo_battle.jpg' },
-                    { label: 'Squad', url: '/squad_showdown.jpg' },
-                    { label: 'Banner', url: '/hero_banner.jpg' },
+                    { label: 'Solo', url: '/solo_battle.webp' },
+                    { label: 'Duo', url: '/duo_battle.webp' },
+                    { label: 'Squad', url: '/squad_showdown.webp' },
+                    { label: 'Banner', url: '/kongkaal_hero.webp' },
                   ].map((img) => (
                     <button
                       type="button"
@@ -286,16 +287,11 @@ export default function AdminHeader({
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const file = e.target.files?.[0]
                         if (file) {
-                          const reader = new FileReader()
-                          reader.onloadend = () => {
-                            if (reader.result) {
-                              setNewMatchForm((prev) => ({ ...prev, image: reader.result as string }))
-                            }
-                          }
-                          reader.readAsDataURL(file)
+                          const webpUrl = await convertFileToWebP(file)
+                          setNewMatchForm((prev) => ({ ...prev, image: webpUrl }))
                         }
                       }}
                     />

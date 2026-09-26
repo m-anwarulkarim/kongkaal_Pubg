@@ -66,7 +66,7 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
           {/* Background Image & Red Smoke Flare Overlay */}
           <div className="absolute inset-0 z-0">
             <Image
-              src="/kongkaal_hero.jpg"
+              src="/kongkaal_hero.webp"
               alt="KongKaaL Gaming PUBG Warrior"
               priority
               fill

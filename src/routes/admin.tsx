@@ -61,7 +61,7 @@ function AdminDashboard() {
     thirdPrize: 300,
     perKillPrize: 10,
     maxSlots: 100,
-    image: '/solo_battle.jpg',
+    image: '/solo_battle.webp',
   })
 
   // Check persistent session on mount
