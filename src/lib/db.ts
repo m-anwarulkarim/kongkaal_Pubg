@@ -138,6 +138,31 @@ if (typeof window !== 'undefined' && isSupabaseConfigured()) {
   }
 }
 
+// Cross-tab BroadcastChannel sync for registrations & matches across browser tabs
+let dbBroadcastChannel: BroadcastChannel | null = null
+if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+  try {
+    dbBroadcastChannel = new BroadcastChannel('kongkaal_db_channel')
+    dbBroadcastChannel.onmessage = (event) => {
+      if (event.data === 'registrations_updated') {
+        window.dispatchEvent(new Event('registrations_updated'))
+      } else if (event.data === 'matches_updated') {
+        clearMatchesCache()
+        window.dispatchEvent(new Event('matches_updated'))
+      }
+    }
+  } catch (err) {
+    console.warn('[DB Service] BroadcastChannel init error:', err)
+  }
+}
+
+export function notifyRegistrationsUpdate() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('registrations_updated'))
+    dbBroadcastChannel?.postMessage('registrations_updated')
+  }
+}
+
 // 1. Fetch Active Tournament Matches (Ultra-fast cached response with forceFetch support)
 export async function getMatches(forceFetch = false): Promise<MatchItem[]> {
   if (forceFetch) {
@@ -348,7 +373,7 @@ export function saveLocalRegistrationRecord(record: RegistrationRecord) {
   if (typeof window === 'undefined') return
   const current = getLocalRegistrationRecords()
   localStorage.setItem('kongkaal_registrations', JSON.stringify([record, ...current]))
-  window.dispatchEvent(new Event('registrations_updated'))
+  notifyRegistrationsUpdate()
 }
 
 // 4. Save Player Slot Registration & Payment TrxID

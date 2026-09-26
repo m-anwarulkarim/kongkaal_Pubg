@@ -34,6 +34,30 @@ if (typeof window !== 'undefined' && isSupabaseConfigured()) {
   }
 }
 
+// Cross-tab BroadcastChannel sync for local browser multi-tab testing
+let walletBroadcastChannel: BroadcastChannel | null = null
+if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+  try {
+    walletBroadcastChannel = new BroadcastChannel('kongkaal_wallet_channel')
+    walletBroadcastChannel.onmessage = (event) => {
+      if (event.data === 'wallet_updated') {
+        window.dispatchEvent(new Event('wallet_updated'))
+        window.dispatchEvent(new Event('profile_updated'))
+      }
+    }
+  } catch (err) {
+    console.warn('[Wallet Service] BroadcastChannel init error:', err)
+  }
+}
+
+export function notifyWalletUpdate() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('wallet_updated'))
+    window.dispatchEvent(new Event('profile_updated'))
+    walletBroadcastChannel?.postMessage('wallet_updated')
+  }
+}
+
 // Helper to get local mock storage
 function getLocalWallets(): Record<string, CustomerProfile> {
   if (typeof window === 'undefined') return {}
@@ -48,8 +72,7 @@ function getLocalWallets(): Record<string, CustomerProfile> {
 function saveLocalWallets(wallets: Record<string, CustomerProfile>) {
   if (typeof window === 'undefined') return
   localStorage.setItem(LOCAL_WALLET_KEY, JSON.stringify(wallets))
-  window.dispatchEvent(new Event('profile_updated'))
-  window.dispatchEvent(new Event('wallet_updated'))
+  notifyWalletUpdate()
 }
 
 function getLocalTxs(): WalletTransaction[] {
@@ -65,7 +88,7 @@ function getLocalTxs(): WalletTransaction[] {
 function saveLocalTxs(txs: WalletTransaction[]) {
   if (typeof window === 'undefined') return
   localStorage.setItem(LOCAL_TX_KEY, JSON.stringify(txs))
-  window.dispatchEvent(new Event('wallet_updated'))
+  notifyWalletUpdate()
 }
 
 // Initial Mock Seed
