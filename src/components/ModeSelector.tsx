@@ -1,87 +1,111 @@
-import { User, Users, Shield } from 'lucide-react'
+import { User, Users, Shield, Grid } from 'lucide-react'
+
+export type MatchFilterMode = 'ALL' | 'SOLO' | 'DUO' | 'SQUAD'
 
 interface ModeSelectorProps {
-  selectedMode: 'SOLO' | 'DUO' | 'SQUAD'
-  onSelectMode: (mode: 'SOLO' | 'DUO' | 'SQUAD') => void
+  selectedMode: MatchFilterMode
+  onSelectMode: (mode: MatchFilterMode) => void
 }
 
 export default function ModeSelector({ selectedMode, onSelectMode }: ModeSelectorProps) {
   return (
-    <div className="mx-auto max-w-7xl px-4 lg:px-8 mb-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
-        {/* Solo Card */}
+    <div className="mx-auto max-w-7xl px-4 lg:px-8 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* All Matches Button */}
         <button
-          onClick={() => onSelectMode('SOLO')}
-          className={`p-5 rounded-2xl border text-left flex items-center gap-4 transition-all ${
-            selectedMode === 'SOLO'
-              ? 'bg-gradient-to-r from-[#e50914]/20 via-[#10131a] to-[#10131a] border-[#e50914] shadow-lg shadow-red-600/20'
+          onClick={() => onSelectMode('ALL')}
+          className={`p-4 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
+            selectedMode === 'ALL'
+              ? 'bg-gradient-to-r from-red-600/30 via-[#10131a] to-[#10131a] border-red-500 shadow-lg shadow-red-600/20 scale-[1.01]'
               : 'bg-[#10131a] border-white/10 hover:border-white/20'
           }`}
         >
           <div
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${
+            className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+              selectedMode === 'ALL' ? 'bg-red-600 text-white' : 'bg-[#161a24] text-gray-400'
+            }`}
+          >
+            <Grid className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-display text-lg font-bold text-white uppercase leading-none mb-0.5">
+              All Matches
+            </h3>
+            <span className="text-[11px] text-gray-400 font-semibold block">All Tournament Modes</span>
+          </div>
+        </button>
+
+        {/* Solo Card */}
+        <button
+          onClick={() => onSelectMode(selectedMode === 'SOLO' ? 'ALL' : 'SOLO')}
+          className={`p-4 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
+            selectedMode === 'SOLO'
+              ? 'bg-gradient-to-r from-[#e50914]/30 via-[#10131a] to-[#10131a] border-[#e50914] shadow-lg shadow-red-600/20 scale-[1.01]'
+              : 'bg-[#10131a] border-white/10 hover:border-white/20'
+          }`}
+        >
+          <div
+            className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
               selectedMode === 'SOLO' ? 'bg-[#e50914] text-white' : 'bg-[#161a24] text-gray-400'
             }`}
           >
-            <User className="w-6 h-6" />
+            <User className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-display text-2xl font-bold text-white uppercase leading-none mb-1">
+            <h3 className="font-display text-lg font-bold text-white uppercase leading-none mb-0.5">
               Solo
             </h3>
-            <span className="text-xs text-gray-400 font-semibold block">1 Player</span>
+            <span className="text-[11px] text-gray-400 font-semibold block">1 Player (1v1)</span>
           </div>
         </button>
 
         {/* Duo Card */}
         <button
-          onClick={() => onSelectMode('DUO')}
-          className={`p-5 rounded-2xl border text-left flex items-center gap-4 transition-all ${
+          onClick={() => onSelectMode(selectedMode === 'DUO' ? 'ALL' : 'DUO')}
+          className={`p-4 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
             selectedMode === 'DUO'
-              ? 'bg-gradient-to-r from-blue-950/40 via-[#10131a] to-[#10131a] border-blue-500 shadow-lg shadow-blue-500/20'
+              ? 'bg-gradient-to-r from-blue-950/40 via-[#10131a] to-[#10131a] border-blue-500 shadow-lg shadow-blue-500/20 scale-[1.01]'
               : 'bg-[#10131a] border-white/10 hover:border-white/20'
           }`}
         >
           <div
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${
+            className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
               selectedMode === 'DUO' ? 'bg-blue-600 text-white' : 'bg-[#161a24] text-gray-400'
             }`}
           >
-            <Users className="w-6 h-6" />
+            <Users className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-display text-2xl font-bold text-white uppercase leading-none mb-1">
+            <h3 className="font-display text-lg font-bold text-white uppercase leading-none mb-0.5">
               Duo
             </h3>
-            <span className="text-xs text-gray-400 font-semibold block">2 Players</span>
+            <span className="text-[11px] text-gray-400 font-semibold block">2 Players (2v2)</span>
           </div>
         </button>
 
         {/* Squad Card */}
         <button
-          onClick={() => onSelectMode('SQUAD')}
-          className={`p-5 rounded-2xl border text-left flex items-center gap-4 transition-all ${
+          onClick={() => onSelectMode(selectedMode === 'SQUAD' ? 'ALL' : 'SQUAD')}
+          className={`p-4 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
             selectedMode === 'SQUAD'
-              ? 'bg-gradient-to-r from-purple-950/40 via-[#10131a] to-[#10131a] border-purple-500 shadow-lg shadow-purple-500/20'
+              ? 'bg-gradient-to-r from-purple-950/40 via-[#10131a] to-[#10131a] border-purple-500 shadow-lg shadow-purple-500/20 scale-[1.01]'
               : 'bg-[#10131a] border-white/10 hover:border-white/20'
           }`}
         >
           <div
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${
+            className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
               selectedMode === 'SQUAD' ? 'bg-purple-600 text-white' : 'bg-[#161a24] text-gray-400'
             }`}
           >
-            <Shield className="w-6 h-6" />
+            <Shield className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-display text-2xl font-bold text-white uppercase leading-none mb-1">
+            <h3 className="font-display text-lg font-bold text-white uppercase leading-none mb-0.5">
               Squad
             </h3>
-            <span className="text-xs text-gray-400 font-semibold block">4 Players</span>
+            <span className="text-[11px] text-gray-400 font-semibold block">4 Players (4v4)</span>
           </div>
         </button>
-
       </div>
     </div>
   )

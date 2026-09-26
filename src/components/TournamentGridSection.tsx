@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react'
-import ModeSelector from './ModeSelector'
+import { useState, useEffect, useRef } from 'react'
+import ModeSelector, { type MatchFilterMode } from './ModeSelector'
 import MatchCard from '@/features/matches/components/MatchCard'
 import RightSidebar from './RightSidebar'
 import type { MatchItem } from '@/types/match'
-import { Trophy, ArrowRight, Loader2 } from 'lucide-react'
-import Link from '@/components/ui/Link'
+import { Trophy, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getMatches, DEFAULT_MATCHES } from '@/lib/db'
 
 export const KONGKAAL_MATCHES: MatchItem[] = DEFAULT_MATCHES
@@ -14,9 +13,11 @@ interface TournamentGridSectionProps {
 }
 
 export default function TournamentGridSection({ onSelectMatch }: TournamentGridSectionProps) {
-  const [selectedMode, setSelectedMode] = useState<'SOLO' | 'DUO' | 'SQUAD'>('SOLO')
+  const [selectedMode, setSelectedMode] = useState<MatchFilterMode>('ALL')
   const [matches, setMatches] = useState<MatchItem[]>([])
   const [loading, setLoading] = useState(true)
+
+  const sliderRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     async function loadTournamentMatches() {
@@ -33,31 +34,59 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
     loadTournamentMatches()
   }, [])
 
-  const filteredMatches = matches.filter((m) => {
-    return m.mode === selectedMode
-  })
+  const filteredMatches = selectedMode === 'ALL'
+    ? matches
+    : matches.filter((m) => m.mode === selectedMode)
+
+  const scrollSlider = (direction: 'left' | 'right') => {
+    if (sliderRef.current) {
+      const scrollAmount = direction === 'left' ? -310 : 310
+      sliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+    }
+  }
 
   return (
     <section id="tournaments" className="py-6">
-      {/* 1. Solo / Duo / Squad Mode Selector */}
+      {/* 1. Solo / Duo / Squad / All Mode Selector */}
       <ModeSelector selectedMode={selectedMode} onSelectMode={setSelectedMode} />
 
       {/* 2. Main Tournament Grid + Right Sidebar */}
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          {/* Left Column: Upcoming Tournaments */}
-          <div className="lg:col-span-8">
+          {/* Left Column: Upcoming Tournaments Slider */}
+          <div className="lg:col-span-8 min-w-0">
+            {/* Header with Slider Navigation Controls */}
             <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-red-500" />
                 <h3 className="font-display text-2xl font-bold text-white uppercase leading-none">
                   Upcoming Tournaments
                 </h3>
+                <span className="text-xs font-bold text-gray-400 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full">
+                  {filteredMatches.length} Available
+                </span>
               </div>
-              <Link href="#" className="text-xs font-bold text-gray-400 hover:text-white no-underline flex items-center gap-1">
-                View All <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+
+              {/* Slider Left/Right Scroll Arrows */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => scrollSlider('left')}
+                  className="p-2 rounded-xl bg-[#10131a] hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                  title="Scroll Left"
+                  aria-label="Previous tournaments"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => scrollSlider('right')}
+                  className="p-2 rounded-xl bg-[#10131a] hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                  title="Scroll Right"
+                  aria-label="Next tournaments"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {loading ? (
@@ -67,20 +96,27 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
               </div>
             ) : filteredMatches.length === 0 ? (
               <div className="p-12 text-center text-gray-400 bg-[#0e111a] rounded-2xl border border-white/10 space-y-2">
-                <p className="font-bold text-white">No active {selectedMode} tournaments found right now.</p>
+                <p className="font-bold text-white">No active {selectedMode === 'ALL' ? '' : selectedMode} tournaments found right now.</p>
                 <p className="text-xs">Dashboard থেকে এডমিন নতুন ম্যাচ ক্রিয়েট করলে এখানে সরাসরি দেখতে পাবেন।</p>
               </div>
             ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              /* Horizontal Scrollable Slider Container (Stays strictly within lg:col-span-8 space) */
+              <div
+                ref={sliderRef}
+                className="flex gap-4 overflow-x-auto scroll-smooth py-1 -mx-1 px-1 no-scrollbar"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
                 {filteredMatches.map((match) => (
-                  <MatchCard key={match.id} match={match} onSelect={onSelectMatch} />
+                  <div key={match.id} className="w-[270px] sm:w-[290px] shrink-0">
+                    <MatchCard match={match} onSelect={onSelectMatch} />
+                  </div>
                 ))}
               </div>
             )}
           </div>
 
           {/* Right Column: Leaderboard & Top Players Sidebar */}
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 min-w-0">
             <RightSidebar />
           </div>
 
@@ -89,4 +125,3 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
     </section>
   )
 }
-
