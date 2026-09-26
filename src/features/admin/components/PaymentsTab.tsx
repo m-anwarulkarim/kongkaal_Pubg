@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import type { RegistrationRecord } from '@/lib/db'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from '@/components/ui/Link'
-import { RefreshCw, Smartphone, CheckCircle2, XCircle, MessageSquare } from 'lucide-react'
+import { RefreshCw, Smartphone, CheckCircle2, XCircle, MessageSquare, X, AlertCircle } from 'lucide-react'
 
 interface PaymentsTabProps {
   loading: boolean
@@ -18,6 +19,15 @@ export default function PaymentsTab({
   filteredRegistrations,
   handleStatusUpdate,
 }: PaymentsTabProps) {
+  const [confirmModalItem, setConfirmModalItem] = useState<{ id: string; name: string; amount: number; trxId: string } | null>(null)
+
+  const handleConfirmApproval = () => {
+    if (confirmModalItem) {
+      handleStatusUpdate(confirmModalItem.id, 'VERIFIED')
+      setConfirmModalItem(null)
+    }
+  }
+
   return (
     <Card className="bg-[#101422] border-white/10 p-6 rounded-2xl space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
@@ -109,7 +119,7 @@ export default function PaymentsTab({
                       {reg.status === 'PENDING' && (
                         <>
                           <Button
-                            onClick={() => handleStatusUpdate(reg.id, 'VERIFIED')}
+                            onClick={() => setConfirmModalItem({ id: reg.id, name: reg.player1Name, amount: reg.amount, trxId: reg.trxId })}
                             size="sm"
                             className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 px-3 h-auto inline-flex items-center gap-1 shadow-md shadow-emerald-600/20"
                           >
@@ -139,6 +149,61 @@ export default function PaymentsTab({
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* CONFIRMATION POPUP MODAL FOR APPROVAL */}
+      {confirmModalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0f121d] border border-emerald-500/40 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative overflow-hidden">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-white">Confirm Approval (পেমেন্ট নিশ্চিতকরণ)</h3>
+              </div>
+              <button onClick={() => setConfirmModalItem(null)} className="text-gray-400 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-[#161a29] border border-white/10 rounded-2xl p-4 space-y-2 text-xs">
+              <div className="flex justify-between text-gray-300">
+                <span>Player Name:</span>
+                <strong className="text-white">{confirmModalItem.name}</strong>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>TrxID:</span>
+                <strong className="text-amber-400 font-mono">{confirmModalItem.trxId}</strong>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>Amount:</span>
+                <strong className="text-emerald-400 text-sm font-display">৳{confirmModalItem.amount}</strong>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-300">
+              আপনি কি নিশ্চিত যে এই প্লেয়ারের পেমেন্ট এবং স্লট বুকিং **Approve (এপ্রুভ)** করতে চান?
+            </p>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                onClick={() => setConfirmModalItem(null)}
+                className="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2.5 rounded-xl border border-white/20"
+              >
+                Cancel (বাতিল)
+              </Button>
+              <Button
+                type="button"
+                onClick={handleConfirmApproval}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-1.5"
+              >
+                <CheckCircle2 className="w-4 h-4" /> Yes, Confirm Approve
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </Card>

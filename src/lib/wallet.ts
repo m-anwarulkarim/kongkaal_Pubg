@@ -148,14 +148,17 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
         saveLocalWallets(wallets)
       } else if (!error) {
         // Upsert new profile to Supabase if not present yet
-        await supabase.from('customer_wallets').upsert({
-          email: normEmail,
-          name: profile.name,
-          pubg_uid: profile.pubgUid,
-          whatsapp_number: profile.whatsappNumber,
-          balance: profile.walletBalance,
-          avatar_url: profile.avatarUrl,
-        })
+        await supabase.from('customer_wallets').upsert(
+          {
+            email: normEmail,
+            name: profile.name,
+            pubg_uid: profile.pubgUid,
+            whatsapp_number: profile.whatsappNumber,
+            balance: profile.walletBalance,
+            avatar_url: profile.avatarUrl,
+          },
+          { onConflict: 'email' }
+        )
       }
     } catch (err) {
       console.log('Supabase customer wallet sync err:', err)
@@ -176,14 +179,21 @@ export async function updateCustomerProfile(profile: CustomerProfile): Promise<b
 
   if (isSupabaseConfigured()) {
     try {
-      await supabase.from('customer_wallets').upsert({
-        email: normEmail,
-        name: updatedProfile.name,
-        pubg_uid: updatedProfile.pubgUid,
-        whatsapp_number: updatedProfile.whatsappNumber,
-        balance: updatedProfile.walletBalance,
-        avatar_url: updatedProfile.avatarUrl,
-      })
+      const { error } = await supabase.from('customer_wallets').upsert(
+        {
+          email: normEmail,
+          name: updatedProfile.name,
+          pubg_uid: updatedProfile.pubgUid,
+          whatsapp_number: updatedProfile.whatsappNumber,
+          balance: updatedProfile.walletBalance,
+          avatar_url: updatedProfile.avatarUrl,
+        },
+        { onConflict: 'email' }
+      )
+      if (error) {
+        console.warn('Supabase profile upsert error:', error.message)
+      }
+
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('wallet_updated'))
         window.dispatchEvent(new Event('profile_updated'))

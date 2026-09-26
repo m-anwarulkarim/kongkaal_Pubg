@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { RegistrationRecord } from '@/lib/db'
 import type { MatchItem } from '@/types/match'
 import type { AdminTabType } from '../types'
@@ -12,6 +13,8 @@ import {
   Users,
   CheckCircle2,
   Smartphone,
+  X,
+  AlertCircle,
 } from 'lucide-react'
 
 interface OverviewTabProps {
@@ -35,12 +38,24 @@ export default function OverviewTab({
   setActiveTab,
   handleStatusUpdate,
 }: OverviewTabProps) {
+  const [confirmModalItem, setConfirmModalItem] = useState<{ id: string; name: string; amount: number; trxId: string } | null>(null)
+
+  const handleConfirmApproval = () => {
+    if (confirmModalItem) {
+      handleStatusUpdate(confirmModalItem.id, 'VERIFIED')
+      setConfirmModalItem(null)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Stat Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Revenue Card */}
-        <Card className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-emerald-500/30 p-5 rounded-2xl shadow-xl">
+        <Card
+          onClick={() => setActiveTab('WALLETS')}
+          className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-emerald-500/30 p-5 rounded-2xl shadow-xl cursor-pointer hover:border-emerald-500/60 transition-all hover:scale-[1.01]"
+        >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-gray-400 uppercase">VERIFIED REVENUE</span>
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
@@ -51,12 +66,15 @@ export default function OverviewTab({
             ৳{totalRevenue}
           </div>
           <span className="text-[11px] text-gray-400 flex items-center gap-1 font-medium">
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-400" /> {verifiedCount} Verified Payments
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-400" /> {verifiedCount} Verified Payments →
           </span>
         </Card>
 
         {/* Pending Approvals Card */}
-        <Card className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-amber-500/30 p-5 rounded-2xl shadow-xl">
+        <Card
+          onClick={() => setActiveTab('PAYMENTS')}
+          className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-amber-500/30 p-5 rounded-2xl shadow-xl cursor-pointer hover:border-amber-500/60 transition-all hover:scale-[1.01]"
+        >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-amber-400 uppercase">PENDING APPROVALS</span>
             <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
@@ -67,12 +85,15 @@ export default function OverviewTab({
             {pendingCount}
           </div>
           <span className="text-[11px] text-gray-400 font-medium">
-            Needs Admin TrxID Verification
+            Needs Admin TrxID Verification →
           </span>
         </Card>
 
         {/* Active Matches Card */}
-        <Card className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-red-500/30 p-5 rounded-2xl shadow-xl">
+        <Card
+          onClick={() => setActiveTab('MATCHES')}
+          className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-red-500/30 p-5 rounded-2xl shadow-xl cursor-pointer hover:border-red-500/60 transition-all hover:scale-[1.01]"
+        >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-red-500 uppercase">ACTIVE MATCHES</span>
             <div className="w-10 h-10 rounded-xl bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500">
@@ -83,14 +104,14 @@ export default function OverviewTab({
             {matches.length}
           </div>
           <span className="text-[11px] text-gray-400 font-medium">
-            Solo, Duo & Squad Tournaments
+            Solo, Duo & Squad Tournaments →
           </span>
         </Card>
 
         {/* Total Gmail Customers & Registrations Card */}
         <Card 
-          onClick={() => setActiveTab('PLAYERS')}
-          className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-blue-500/30 p-5 rounded-2xl shadow-xl cursor-pointer hover:border-blue-500/60 transition-colors"
+          onClick={() => setActiveTab('WALLETS')}
+          className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-blue-500/30 p-5 rounded-2xl shadow-xl cursor-pointer hover:border-blue-500/60 transition-all hover:scale-[1.01]"
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-blue-400 uppercase">GMAIL CUSTOMERS</span>
@@ -164,9 +185,9 @@ export default function OverviewTab({
                       <td className="p-3 font-display text-sm font-bold text-white">৳{reg.amount}</td>
                       <td className="p-3 text-right space-x-2">
                         <Button
-                          onClick={() => handleStatusUpdate(reg.id, 'VERIFIED')}
+                          onClick={() => setConfirmModalItem({ id: reg.id, name: reg.player1Name, amount: reg.amount, trxId: reg.trxId })}
                           size="sm"
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1 px-2.5 h-auto inline-flex items-center gap-1"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1 px-2.5 h-auto inline-flex items-center gap-1 shadow-md shadow-emerald-600/30"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" /> Approve
                         </Button>
@@ -178,6 +199,62 @@ export default function OverviewTab({
           </div>
         )}
       </Card>
+
+      {/* CONFIRMATION POPUP MODAL FOR APPROVAL */}
+      {confirmModalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0f121d] border border-emerald-500/40 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative overflow-hidden">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-white">Confirm Approval (পেমেন্ট নিশ্চিতকরণ)</h3>
+              </div>
+              <button onClick={() => setConfirmModalItem(null)} className="text-gray-400 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-[#161a29] border border-white/10 rounded-2xl p-4 space-y-2 text-xs">
+              <div className="flex justify-between text-gray-300">
+                <span>Player Name:</span>
+                <strong className="text-white">{confirmModalItem.name}</strong>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>TrxID:</span>
+                <strong className="text-amber-400 font-mono">{confirmModalItem.trxId}</strong>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>Amount:</span>
+                <strong className="text-emerald-400 text-sm font-display">৳{confirmModalItem.amount}</strong>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-300">
+              আপনি কি নিশ্চিত যে এই প্লেয়ারের পেমেন্ট এবং স্লট বুকিং **Approve (এপ্রুভ)** করতে চান?
+            </p>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                onClick={() => setConfirmModalItem(null)}
+                className="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2.5 rounded-xl border border-white/20"
+              >
+                Cancel (বাতিল)
+              </Button>
+              <Button
+                type="button"
+                onClick={handleConfirmApproval}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-1.5"
+              >
+                <CheckCircle2 className="w-4 h-4" /> Yes, Confirm Approve
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+

@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Send, CheckCircle2, XCircle, Search, RefreshCw, PlusCircle, MinusCircle } from 'lucide-react'
+import { Send, CheckCircle2, XCircle, Search, RefreshCw, PlusCircle, MinusCircle, X, AlertCircle } from 'lucide-react'
 
 export default function WalletTab() {
   const [customers, setCustomers] = useState<CustomerProfile[]>([])
@@ -26,6 +26,7 @@ export default function WalletTab() {
   const [sending, setSending] = useState(false)
 
   const [searchQuery, setSearchQuery] = useState('')
+  const [confirmModalTx, setConfirmModalTx] = useState<{ id: string; name: string; amount: number; type: string } | null>(null)
 
   const loadWalletData = async () => {
     const custs = await getAllCustomerProfiles()
@@ -350,7 +351,7 @@ export default function WalletTab() {
                       {tx.status === 'PENDING' && (
                         <>
                           <Button
-                            onClick={() => handleAction(tx.id, 'APPROVED')}
+                            onClick={() => setConfirmModalTx({ id: tx.id, name: tx.userName || tx.userEmail, amount: tx.amount, type: tx.type })}
                             size="sm"
                             className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 px-3 h-auto inline-flex items-center gap-1 shadow-md"
                           >
@@ -373,6 +374,64 @@ export default function WalletTab() {
           </div>
         )}
       </Card>
+
+      {/* CONFIRMATION POPUP MODAL FOR TRANSACTION APPROVAL */}
+      {confirmModalTx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0f121d] border border-emerald-500/40 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative overflow-hidden">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-white">Confirm Approval (ওয়ালেট পেমেন্ট নিশ্চিতকরণ)</h3>
+              </div>
+              <button onClick={() => setConfirmModalTx(null)} className="text-gray-400 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-[#161a29] border border-white/10 rounded-2xl p-4 space-y-2 text-xs">
+              <div className="flex justify-between text-gray-300">
+                <span>Customer:</span>
+                <strong className="text-white">{confirmModalTx.name}</strong>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>Transaction Type:</span>
+                <strong className="text-amber-400">{confirmModalTx.type}</strong>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>Amount:</span>
+                <strong className="text-emerald-400 text-sm font-display">৳{confirmModalTx.amount}</strong>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-300">
+              আপনি কি নিশ্চিত যে এই ট্রানজেকশনটি **Approve (এপ্রুভ)** করতে চান? কাস্টমারের ওয়ালেট ব্যালেন্স যোগ হয়ে যাবে।
+            </p>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                onClick={() => setConfirmModalTx(null)}
+                className="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2.5 rounded-xl border border-white/20"
+              >
+                Cancel (বাতিল)
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  handleAction(confirmModalTx.id, 'APPROVED')
+                  setConfirmModalTx(null)
+                }}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-1.5"
+              >
+                <CheckCircle2 className="w-4 h-4" /> Yes, Confirm Approve
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
