@@ -121,58 +121,58 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
               </div>
 
               {/* Title */}
-              <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight text-white uppercase leading-none mb-3">
+              <h1 className="font-display text-3xl sm:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight text-white uppercase leading-none mb-2 sm:mb-3">
                 KONGKAAL <span className="text-[#e50914] italic font-extrabold tracking-normal">GAMING</span>
               </h1>
 
               {/* Subtitle */}
-              <p className="text-xs sm:text-sm font-extrabold tracking-wider text-gray-300 uppercase mb-8">
+              <p className="text-[11px] sm:text-sm font-extrabold tracking-wider text-gray-300 uppercase mb-6 sm:mb-8">
                 BANGLADESH'S PUBG MOBILE TOURNAMENT PLATFORM
               </p>
 
               {/* 3 Feature Cards (1 Single Row on Mobile & Desktop) */}
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-3 max-w-2xl mb-8">
+              <div className="grid grid-cols-3 gap-1 sm:gap-3 max-w-2xl mb-6 sm:mb-8">
                 
                 {/* Fair Play */}
-                <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-2 sm:p-3 flex items-center gap-1.5 sm:gap-3 min-w-0">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
-                    <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-1.5 sm:p-3 flex items-center gap-1 sm:gap-3 min-w-0">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
+                    <Trophy className="w-3 h-3 sm:w-4 sm:h-4" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-[11px] sm:text-xs font-bold text-white block leading-tight mb-0.5 truncate">Fair Play</span>
-                    <span className="text-[9px] sm:text-[10px] text-gray-400 block truncate">100% Fair</span>
+                    <span className="text-[10px] sm:text-xs font-bold text-white block leading-tight mb-0.5 truncate">Fair Play</span>
+                    <span className="text-[8px] sm:text-[10px] text-gray-400 block truncate">100% Fair</span>
                   </div>
                 </div>
 
                 {/* Secure Payment */}
-                <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-2 sm:p-3 flex items-center gap-1.5 sm:gap-3 min-w-0">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
-                    <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-1.5 sm:p-3 flex items-center gap-1 sm:gap-3 min-w-0">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
+                    <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-[11px] sm:text-xs font-bold text-white block leading-tight mb-0.5 truncate">Secure Pay</span>
-                    <span className="text-[9px] sm:text-[10px] text-gray-400 block truncate">bKash/Nagad</span>
+                    <span className="text-[10px] sm:text-xs font-bold text-white block leading-tight mb-0.5 truncate">Secure Pay</span>
+                    <span className="text-[8px] sm:text-[10px] text-gray-400 block truncate">bKash/Nagad</span>
                   </div>
                 </div>
 
                 {/* Fast Support */}
-                <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-2 sm:p-3 flex items-center gap-1.5 sm:gap-3 min-w-0">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
-                    <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <div className="bg-[#10131a]/80 backdrop-blur-md border border-white/10 rounded-xl p-1.5 sm:p-3 flex items-center gap-1 sm:gap-3 min-w-0">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 shrink-0">
+                    <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-[11px] sm:text-xs font-bold text-white block leading-tight mb-0.5 truncate">Fast Support</span>
-                    <span className="text-[9px] sm:text-[10px] text-gray-400 block truncate">Always Active</span>
+                    <span className="text-[10px] sm:text-xs font-bold text-white block leading-tight mb-0.5 truncate">Fast Support</span>
+                    <span className="text-[8px] sm:text-[10px] text-gray-400 block truncate">Always Active</span>
                   </div>
                 </div>
 
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3">
                 <button
                   onClick={onJoinClick}
-                  className="btn-kong-red px-6 py-3 rounded-xl text-sm font-bold flex items-center gap-2 group"
+                  className="btn-kong-red px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 group w-full sm:w-auto cursor-pointer"
                 >
                   <span>Join Tournament</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -180,7 +180,7 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
 
                 <button
                   onClick={onViewAllClick}
-                  className="btn-kong-outline px-6 py-3 rounded-xl text-sm font-bold"
+                  className="btn-kong-outline px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold w-full sm:w-auto text-center cursor-pointer"
                 >
                   View All Tournaments
                 </button>
@@ -188,21 +188,21 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
                 {/* Watch Video Trailer Button */}
                 <button
                   onClick={() => setVideoModalOpen(true)}
-                  className="bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-white border border-red-500/40 px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-red-600/20 group"
+                  className="bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-white border border-red-500/40 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-red-600/20 group w-full sm:w-auto cursor-pointer"
                 >
-                  <span className="relative flex h-3 w-3">
+                  <span className="relative flex h-2.5 w-2.5 sm:h-3 sm:w-3">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 bg-red-500"></span>
                   </span>
-                  <Play className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" />
+                  <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current group-hover:scale-110 transition-transform" />
                   <span>Watch Gameplay Video</span>
                 </button>
               </div>
 
             </div>
 
-            {/* Right Column Side Panel (2-Line Grid Layout: 2 Widgets per line) */}
-            <div className="lg:col-span-4 grid grid-cols-2 gap-2 sm:gap-3">
+            {/* Right Column Side Panel (Responsive Grid: 1 col on mobile, 2 cols on sm) */}
+            <div className="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-2 sm:gap-3 mt-6 lg:mt-0">
               
               {/* Widget 1: LIVE Tournament Ongoing */}
               <div className="bg-[#10131a]/90 backdrop-blur-md border border-white/10 rounded-xl p-3 flex items-center justify-between min-w-0">

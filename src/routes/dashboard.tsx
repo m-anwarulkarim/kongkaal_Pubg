@@ -302,15 +302,15 @@ function CustomerDashboardPage() {
     <div className="min-h-screen bg-[#07080b] text-gray-100 selection:bg-red-600/30 selection:text-red-200">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {!user ? (
           /* Not Logged In View */
-          <div className="text-center py-20 bg-[#101422] border border-red-500/20 rounded-3xl p-8 max-w-xl mx-auto space-y-4 shadow-2xl">
-            <div className="w-16 h-16 rounded-full bg-red-600/20 border border-red-500 flex items-center justify-center text-red-500 mx-auto">
-              <Lock className="w-8 h-8" />
+          <div className="text-center py-12 sm:py-20 bg-[#101422] border border-red-500/20 rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-xl mx-auto space-y-4 shadow-2xl">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-600/20 border border-red-500 flex items-center justify-center text-red-500 mx-auto">
+              <Lock className="w-7 h-7 sm:w-8 sm:h-8" />
             </div>
-            <h2 className="text-2xl font-black font-display text-white uppercase">Customer Login Required</h2>
-            <p className="text-sm text-gray-400">
+            <h2 className="text-xl sm:text-2xl font-black font-display text-white uppercase">Customer Login Required</h2>
+            <p className="text-xs sm:text-sm text-gray-400">
               আপনার ওয়ালেট ব্যালেন্স দেখতে, টাকা জমা বা তুলতে এবং টুর্নামেন্ট হিস্ট্রি চেক করতে গুগল লগইন করুন।
             </p>
             <Button
@@ -323,59 +323,59 @@ function CustomerDashboardPage() {
         ) : (
           <>
             {/* 1. Player Profile Header Card */}
-            <div className="relative bg-gradient-to-r from-red-950/80 via-[#121524] to-[#0a0c14] border border-red-500/30 rounded-3xl p-6 sm:p-8 overflow-hidden shadow-[0_0_30px_rgba(229,9,20,0.15)]">
-              <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                <div className="flex items-center gap-4 sm:gap-6">
+            <div className="relative bg-gradient-to-r from-red-950/80 via-[#121524] to-[#0a0c14] border border-red-500/30 rounded-2xl sm:rounded-3xl p-4 sm:p-8 overflow-hidden shadow-[0_0_30px_rgba(229,9,20,0.15)]">
+              <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 w-full md:w-auto">
                   <div 
                     onClick={() => setEditProfileOpen(true)}
-                    className="relative cursor-pointer group rounded-full"
+                    className="relative cursor-pointer group rounded-full shrink-0"
                     title="Click to edit profile avatar"
                   >
                     {userAvatar ? (
                       <img
                         src={userAvatar}
                         alt={userName}
-                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-red-500 shadow-md shadow-red-600/30 object-cover group-hover:opacity-80 transition-opacity"
+                        className="w-14 h-14 sm:w-20 sm:h-20 rounded-full border-2 border-red-500 shadow-md shadow-red-600/30 object-cover group-hover:opacity-80 transition-opacity"
                       />
                     ) : (
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-red-600 border-2 border-red-500 flex items-center justify-center text-white text-2xl font-bold group-hover:bg-red-700 transition-colors">
+                      <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-red-600 border-2 border-red-500 flex items-center justify-center text-white text-xl sm:text-2xl font-bold group-hover:bg-red-700 transition-colors">
                         {userName[0]?.toUpperCase()}
                       </div>
                     )}
                     <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                      <Camera className="w-5 h-5 text-white" />
+                      <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                   </div>
 
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h1 className="text-xl sm:text-3xl font-black font-display tracking-wider text-white uppercase">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h1 className="text-lg sm:text-3xl font-black font-display tracking-wider text-white uppercase truncate">
                         {userName}
                       </h1>
-                      <Badge className="bg-emerald-950 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
+                      <Badge className="bg-emerald-950 text-emerald-400 border border-emerald-500/30 text-[9px] sm:text-[10px] font-bold">
                         VERIFIED PLAYER
                       </Badge>
                     </div>
 
-                    <p className="text-xs text-gray-400 mt-1">{user.email}</p>
+                    <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1 truncate">{user.email}</p>
 
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-300 mt-3">
-                      <span className="bg-[#1a1f33] px-3 py-1 rounded-lg border border-white/10 font-mono flex items-center gap-1.5">
-                        <Gamepad2 className="w-3.5 h-3.5 text-red-500" />
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-300 mt-2.5 sm:mt-3">
+                      <span className="bg-[#1a1f33] px-2.5 py-1 rounded-lg border border-white/10 font-mono flex items-center gap-1 text-[11px] sm:text-xs">
+                        <Gamepad2 className="w-3.5 h-3.5 text-red-500 shrink-0" />
                         PUBG UID: {profile?.pubgUid || 'Not set'}
                       </span>
-                      <span className="bg-[#1a1f33] px-3 py-1 rounded-lg border border-white/10 font-mono flex items-center gap-1.5">
-                        <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="bg-[#1a1f33] px-2.5 py-1 rounded-lg border border-white/10 font-mono flex items-center gap-1 text-[11px] sm:text-xs">
+                        <Smartphone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                         WhatsApp: {profile?.whatsappNumber || 'Not set'}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2.5">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full md:w-auto">
                   <Button
                     onClick={() => setEditProfileOpen(true)}
-                    className="bg-white/10 hover:bg-white/20 text-white font-bold border border-white/20 text-xs rounded-xl px-4 py-2"
+                    className="flex-1 md:flex-none justify-center bg-white/10 hover:bg-white/20 text-white font-bold border border-white/20 text-xs rounded-xl px-3.5 py-2"
                   >
                     Edit Profile Info
                   </Button>
@@ -385,9 +385,9 @@ function CustomerDashboardPage() {
                       await signOut()
                       navigate({ to: '/' })
                     }}
-                    className="bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 font-bold border border-red-500/40 text-xs rounded-xl px-4 py-2 flex items-center gap-1.5 transition-colors"
+                    className="flex-1 md:flex-none justify-center bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 font-bold border border-red-500/40 text-xs rounded-xl px-3.5 py-2 flex items-center gap-1.5 transition-colors"
                   >
-                    <LogOut className="w-3.5 h-3.5 text-red-500" /> Logout (লগআউট)
+                    <LogOut className="w-3.5 h-3.5 text-red-500" /> Logout
                   </Button>
                 </div>
               </div>

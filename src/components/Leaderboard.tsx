@@ -41,25 +41,25 @@ export default function Leaderboard() {
     <section id="leaderboard" className="py-16 bg-[#0c1017] border-b border-amber-500/20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-10 space-y-3">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 space-y-3">
           <span className="px-4 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 font-gaming text-xs font-bold uppercase tracking-widest inline-block">
             HALL OF FAME & PAYOUT HISTORY
           </span>
-          <h2 className="font-display text-4xl sm:text-6xl font-black text-white uppercase tracking-tight flex items-center justify-center gap-3">
-            <Trophy className="w-8 h-8 sm:w-12 sm:h-12 text-amber-400" /> TOP <span className="text-amber-400">PLAYERS & CHAMPIONS</span>
+          <h2 className="font-display text-3xl sm:text-6xl font-black text-white uppercase tracking-tight flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+            <Trophy className="w-7 h-7 sm:w-12 sm:h-12 text-amber-400" /> TOP <span className="text-amber-400">PLAYERS & CHAMPIONS</span>
           </h2>
-          <p className="text-gray-400 text-sm sm:text-base">
+          <p className="text-gray-400 text-xs sm:text-base px-2">
             আমাদের আগের টুর্নামেন্টগুলোর সর্বোচ্চ কিলদাতা ও ক্যাশ প্রাইজ বিজয়ী সেরা প্লেয়ারদের রিয়েল-টাইম তালিকা।
           </p>
         </div>
 
         {/* Filter & Sort Mode Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 mb-6 sm:mb-8">
           <button
             onClick={() => setSortBy('ALL')}
-            className={`px-5 py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
+            className={`px-4 sm:px-5 py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
               sortBy === 'ALL'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-lg shadow-amber-500/20 scale-105'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-lg shadow-amber-500/20 scale-[1.02]'
                 : 'bg-[#101422] border border-white/10 text-gray-300 hover:text-white'
             }`}
           >
@@ -68,9 +68,9 @@ export default function Leaderboard() {
 
           <button
             onClick={() => setSortBy('MOST_KILLS')}
-            className={`px-5 py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
+            className={`px-4 sm:px-5 py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
               sortBy === 'MOST_KILLS'
-                ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-600/30 scale-105'
+                ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-600/30 scale-[1.02]'
                 : 'bg-[#101422] border border-white/10 text-gray-300 hover:text-white'
             }`}
           >
@@ -79,9 +79,9 @@ export default function Leaderboard() {
 
           <button
             onClick={() => setSortBy('TOP_PRIZE')}
-            className={`px-5 py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
+            className={`px-4 sm:px-5 py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
               sortBy === 'TOP_PRIZE'
-                ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-lg shadow-emerald-600/30 scale-105'
+                ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-lg shadow-emerald-600/30 scale-[1.02]'
                 : 'bg-[#101422] border border-white/10 text-gray-300 hover:text-white'
             }`}
           >
