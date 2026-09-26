@@ -75,33 +75,44 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
         <div className="relative rounded-2xl overflow-hidden bg-[#0c0e14] border border-red-900/30 p-6 sm:p-10 lg:p-12 shadow-2xl">
           
           {/* Background Layer: 2-Second Smooth Animation from Image to Video */}
-          <div className="absolute inset-0 z-0">
-            {/* 1. Instant Loading Base Hero Image */}
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            {/* 1. Original Base Hero Image (Always visible first for 2 seconds) */}
             <Image
               src="/kongkaal_hero.webp"
               alt="KongKaaL Gaming PUBG Warrior"
               priority
               fill
-              className="object-cover object-[80%_center] sm:object-right opacity-75 sm:opacity-60"
+              className="object-cover object-[80%_center] sm:object-right opacity-75 sm:opacity-60 transition-opacity"
             />
 
-            {/* 2. Background Video with Smooth Fade-in Animation after 2 seconds */}
+            {/* 2. Video Layer - Fades in smoothly after 2 seconds */}
             {videoUrl && (
               <div
                 className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                  showVideoBg ? 'opacity-70 sm:opacity-55' : 'opacity-0 pointer-events-none'
+                  showVideoBg ? 'opacity-60 sm:opacity-50' : 'opacity-0 pointer-events-none'
                 }`}
               >
-                <iframe
-                  src={`${videoUrl}${videoUrl.includes('?') ? '&' : '?'}autoplay=1&mute=1&loop=1&controls=0&disablekb=1&modestbranding=1&rel=0&playsinline=1`}
-                  title="PUBG Gaming Video Background"
-                  className="w-full h-full object-cover scale-150 pointer-events-none"
-                  allow="autoplay; encrypted-media"
-                />
+                {videoUrl.endsWith('.mp4') || videoUrl.includes('.mp4') ? (
+                  <video
+                    src={videoUrl}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <iframe
+                    src={`${videoUrl}${videoUrl.includes('?') ? '&' : '?'}autoplay=1&mute=1&loop=1&controls=0&disablekb=1&modestbranding=1&rel=0&playsinline=1`}
+                    title="PUBG Gaming Video Background"
+                    className="w-full h-full object-cover pointer-events-none scale-125"
+                    allow="autoplay; encrypted-media"
+                  />
+                )}
               </div>
             )}
 
-            {/* Gradient Overlays for perfect legibility */}
+            {/* Gradient Overlays for Readability (Original Gradients) */}
             <div className="absolute inset-0 bg-gradient-to-r from-[#07080b]/95 via-[#07080b]/60 to-[#07080b]/20 sm:via-[#07080b]/90 sm:to-transparent w-full lg:w-3/4" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#07080b] via-transparent to-black/40" />
           </div>
