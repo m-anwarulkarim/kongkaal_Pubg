@@ -168,10 +168,10 @@ export default function PlayersTab({
                               <img
                                 src={cust.avatarUrl}
                                 alt={cust.name}
-                                className="w-10 h-10 rounded-full border border-blue-500/40 object-cover shadow-md"
+                                className="w-10 h-10 min-w-[40px] min-h-[40px] shrink-0 rounded-full border border-blue-500/40 object-cover shadow-md"
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-blue-600 border border-blue-500 flex items-center justify-center text-white font-bold text-sm">
+                              <div className="w-10 h-10 min-w-[40px] min-h-[40px] shrink-0 rounded-full bg-blue-600 border border-blue-500 flex items-center justify-center text-white font-bold text-sm">
                                 {cust.name[0]?.toUpperCase()}
                               </div>
                             )}

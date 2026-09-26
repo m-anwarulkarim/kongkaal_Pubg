@@ -153,17 +153,17 @@ export default function Leaderboard() {
                         {/* Player Profile Picture & Name */}
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="relative">
+                            <div className="relative shrink-0 w-11 h-11 min-w-[44px] min-h-[44px]">
                               {win.avatarUrl ? (
                                 <img
                                   src={win.avatarUrl}
                                   alt={win.playerIgn}
-                                  className={`w-11 h-11 rounded-full object-cover shadow-md ${
+                                  className={`w-11 h-11 min-w-[44px] min-h-[44px] shrink-0 rounded-full object-cover shadow-md ${
                                     rankNum === 1 ? 'border-2 border-amber-400 shadow-amber-500/30 ring-2 ring-amber-500/20' : 'border border-amber-500/40'
                                   }`}
                                 />
                               ) : (
-                                <div className="w-11 h-11 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center text-amber-400 font-bold text-lg">
+                                <div className="w-11 h-11 min-w-[44px] min-h-[44px] shrink-0 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center text-amber-400 font-bold text-lg">
                                   {win.playerIgn[0]?.toUpperCase()}
                                 </div>
                               )}

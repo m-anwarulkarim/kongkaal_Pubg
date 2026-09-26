@@ -282,15 +282,15 @@ export default function LeaderboardTab() {
                     <tr key={item.id} className="hover:bg-amber-500/5 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="relative">
+                          <div className="relative shrink-0 w-10 h-10 min-w-[40px] min-h-[40px]">
                             {item.avatarUrl ? (
                               <img
                                 src={item.avatarUrl}
                                 alt={item.playerIgn}
-                                className="w-10 h-10 rounded-full border border-amber-500/40 object-cover shadow-md"
+                                className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full border border-amber-500/40 object-cover shadow-md shrink-0"
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold">
+                              <div className="w-10 h-10 min-w-[40px] min-h-[40px] shrink-0 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold">
                                 {item.playerIgn[0]?.toUpperCase()}
                               </div>
                             )}
