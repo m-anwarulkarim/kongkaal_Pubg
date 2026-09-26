@@ -8,7 +8,7 @@ interface WhatsAppFloatingButtonProps {
 }
 
 export default function WhatsAppFloatingButton({
-  phoneNumber = '8801602867954',
+  phoneNumber = '8801980184366',
   defaultMessage = 'হ্যালো! আমি KongKaaL Gaming টুর্নামেন্ট সম্পর্কে জানতে চাই।',
   agentName = 'KongKaaL Support',
 }: WhatsAppFloatingButtonProps) {

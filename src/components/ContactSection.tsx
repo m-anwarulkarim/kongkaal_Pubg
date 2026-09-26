@@ -83,7 +83,7 @@ export default function ContactSection() {
               <div className="space-y-1 mb-5 text-xs text-gray-300 font-semibold font-mono">
                 <div className="flex items-center gap-2">
                   <PhoneCall className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>+880 1602-867954</span>
+                  <span>+880 1980-184366</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-3.5 h-3.5 text-emerald-400" />
@@ -94,7 +94,7 @@ export default function ContactSection() {
 
             <div className="grid grid-cols-2 gap-2">
               <a
-                href="https://wa.me/8801602867954?text=Hello%20KongKaaL%20Support!%20I%20need%20help%20with%20tournament%20match."
+                href="https://wa.me/8801980184366?text=Hello%20KongKaaL%20Support!%20I%20need%20help%20with%20tournament%20match."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-gaming font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 no-underline shadow-lg shadow-emerald-600/20 transition-colors"
