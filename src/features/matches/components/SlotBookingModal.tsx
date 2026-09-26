@@ -17,7 +17,6 @@ import {
   ChevronLeft,
   Heart,
   Flame,
-  Rocket,
   CheckCircle2,
   Copy,
   Loader2,
@@ -74,7 +73,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
   const [player4Uid, _setPlayer4Uid] = useState('')
 
   // Payment State
-  const [paymentMethod, setPaymentMethod] = useState<'bKash' | 'Nagad' | 'Rocket' | 'WALLET'>('bKash')
+  const [paymentMethod, setPaymentMethod] = useState<'bKash' | 'Nagad' | 'WALLET'>('bKash')
   const [trxId, setTrxId] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [_dbBookingId, setDbBookingId] = useState<string | null>(null)
@@ -82,7 +81,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
   const paymentNumbers = {
     bKash: '01930249023',
     Nagad: '01930249023',
-    Rocket: '01930249023',
+  
   }
 
   const handleCopy = (num: string, type: string) => {
@@ -426,7 +425,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
               </div>
 
               {/* Payment Method Selector */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('bKash')}
@@ -451,19 +450,6 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                 >
                   <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
                   <span className="text-xs">Nagad</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('Rocket')}
-                  className={`p-2.5 sm:p-3 rounded-xl border flex flex-col items-center justify-center gap-1 font-bold transition-all ${
-                    paymentMethod === 'Rocket'
-                      ? 'bg-purple-950/40 border-purple-500 text-purple-400 shadow-lg shadow-purple-500/20'
-                      : 'bg-[#0b0e14] border-gray-800 text-gray-400 hover:border-gray-700'
-                  }`}
-                >
-                  <Rocket className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
-                  <span className="text-xs">Rocket</span>
                 </button>
 
                 <button

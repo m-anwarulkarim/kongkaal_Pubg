@@ -73,7 +73,7 @@ export default function PaymentsTab({
             Slot Booking Payments
           </h3>
           <span className="text-xs text-gray-400 font-medium">
-            Verify bKash / Nagad / Rocket Transaction IDs (TrxID) & Send WhatsApp Room ID
+            Verify bKash / Nagad Transaction IDs (TrxID) & Send WhatsApp Room ID
           </span>
         </div>
         <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-3 py-1">

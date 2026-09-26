@@ -11,7 +11,7 @@ export default function HowItWorks() {
     {
       num: '02',
       title: 'পেমেন্ট ও TrxID জমা দিন',
-      desc: 'bKash, Nagad বা Rocket দিয়ে সেন্ড মানি করে Transaction ID দিয়ে স্লট কনফার্ম করুন।',
+      desc: 'bKash বা Nagad দিয়ে সেন্ড মানি করে Transaction ID দিয়ে স্লট কনফার্ম করুন।',
       icon: CreditCard,
     },
     {

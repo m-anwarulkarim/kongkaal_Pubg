@@ -57,7 +57,7 @@ export default function AdminSidebar({
       label: 'Wallet & Money',
       icon: Wallet,
       badge: pendingWalletCount > 0 ? pendingWalletCount : null,
-      badgeColor: 'bg-emerald-500 text-black font-black animate-pulse shadow-md shadow-emerald-500/20',
+      badgeColor: 'bg-amber-500 text-black font-black animate-pulse shadow-md shadow-amber-500/20',
       iconColor: 'text-emerald-400',
     },
     {

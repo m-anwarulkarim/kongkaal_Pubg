@@ -70,14 +70,14 @@ function CustomerDashboardPage() {
 
   // Deposit Form State
   const [depAmount, setDepAmount] = useState('100')
-  const [depMethod, setDepMethod] = useState<'bKash' | 'Nagad' | 'Rocket'>('bKash')
+  const [depMethod, setDepMethod] = useState<'bKash' | 'Nagad'>('bKash')
   const [depTrxId, setDepTrxId] = useState('')
   const [depMsg, setDepMsg] = useState('')
   const [depSuccess, setDepSuccess] = useState(false)
 
   // Withdraw Form State
   const [wthAmount, setWthAmount] = useState('200')
-  const [wthMethod, setWthMethod] = useState<'bKash' | 'Nagad' | 'Rocket'>('bKash')
+  const [wthMethod, setWthMethod] = useState<'bKash' | 'Nagad'>('bKash')
   const [wthAccount, setWthAccount] = useState('')
   const [wthMsg, setWthMsg] = useState('')
   const [wthSuccess, setWthSuccess] = useState(false)
@@ -99,7 +99,6 @@ function CustomerDashboardPage() {
   const paymentNumbers = {
     bKash: '01930249023',
     Nagad: '01930249023',
-    Rocket: '01930249023',
   }
 
   useEffect(() => {
@@ -761,8 +760,8 @@ function CustomerDashboardPage() {
                 <form onSubmit={handleDepositSubmit} className="space-y-4 text-xs">
                   <div>
                     <label className="text-gray-300 font-bold block mb-1">Select Gateway</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(['bKash', 'Nagad', 'Rocket'] as const).map((m) => (
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['bKash', 'Nagad'] as const).map((m) => (
                         <button
                           type="button"
                           key={m}
@@ -906,8 +905,8 @@ function CustomerDashboardPage() {
                 <form onSubmit={handleWithdrawSubmit} className="space-y-4 text-xs">
                   <div>
                     <label className="text-gray-300 font-bold block mb-1">Select Cash-out Method</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(['bKash', 'Nagad', 'Rocket'] as const).map((m) => (
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['bKash', 'Nagad'] as const).map((m) => (
                         <button
                           type="button"
                           key={m}
