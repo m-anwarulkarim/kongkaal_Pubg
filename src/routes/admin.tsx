@@ -8,6 +8,7 @@ import {
   deleteMatch,
   type RegistrationRecord,
 } from '@/lib/db'
+import { getAllCustomerProfiles } from '@/lib/wallet'
 import { supabase } from '@/lib/supabase'
 import type { MatchItem } from '@/types/match'
 import {
@@ -40,6 +41,7 @@ function AdminDashboard() {
   // Admin Data State
   const [matches, setMatches] = useState<MatchItem[]>([])
   const [registrations, setRegistrations] = useState<RegistrationRecord[]>([])
+  const [customerCount, setCustomerCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -106,9 +108,14 @@ function AdminDashboard() {
 
   const loadAdminData = async () => {
     setLoading(true)
-    const [matchesData, regsData] = await Promise.all([getMatches(), getAllRegistrations()])
+    const [matchesData, regsData, custsData] = await Promise.all([
+      getMatches(),
+      getAllRegistrations(),
+      getAllCustomerProfiles(),
+    ])
     setMatches(matchesData)
     setRegistrations(regsData)
+    setCustomerCount(custsData.length)
     setLoading(false)
   }
 
@@ -233,6 +240,7 @@ function AdminDashboard() {
               pendingCount={pendingCount}
               matches={matches}
               registrations={registrations}
+              customerCount={customerCount}
               setActiveTab={setActiveTab}
               handleStatusUpdate={handleStatusUpdate}
             />

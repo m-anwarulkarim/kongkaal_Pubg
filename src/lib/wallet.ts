@@ -74,7 +74,7 @@ if (typeof window !== 'undefined' && getLocalTxs().length === 0) {
 }
 
 // 1. Get or Create Customer Profile
-export async function getCustomerProfile(email: string, name?: string): Promise<CustomerProfile> {
+export async function getCustomerProfile(email: string, name?: string, avatarUrl?: string): Promise<CustomerProfile> {
   const wallets = getLocalWallets()
   let profile = wallets[email]
 
@@ -85,7 +85,12 @@ export async function getCustomerProfile(email: string, name?: string): Promise<
       pubgUid: '',
       whatsappNumber: '',
       walletBalance: 0,
+      avatarUrl: avatarUrl || '',
     }
+    wallets[email] = profile
+    saveLocalWallets(wallets)
+  } else if (avatarUrl && !profile.avatarUrl) {
+    profile.avatarUrl = avatarUrl
     wallets[email] = profile
     saveLocalWallets(wallets)
   }
@@ -104,6 +109,16 @@ export async function getCustomerProfile(email: string, name?: string): Promise<
         profile.pubgUid = data.pubg_uid || profile.pubgUid
         profile.whatsappNumber = data.whatsapp_number || profile.whatsappNumber
         profile.avatarUrl = data.avatar_url || profile.avatarUrl
+      } else {
+        // Upsert new profile to Supabase if not created yet
+        await supabase.from('customer_wallets').upsert({
+          email: profile.email,
+          name: profile.name,
+          pubg_uid: profile.pubgUid,
+          whatsapp_number: profile.whatsappNumber,
+          balance: profile.walletBalance,
+          avatar_url: profile.avatarUrl,
+        })
       }
     } catch (err) {
       console.log('Supabase customer wallet sync err:', err)
@@ -332,5 +347,27 @@ export async function getWalletTransactions(userEmail?: string): Promise<WalletT
 // 9. Get All Customer Profiles for Admin
 export async function getAllCustomerProfiles(): Promise<CustomerProfile[]> {
   const wallets = getLocalWallets()
-  return Object.values(wallets)
+  const map: Record<string, CustomerProfile> = { ...wallets }
+
+  if (isSupabaseConfigured()) {
+    try {
+      const { data } = await supabase.from('customer_wallets').select('*')
+      if (data && data.length > 0) {
+        data.forEach((d: any) => {
+          map[d.email] = {
+            email: d.email,
+            name: d.name || d.email.split('@')[0],
+            pubgUid: d.pubg_uid || map[d.email]?.pubgUid || '',
+            whatsappNumber: d.whatsapp_number || map[d.email]?.whatsappNumber || '',
+            walletBalance: Number(d.balance !== undefined ? d.balance : (map[d.email]?.walletBalance || 0)),
+            avatarUrl: d.avatar_url || map[d.email]?.avatarUrl || '',
+          }
+        })
+      }
+    } catch (err) {
+      console.log('Supabase getAllCustomerProfiles err:', err)
+    }
+  }
+
+  return Object.values(map)
 }

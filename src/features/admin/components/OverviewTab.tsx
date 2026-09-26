@@ -20,6 +20,7 @@ interface OverviewTabProps {
   pendingCount: number
   matches: MatchItem[]
   registrations: RegistrationRecord[]
+  customerCount?: number
   setActiveTab: (tab: AdminTabType) => void
   handleStatusUpdate: (id: string, newStatus: 'VERIFIED' | 'REJECTED') => void
 }
@@ -30,6 +31,7 @@ export default function OverviewTab({
   pendingCount,
   matches,
   registrations,
+  customerCount = 0,
   setActiveTab,
   handleStatusUpdate,
 }: OverviewTabProps) {
@@ -85,19 +87,22 @@ export default function OverviewTab({
           </span>
         </Card>
 
-        {/* Total Registrations Card */}
-        <Card className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-blue-500/30 p-5 rounded-2xl shadow-xl">
+        {/* Total Gmail Customers & Registrations Card */}
+        <Card 
+          onClick={() => setActiveTab('PLAYERS')}
+          className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-blue-500/30 p-5 rounded-2xl shadow-xl cursor-pointer hover:border-blue-500/60 transition-colors"
+        >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-blue-400 uppercase">TOTAL REGISTRATIONS</span>
+            <span className="text-xs font-bold text-blue-400 uppercase">GMAIL CUSTOMERS</span>
             <div className="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-600/30 flex items-center justify-center text-blue-400">
               <Users className="w-5 h-5" />
             </div>
           </div>
           <div className="font-display text-4xl font-black text-white mb-1">
-            {registrations.length}
+            {customerCount || registrations.length}
           </div>
           <span className="text-[11px] text-gray-400 font-medium">
-            Saved in Supabase Database
+            Click to View Customer Profiles Directory →
           </span>
         </Card>
       </div>
