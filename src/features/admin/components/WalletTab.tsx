@@ -35,6 +35,20 @@ export default function WalletTab() {
 
   useEffect(() => {
     loadWalletData()
+
+    const handleUpdate = () => {
+      loadWalletData()
+    }
+
+    window.addEventListener('wallet_updated', handleUpdate)
+    window.addEventListener('profile_updated', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+
+    return () => {
+      window.removeEventListener('wallet_updated', handleUpdate)
+      window.removeEventListener('profile_updated', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
   }, [])
 
   const handleSendMoneySubmit = async (e: React.FormEvent) => {

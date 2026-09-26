@@ -82,6 +82,7 @@ function getLocalMatches(): MatchItem[] {
 function saveLocalMatches(matches: MatchItem[]) {
   if (typeof window !== 'undefined') {
     localStorage.setItem('kongkaal_matches', JSON.stringify(matches))
+    window.dispatchEvent(new Event('matches_updated'))
   }
   matchesCache = null
 }
@@ -295,6 +296,7 @@ export function saveLocalRegistrationRecord(record: RegistrationRecord) {
   if (typeof window === 'undefined') return
   const current = getLocalRegistrationRecords()
   localStorage.setItem('kongkaal_registrations', JSON.stringify([record, ...current]))
+  window.dispatchEvent(new Event('registrations_updated'))
 }
 
 // 4. Save Player Slot Registration & Payment TrxID
@@ -458,6 +460,9 @@ export async function getAllRegistrations(): Promise<RegistrationRecord[]> {
 
 // 6. Update Registration Status (Approve/Reject)
 export async function updateRegistrationStatus(id: string, status: 'VERIFIED' | 'REJECTED'): Promise<{ success: boolean; message: string }> {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('registrations_updated'))
+  }
   if (!isSupabaseConfigured()) {
     return { success: true, message: `Registration status updated to ${status} locally.` }
   }
@@ -470,6 +475,10 @@ export async function updateRegistrationStatus(id: string, status: 'VERIFIED' | 
 
     if (error) {
       return { success: false, message: error.message }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('registrations_updated'))
     }
 
     return { success: true, message: `Status updated to ${status} successfully!` }
@@ -549,6 +558,7 @@ function getLocalLeaderboard(): LeaderboardItem[] {
 function saveLocalLeaderboard(items: LeaderboardItem[]) {
   if (typeof window !== 'undefined') {
     localStorage.setItem('kongkaal_leaderboard', JSON.stringify(items))
+    window.dispatchEvent(new Event('leaderboard_updated'))
   }
 }
 

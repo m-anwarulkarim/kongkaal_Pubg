@@ -58,6 +58,7 @@ export function getSupportMessages(): SupportMessage[] {
 export function saveSupportMessages(messages: SupportMessage[]) {
   if (typeof window !== 'undefined') {
     localStorage.setItem('kongkaal_support_messages', JSON.stringify(messages))
+    window.dispatchEvent(new Event('support_updated'))
   }
 }
 

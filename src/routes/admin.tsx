@@ -124,6 +124,28 @@ function AdminDashboard() {
   useEffect(() => {
     if (isAuthenticated) {
       loadAdminData()
+
+      const handleUpdate = () => {
+        loadAdminData()
+      }
+
+      window.addEventListener('matches_updated', handleUpdate)
+      window.addEventListener('registrations_updated', handleUpdate)
+      window.addEventListener('wallet_updated', handleUpdate)
+      window.addEventListener('profile_updated', handleUpdate)
+      window.addEventListener('leaderboard_updated', handleUpdate)
+      window.addEventListener('support_updated', handleUpdate)
+      window.addEventListener('storage', handleUpdate)
+
+      return () => {
+        window.removeEventListener('matches_updated', handleUpdate)
+        window.removeEventListener('registrations_updated', handleUpdate)
+        window.removeEventListener('wallet_updated', handleUpdate)
+        window.removeEventListener('profile_updated', handleUpdate)
+        window.removeEventListener('leaderboard_updated', handleUpdate)
+        window.removeEventListener('support_updated', handleUpdate)
+        window.removeEventListener('storage', handleUpdate)
+      }
     }
   }, [isAuthenticated])
 

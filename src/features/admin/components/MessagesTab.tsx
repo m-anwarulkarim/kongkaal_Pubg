@@ -57,6 +57,18 @@ export default function MessagesTab({ initialSearch = '' }: MessagesTabProps) {
 
   useEffect(() => {
     loadData()
+
+    const handleUpdate = () => {
+      loadData()
+    }
+
+    window.addEventListener('support_updated', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+
+    return () => {
+      window.removeEventListener('support_updated', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
   }, [])
 
   useEffect(() => {

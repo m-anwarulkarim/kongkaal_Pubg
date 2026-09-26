@@ -68,6 +68,18 @@ export default function LeaderboardTab() {
 
   useEffect(() => {
     loadData()
+
+    const handleUpdate = () => {
+      loadData()
+    }
+
+    window.addEventListener('leaderboard_updated', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+
+    return () => {
+      window.removeEventListener('leaderboard_updated', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
   }, [])
 
   const handleOpenAddModal = () => {

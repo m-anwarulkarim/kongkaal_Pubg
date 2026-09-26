@@ -18,6 +18,8 @@ function getLocalWallets(): Record<string, CustomerProfile> {
 function saveLocalWallets(wallets: Record<string, CustomerProfile>) {
   if (typeof window === 'undefined') return
   localStorage.setItem(LOCAL_WALLET_KEY, JSON.stringify(wallets))
+  window.dispatchEvent(new Event('profile_updated'))
+  window.dispatchEvent(new Event('wallet_updated'))
 }
 
 function getLocalTxs(): WalletTransaction[] {
@@ -33,6 +35,7 @@ function getLocalTxs(): WalletTransaction[] {
 function saveLocalTxs(txs: WalletTransaction[]) {
   if (typeof window === 'undefined') return
   localStorage.setItem(LOCAL_TX_KEY, JSON.stringify(txs))
+  window.dispatchEvent(new Event('wallet_updated'))
 }
 
 // Initial Mock Seed
