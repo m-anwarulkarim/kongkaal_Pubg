@@ -228,9 +228,48 @@ export async function updateMatch(match: MatchItem): Promise<{ success: boolean;
 }
 
 
+// 3.5 Increment Match Joined Slots Count
+export async function incrementMatchSlots(matchId?: string | null, count = 1): Promise<void> {
+  if (!matchId) return
+
+  // Update local storage
+  const local = getLocalMatches()
+  const updated = local.map((m) => {
+    if (m.id === matchId) {
+      const newJoined = Math.min(m.maxSlots || 100, (m.joinedSlots || 0) + count)
+      const newStatus = newJoined >= (m.maxSlots || 100) ? 'FILLING_FAST' : m.status
+      return { ...m, joinedSlots: newJoined, status: newStatus }
+    }
+    return m
+  })
+  saveLocalMatches(updated)
+
+  // Update Supabase if configured
+  if (isSupabaseConfigured() && matchId && matchId.length > 20) {
+    try {
+      const { data: current } = await supabase.from('matches').select('joined_slots, max_slots').eq('id', matchId).single()
+      if (current) {
+        const nextJoined = Math.min(current.max_slots || 100, (current.joined_slots || 0) + count)
+        await supabase.from('matches').update({ joined_slots: nextJoined }).eq('id', matchId)
+      }
+    } catch (err) {
+      console.warn('Could not increment match slots in Supabase:', err)
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('matches_updated'))
+  }
+}
+
 // 4. Save Player Slot Registration & Payment TrxID
 export async function saveRegistration(registration: PlayerRegistration): Promise<{ success: boolean; message: string; id?: string }> {
   console.log('[DB Service] Saving slot registration:', registration)
+
+  // Auto-increment slot count for this match
+  if (registration.matchId) {
+    await incrementMatchSlots(registration.matchId, 1)
+  }
 
   if (!isSupabaseConfigured()) {
     return {

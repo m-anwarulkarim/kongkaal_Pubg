@@ -33,6 +33,17 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
       }
     }
     loadTournamentMatches()
+
+    const handleUpdate = () => {
+      loadTournamentMatches()
+    }
+
+    window.addEventListener('matches_updated', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+    return () => {
+      window.removeEventListener('matches_updated', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
   }, [])
 
   const filteredMatches = selectedMode === 'ALL'
