@@ -10,6 +10,8 @@ import {
   PhoneCall,
   Clock,
   ExternalLink,
+  QrCode,
+  X,
 } from 'lucide-react'
 
 export default function ContactSection() {
@@ -23,6 +25,7 @@ export default function ContactSection() {
 
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [qrModalOpen, setQrModalOpen] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,40 +64,52 @@ export default function ContactSection() {
         {/* Top 3 Quick Contact Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1: WhatsApp Support */}
-          <div className="bg-[#0e121d] border border-emerald-500/30 hover:border-emerald-500/60 rounded-2xl p-6 transition-all hover:-translate-y-1 shadow-xl group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                <MessageCircle className="w-6 h-6" />
+          <div className="bg-[#0e121d] border border-emerald-500/30 hover:border-emerald-500/60 rounded-2xl p-6 transition-all hover:-translate-y-1 shadow-xl group flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                  <MessageCircle className="w-6 h-6" />
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                  Instant Chat
+                </span>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                Instant Chat
-              </span>
+              <h3 className="font-display text-xl font-bold text-white uppercase mb-1">
+                WhatsApp Support
+              </h3>
+              <p className="text-xs text-gray-400 mb-4">
+                যেকোনো দ্রুত সাহায্যের জন্য আমাদের অফিসিয়াল হোয়াটসঅ্যাপে মেসেজ বা কল দিন।
+              </p>
+              <div className="space-y-1 mb-5 text-xs text-gray-300 font-semibold font-mono">
+                <div className="flex items-center gap-2">
+                  <PhoneCall className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>+880 1602-867954</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Active 24 Hours / 7 Days</span>
+                </div>
+              </div>
             </div>
-            <h3 className="font-display text-xl font-bold text-white uppercase mb-1">
-              WhatsApp Support
-            </h3>
-            <p className="text-xs text-gray-400 mb-4">
-              যেকোনো দ্রুত সাহায্যের জন্য আমাদের অফিসিয়াল হোয়াটসঅ্যাপে মেসেজ বা কল দিন।
-            </p>
-            <div className="space-y-1 mb-5 text-xs text-gray-300 font-semibold font-mono">
-              <div className="flex items-center gap-2">
-                <PhoneCall className="w-3.5 h-3.5 text-emerald-400" />
-                <span>+880 1602-867954</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Active 24 Hours / 7 Days</span>
-              </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <a
+                href="https://wa.me/8801602867954?text=Hello%20KongKaaL%20Support!%20I%20need%20help%20with%20tournament%20match."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-gaming font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 no-underline shadow-lg shadow-emerald-600/20 transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Chat
+              </a>
+              <button
+                onClick={() => setQrModalOpen(true)}
+                className="py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-gaming font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <QrCode className="w-4 h-4 text-emerald-400" />
+                Scan QR
+              </button>
             </div>
-            <a
-              href="https://wa.me/8801602867954?text=Hello%20KongKaaL%20Support!%20I%20need%20help%20with%20tournament%20match."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-gaming font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 no-underline shadow-lg shadow-emerald-600/20 transition-colors"
-            >
-              <MessageCircle className="w-4 h-4" />
-              Chat on WhatsApp
-            </a>
           </div>
 
           {/* Card 2: Email & Official Helpdesk */}
@@ -328,6 +343,48 @@ export default function ContactSection() {
           </div>
         </div>
       </div>
+
+      {/* WhatsApp QR Code Modal */}
+      {qrModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#0e121d] border border-emerald-500/40 w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl p-6 text-center space-y-4 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-emerald-400" />
+                <h4 className="font-display font-bold text-white text-base uppercase">
+                  KongKaaL WhatsApp QR
+                </h4>
+              </div>
+              <button
+                onClick={() => setQrModalOpen(false)}
+                className="p-1 text-gray-400 hover:text-white rounded-lg bg-white/5"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 bg-emerald-600/10 border border-emerald-500/30 rounded-2xl">
+              <div className="p-3 bg-white rounded-2xl max-w-[220px] mx-auto shadow-xl">
+                <img
+                  src="/whatsapp_qr.png"
+                  alt="KongKaaL WhatsApp QR Code"
+                  className="w-full h-auto object-contain rounded-xl"
+                />
+              </div>
+              <p className="text-xs text-emerald-300 font-medium mt-3 leading-relaxed">
+                মোবাইল ফোনের হোয়াটসঅ্যাপ ক্যামেরা দিয়ে সরাসরি এই **QR Code** স্ক্যান করে যুক্ত হন!
+              </p>
+            </div>
+
+            <button
+              onClick={() => setQrModalOpen(false)}
+              className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase"
+            >
+              Close Window
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
