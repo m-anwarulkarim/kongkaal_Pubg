@@ -8,6 +8,7 @@ export { default as WalletTab } from './components/WalletTab'
 export { default as MatchesTab } from './components/MatchesTab'
 export { default as PlayersTab } from './components/PlayersTab'
 export { default as LeaderboardTab } from './components/LeaderboardTab'
+export { default as MessagesTab } from './components/MessagesTab'
 export { default as SettingsTab } from './components/SettingsTab'
 
 

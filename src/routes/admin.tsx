@@ -23,6 +23,7 @@ import {
   MatchesTab,
   PlayersTab,
   LeaderboardTab,
+  MessagesTab,
   SettingsTab,
 } from '@/features/admin'
 
@@ -274,6 +275,8 @@ function AdminDashboard() {
           )}
 
           {activeTab === 'LEADERBOARD' && <LeaderboardTab />}
+
+          {activeTab === 'MESSAGES' && <MessagesTab />}
 
           {activeTab === 'SETTINGS' && <SettingsTab />}
         </main>

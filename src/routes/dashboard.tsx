@@ -12,6 +12,11 @@ import {
 } from '@/lib/wallet'
 import { getAllRegistrations, type RegistrationRecord } from '@/lib/db'
 import type { CustomerProfile, WalletTransaction } from '@/types/wallet'
+import {
+  getUserSupportMessages,
+  sendSupportMessage,
+  type SupportMessage,
+} from '@/lib/support'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,6 +35,10 @@ import {
   User,
   Trash2,
   Sparkles,
+  MessageSquare,
+  Send,
+  Plus,
+  MessageCircle,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/dashboard')({ component: CustomerDashboardPage })
@@ -74,6 +83,13 @@ function CustomerDashboardPage() {
   const [editAvatarUrl, setEditAvatarUrl] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
+  // Support Messages State
+  const [supportMessages, setSupportMessages] = useState<SupportMessage[]>([])
+  const [newMsgOpen, setNewMsgOpen] = useState(false)
+  const [msgSubject, setMsgSubject] = useState('')
+  const [msgContent, setMsgContent] = useState('')
+  const [sendingMsg, setSendingMsg] = useState(false)
+
   const paymentNumbers = {
     bKash: '01712-345678',
     Nagad: '01812-345678',
@@ -107,6 +123,9 @@ function CustomerDashboardPage() {
         (userProfile.pubgUid && r.player1Uid.includes(userProfile.pubgUid))
     )
     setMyMatches(userRegs)
+
+    const userMsgs = getUserSupportMessages(user.email)
+    setSupportMessages(userMsgs)
   }
 
   useEffect(() => {
@@ -114,6 +133,28 @@ function CustomerDashboardPage() {
       loadDashboardData()
     }
   }, [user])
+
+  const handleSendSupportMsg = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user?.email || !profile || !msgSubject.trim() || !msgContent.trim()) return
+
+    setSendingMsg(true)
+    sendSupportMessage({
+      userId: user.email,
+      userName: profile.name,
+      userEmail: user.email,
+      userAvatar: profile.avatarUrl,
+      subject: msgSubject.trim(),
+      message: msgContent.trim(),
+    })
+
+    setMsgSubject('')
+    setMsgContent('')
+    setNewMsgOpen(false)
+    setSendingMsg(false)
+
+    setSupportMessages(getUserSupportMessages(user.email))
+  }
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
@@ -486,6 +527,74 @@ function CustomerDashboardPage() {
                 </div>
               )}
             </Card>
+
+            {/* 5. Support Messages & Admin Replies */}
+            <Card className="bg-[#101422] border-white/10 p-6 sm:p-8 rounded-3xl space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
+                <div>
+                  <h3 className="font-display text-xl sm:text-2xl font-black text-white uppercase flex items-center gap-2">
+                    <MessageSquare className="w-6 h-6 text-red-500" />
+                    Support Messages & Admin Replies
+                  </h3>
+                  <p className="text-xs text-gray-400">এডমিনকে মেসেজ পাঠান এবং আপনার প্রশ্নের এডমিন রিপ্লাই দেখুন</p>
+                </div>
+                <Button
+                  onClick={() => setNewMsgOpen(true)}
+                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold text-xs flex items-center gap-1.5 rounded-xl shadow-lg shadow-red-600/20"
+                >
+                  <Plus className="w-4 h-4" /> Send New Message
+                </Button>
+              </div>
+
+              {supportMessages.length === 0 ? (
+                <div className="text-center py-8 text-gray-400 text-xs space-y-2">
+                  <MessageCircle className="w-8 h-8 text-gray-600 mx-auto" />
+                  <p>আপনি কোনো সাপোর্ট মেসেজ পাঠাননি। যেকোনো সহায়তার জন্য উপরের বোতামে ক্লিক করুন।</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {supportMessages.map((msg) => (
+                    <div key={msg.id} className="bg-[#161a29] border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-red-400">{msg.subject}</span>
+                          <span className="text-[10px] text-gray-400 font-mono">
+                            ({new Date(msg.createdAt).toLocaleString('bn-BD', { dateStyle: 'medium', timeStyle: 'short' })})
+                          </span>
+                        </div>
+                        <Badge
+                          className={
+                            msg.status === 'REPLIED'
+                              ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'
+                              : 'bg-amber-950 text-amber-400 border border-amber-500/30'
+                          }
+                        >
+                          {msg.status === 'REPLIED' ? 'REPLIED BY ADMIN' : 'PENDING REPLY'}
+                        </Badge>
+                      </div>
+
+                      <p className="text-xs text-gray-200 whitespace-pre-wrap">{msg.message}</p>
+
+                      {msg.adminReply && (
+                        <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-3.5 space-y-1 mt-2">
+                          <div className="flex items-center justify-between text-[11px] font-bold text-emerald-400">
+                            <span className="flex items-center gap-1">
+                              <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Admin Response:
+                            </span>
+                            {msg.repliedAt && (
+                              <span className="text-[10px] text-gray-400 font-mono">
+                                {new Date(msg.repliedAt).toLocaleString('bn-BD', { dateStyle: 'medium', timeStyle: 'short' })}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-emerald-100 whitespace-pre-wrap">{msg.adminReply}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
           </>
         )}
       </main>
@@ -770,6 +879,61 @@ function CustomerDashboardPage() {
 
               <Button type="submit" className="w-full bg-[#e50914] hover:bg-red-600 font-bold py-3 text-xs rounded-xl shadow-lg shadow-red-600/30">
                 Save Profile Changes
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: SEND SUPPORT MESSAGE */}
+      {newMsgOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="bg-[#0f121d] border border-red-500/30 rounded-3xl p-6 max-w-md w-full space-y-5">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h3 className="font-bold text-lg text-white flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-red-500" /> Send Message to Admin
+              </h3>
+              <button onClick={() => setNewMsgOpen(false)} className="text-gray-400 hover:text-white">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSendSupportMsg} className="space-y-4 text-xs">
+              <div>
+                <label className="text-gray-300 font-bold block mb-1">
+                  Subject / বিষয় <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="text"
+                  required
+                  placeholder="যেমন: টাকা জমা বা ডিপোজিট সমস্যা"
+                  value={msgSubject}
+                  onChange={(e) => setMsgSubject(e.target.value)}
+                  className="bg-[#161a29] border-white/10 text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-gray-300 font-bold block mb-1">
+                  Your Message / বার্তা <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="আপনার বিস্তারিত প্রশ্ন বা বার্তা এখানে লিখুন..."
+                  value={msgContent}
+                  onChange={(e) => setMsgContent(e.target.value)}
+                  className="w-full px-3 py-2 bg-[#161a29] border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-red-500 placeholder-gray-500"
+                ></textarea>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={sendingMsg}
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-3 rounded-xl shadow-lg shadow-red-600/30 flex items-center justify-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                {sendingMsg ? 'Sending...' : 'Send Message'}
               </Button>
             </form>
           </div>

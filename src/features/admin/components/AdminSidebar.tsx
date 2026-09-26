@@ -9,6 +9,7 @@ import {
   Gamepad2,
   Users,
   Trophy,
+  MessageSquare,
   Settings,
   LogOut,
 } from 'lucide-react'
@@ -190,6 +191,21 @@ export default function AdminSidebar({
               <span className={sidebarOpen ? 'block' : 'hidden md:hidden'}>Leaderboard & Winners</span>
             </button>
 
+            {/* Support Messages & Customer Inquiries */}
+            <button
+              onClick={() => {
+                setActiveTab('MESSAGES')
+                if (typeof window !== 'undefined' && window.innerWidth < 768) setSidebarOpen(false)
+              }}
+              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'MESSAGES'
+                  ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-600/30'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <MessageSquare className="w-5 h-5 shrink-0 text-sky-400" />
+              <span className={sidebarOpen ? 'block' : 'hidden md:hidden'}>Support Messages</span>
+            </button>
 
             {/* System Settings */}
             <button
