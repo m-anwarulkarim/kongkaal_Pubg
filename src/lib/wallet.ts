@@ -273,7 +273,7 @@ export async function requestDeposit(data: {
 
   if (isSupabaseConfigured()) {
     try {
-      await supabase.from('wallet_transactions').insert([
+      const { error } = await supabase.from('wallet_transactions').insert([
         {
           user_email: normEmail,
           user_name: data.userName,
@@ -285,6 +285,9 @@ export async function requestDeposit(data: {
           note: tx.note,
         },
       ])
+      if (error) {
+        console.warn('[Wallet Service] Supabase deposit insert error:', error.message)
+      }
     } catch (err) {
       console.warn('Supabase deposit insert warning:', err)
     }
