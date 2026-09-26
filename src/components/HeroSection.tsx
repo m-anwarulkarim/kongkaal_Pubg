@@ -17,10 +17,11 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
 
   useEffect(() => {
     const loadBannerData = async () => {
-      setHeroSettings(getHeroBannerSettings())
+      const banner = await getHeroBannerSettings()
+      setHeroSettings(banner)
 
       try {
-        const matches = await getMatches()
+        const matches = await getMatches(true)
         const upcoming = matches.find((m) => m.status === 'OPEN' || m.status === 'FILLING_FAST' || m.status === 'LIVE_SOON')
         const activeMatches = matches.filter((m) => m.status !== 'COMPLETED')
 

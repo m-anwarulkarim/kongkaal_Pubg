@@ -1,15 +1,40 @@
+import { useState, useEffect } from 'react'
 import { Crown, Trophy, ArrowRight } from 'lucide-react'
 import Image from '@/components/ui/Image'
 import Link from '@/components/ui/Link'
+import { getLeaderboard, INITIAL_LEADERBOARD } from '@/lib/db'
+import type { LeaderboardItem } from '@/types/match'
 
 export default function RightSidebar() {
-  const leaderboardData = [
-    { rank: 1, name: 'RIYAD', kills: 187, wins: 6, prize: '৳8,450', avatar: '/solo_battle.webp' },
-    { rank: 2, name: 'SHAKIB*BD', kills: 164, wins: 5, prize: '৳6,200', avatar: '/duo_battle.webp' },
-    { rank: 3, name: 'xXLegendXx', kills: 152, wins: 4, prize: '৳5,750', avatar: '/squad_showdown.webp' },
-    { rank: 4, name: 'TuhinPlayz', kills: 141, wins: 4, prize: '৳4,900', avatar: '/solo_battle.webp' },
-    { rank: 5, name: 'ZihadGaming', kills: 132, wins: 3, prize: '৳3,800', avatar: '/duo_battle.webp' },
-  ]
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([])
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const data = await getLeaderboard()
+        if (data && data.length > 0) {
+          setLeaderboardData(data.slice(0, 5))
+        } else {
+          setLeaderboardData(INITIAL_LEADERBOARD.slice(0, 5))
+        }
+      } catch (err) {
+        console.error('Failed to load leaderboard in sidebar:', err)
+        setLeaderboardData(INITIAL_LEADERBOARD.slice(0, 5))
+      }
+    }
+    loadData()
+
+    const handleUpdate = () => {
+      loadData()
+    }
+
+    window.addEventListener('leaderboard_updated', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+    return () => {
+      window.removeEventListener('leaderboard_updated', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
+  }, [])
 
   return (
     <aside className="space-y-6">
@@ -38,42 +63,44 @@ export default function RightSidebar() {
                 <th className="pb-2">#</th>
                 <th className="pb-2">Player</th>
                 <th className="pb-2 text-center">Kills</th>
-                <th className="pb-2 text-center">Wins</th>
                 <th className="pb-2 text-right">Prize</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 font-medium">
-              {leaderboardData.map((row) => (
-                <tr key={row.rank} className="hover:bg-white/5 transition-colors">
+              {leaderboardData.map((row, idx) => (
+                <tr key={row.id || idx} className="hover:bg-white/5 transition-colors">
                   <td className="py-2.5">
                     <span
                       className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] ${
-                        row.rank === 1
+                        idx === 0
                           ? 'bg-amber-500 text-black'
-                          : row.rank === 2
+                          : idx === 1
                           ? 'bg-gray-300 text-black'
-                          : row.rank === 3
+                          : idx === 2
                           ? 'bg-amber-700 text-white'
                           : 'bg-[#181c28] text-gray-400'
                       }`}
                     >
-                      {row.rank}
+                      {idx + 1}
                     </span>
                   </td>
                   <td className="py-2.5">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full overflow-hidden shrink-0 border border-white/20">
-                        <Image src={row.avatar} alt={row.name} fill className="object-cover" />
+                      <div className="w-6 h-6 rounded-full overflow-hidden shrink-0 border border-white/20 bg-red-950 flex items-center justify-center">
+                        {row.avatarUrl ? (
+                          <img src={row.avatarUrl} alt={row.playerIgn} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-[10px] font-bold text-white">{row.playerIgn[0]?.toUpperCase()}</span>
+                        )}
                       </div>
                       <span className="font-bold text-white tracking-wide flex items-center gap-1">
-                        <span className="font-bold text-[9px] text-emerald-400 bg-emerald-950/80 px-1 rounded border border-emerald-500/30">BD</span> {row.name}
+                        <span className="font-bold text-[9px] text-emerald-400 bg-emerald-950/80 px-1 rounded border border-emerald-500/30">BD</span> {row.playerIgn}
                       </span>
                     </div>
                   </td>
                   <td className="py-2.5 text-center text-gray-300">{row.kills}</td>
-                  <td className="py-2.5 text-center text-gray-300">{row.wins}</td>
                   <td className="py-2.5 text-right font-display text-sm font-black text-[#e50914]">
-                    {row.prize}
+                    ৳{row.prizeWon}
                   </td>
                 </tr>
               ))}
@@ -101,15 +128,19 @@ export default function RightSidebar() {
 
         {/* Player Avatars Row */}
         <div className="grid grid-cols-5 gap-2 text-center">
-          {leaderboardData.map((player) => (
-            <div key={player.rank} className="flex flex-col items-center">
+          {leaderboardData.map((player, idx) => (
+            <div key={player.id || idx} className="flex flex-col items-center">
               <div className="relative mb-1">
-                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-red-600 p-0.5 shadow-md">
-                  <Image src={player.avatar} alt={player.name} fill className="object-cover rounded-full" />
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-red-600 p-0.5 shadow-md bg-red-950 flex items-center justify-center">
+                  {player.avatarUrl ? (
+                    <img src={player.avatarUrl} alt={player.playerIgn} className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    <span className="text-white font-bold text-xs">{player.playerIgn[0]?.toUpperCase()}</span>
+                  )}
                 </div>
               </div>
               <span className="text-[10px] font-bold text-white truncate max-w-[50px]">
-                {player.name}
+                {player.playerIgn}
               </span>
               <span className="text-[9px] text-gray-400 font-medium">
                 {player.kills} Kills

@@ -79,10 +79,12 @@ function getLocalMatches(): MatchItem[] {
   }
 }
 
-function saveLocalMatches(matches: MatchItem[]) {
+function saveLocalMatches(matches: MatchItem[], notify = true) {
   if (typeof window !== 'undefined') {
     localStorage.setItem('kongkaal_matches', JSON.stringify(matches))
-    window.dispatchEvent(new Event('matches_updated'))
+    if (notify) {
+      window.dispatchEvent(new Event('matches_updated'))
+    }
   }
   matchesCache = null
 }
@@ -90,8 +92,56 @@ function saveLocalMatches(matches: MatchItem[]) {
 let matchesCache: { data: MatchItem[]; timestamp: number } | null = null
 const CACHE_TTL_MS = 10000 // 10 seconds SWR cache for 100k scale
 
-// 1. Fetch Active Tournament Matches (Ultra-fast cached response)
-export async function getMatches(): Promise<MatchItem[]> {
+export function clearMatchesCache() {
+  matchesCache = null
+}
+
+// Subscribe to Realtime DB events for instant live updates across all devices & tabs
+if (typeof window !== 'undefined' && isSupabaseConfigured()) {
+  try {
+    supabase
+      .channel('kongkaal_realtime_db_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'matches' },
+        () => {
+          clearMatchesCache()
+          window.dispatchEvent(new Event('matches_updated'))
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'leaderboards' },
+        () => {
+          window.dispatchEvent(new Event('leaderboard_updated'))
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'registrations' },
+        () => {
+          window.dispatchEvent(new Event('registrations_updated'))
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'site_settings' },
+        () => {
+          window.dispatchEvent(new Event('hero_settings_updated'))
+        }
+      )
+      .subscribe()
+  } catch (err) {
+    console.warn('[DB Service] Supabase realtime subscription error:', err)
+  }
+}
+
+// 1. Fetch Active Tournament Matches (Ultra-fast cached response with forceFetch support)
+export async function getMatches(forceFetch = false): Promise<MatchItem[]> {
+  if (forceFetch) {
+    matchesCache = null
+  }
+
   if (matchesCache && Date.now() - matchesCache.timestamp < CACHE_TTL_MS) {
     return matchesCache.data
   }
@@ -134,7 +184,7 @@ export async function getMatches(): Promise<MatchItem[]> {
     }))
 
     matchesCache = { data: matches, timestamp: Date.now() }
-    saveLocalMatches(matches)
+    saveLocalMatches(matches, false)
     return matches
   } catch (err) {
     console.error('[DB Service] Supabase query failed:', err)

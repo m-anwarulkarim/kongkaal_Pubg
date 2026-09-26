@@ -4,7 +4,7 @@ import MatchCard from '@/features/matches/components/MatchCard'
 import RightSidebar from './RightSidebar'
 import type { MatchItem } from '@/types/match'
 import { Trophy, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
-import { getMatches, DEFAULT_MATCHES } from '@/lib/db'
+import { getMatches, clearMatchesCache, DEFAULT_MATCHES } from '@/lib/db'
 
 export const KONGKAAL_MATCHES: MatchItem[] = DEFAULT_MATCHES
 
@@ -23,7 +23,8 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
   useEffect(() => {
     async function loadTournamentMatches() {
       try {
-        const data = await getMatches()
+        clearMatchesCache()
+        const data = await getMatches(true)
         setMatches(data)
       } catch (err) {
         console.error('Failed to load dynamic matches:', err)
