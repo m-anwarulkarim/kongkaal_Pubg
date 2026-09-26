@@ -13,7 +13,15 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
   const [upcomingMatchInfo, setUpcomingMatchInfo] = useState<{ time: string; map: string } | null>(null)
   const [liveMatchInfo, setLiveMatchInfo] = useState<{ count: number } | null>(null)
   const [videoModalOpen, setVideoModalOpen] = useState(false)
-  const [isVideoBackground, setIsVideoBackground] = useState(false)
+  const [showVideoBg, setShowVideoBg] = useState(false)
+
+  // 2-second timer to smoothly transition background from image to video
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowVideoBg(true)
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     const loadBannerData = async () => {
@@ -66,26 +74,34 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="relative rounded-2xl overflow-hidden bg-[#0c0e14] border border-red-900/30 p-6 sm:p-10 lg:p-12 shadow-2xl">
           
-          {/* Background Image / Video & Red Smoke Flare Overlay */}
+          {/* Background Layer: 2-Second Smooth Animation from Image to Video */}
           <div className="absolute inset-0 z-0">
-            {isVideoBackground && videoUrl ? (
-              <iframe
-                src={`${videoUrl}${videoUrl.includes('?') ? '&' : '?'}autoplay=1&mute=1&loop=1&controls=0`}
-                title="PUBG Gaming Video Background"
-                className="w-full h-full object-cover scale-125 pointer-events-none opacity-60"
-                allow="autoplay; encrypted-media"
-              />
-            ) : (
-              <Image
-                src="/kongkaal_hero.webp"
-                alt="KongKaaL Gaming PUBG Warrior"
-                priority
-                fill
-                className="object-cover object-[80%_center] sm:object-right opacity-75 sm:opacity-60 transition-opacity"
-              />
+            {/* 1. Instant Loading Base Hero Image */}
+            <Image
+              src="/kongkaal_hero.webp"
+              alt="KongKaaL Gaming PUBG Warrior"
+              priority
+              fill
+              className="object-cover object-[80%_center] sm:object-right opacity-75 sm:opacity-60"
+            />
+
+            {/* 2. Background Video with Smooth Fade-in Animation after 2 seconds */}
+            {videoUrl && (
+              <div
+                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                  showVideoBg ? 'opacity-70 sm:opacity-55' : 'opacity-0 pointer-events-none'
+                }`}
+              >
+                <iframe
+                  src={`${videoUrl}${videoUrl.includes('?') ? '&' : '?'}autoplay=1&mute=1&loop=1&controls=0&disablekb=1&modestbranding=1&rel=0&playsinline=1`}
+                  title="PUBG Gaming Video Background"
+                  className="w-full h-full object-cover scale-150 pointer-events-none"
+                  allow="autoplay; encrypted-media"
+                />
+              </div>
             )}
 
-            {/* Gradient Overlays */}
+            {/* Gradient Overlays for perfect legibility */}
             <div className="absolute inset-0 bg-gradient-to-r from-[#07080b]/95 via-[#07080b]/60 to-[#07080b]/20 sm:via-[#07080b]/90 sm:to-transparent w-full lg:w-3/4" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#07080b] via-transparent to-black/40" />
           </div>
@@ -95,35 +111,12 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
             {/* Left Column Text & Buttons */}
             <div className="lg:col-span-8">
               
-              {/* Welcome Badge & Media Switcher */}
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="h-0.5 w-8 bg-[#e50914]" />
-                  <span className="text-xs font-bold tracking-widest text-[#e50914] uppercase">
-                    WELCOME TO
-                  </span>
-                </div>
-
-                {/* Video / Image Mode Toggle Pill */}
-                <div className="flex items-center bg-black/60 border border-white/15 p-1 rounded-xl backdrop-blur-md">
-                  <button
-                    onClick={() => setIsVideoBackground(false)}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                      !isVideoBackground ? 'bg-red-600 text-white shadow-md' : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    Image View
-                  </button>
-                  <button
-                    onClick={() => setIsVideoBackground(true)}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all ${
-                      isVideoBackground ? 'bg-red-600 text-white shadow-md' : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    <Film className="w-3 h-3" />
-                    Video View
-                  </button>
-                </div>
+              {/* Welcome Badge */}
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-0.5 w-8 bg-[#e50914]" />
+                <span className="text-xs font-bold tracking-widest text-[#e50914] uppercase">
+                  WELCOME TO
+                </span>
               </div>
 
               {/* Title */}
