@@ -25,9 +25,22 @@ import {
   Smartphone,
   Copy,
   Lock,
+  Camera,
+  Upload,
+  User,
+  Trash2,
+  Sparkles,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/dashboard')({ component: CustomerDashboardPage })
+
+const PRESET_AVATARS = [
+  'https://api.dicebear.com/7.x/bottts/svg?seed=PubgHero&backgroundColor=e50914',
+  'https://api.dicebear.com/7.x/bottts/svg?seed=SkullKing&backgroundColor=101422',
+  'https://api.dicebear.com/7.x/bottts/svg?seed=SniperPro&backgroundColor=059669',
+  'https://api.dicebear.com/7.x/bottts/svg?seed=ShadowNinja&backgroundColor=d97706',
+  'https://api.dicebear.com/7.x/bottts/svg?seed=CyberWarrior&backgroundColor=2563eb',
+]
 
 function CustomerDashboardPage() {
   const { user, loading: authLoading } = useCustomerAuth()
@@ -57,6 +70,7 @@ function CustomerDashboardPage() {
   // Profile Edit State
   const [editUid, setEditUid] = useState('')
   const [editPhone, setEditPhone] = useState('')
+  const [editAvatarUrl, setEditAvatarUrl] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const paymentNumbers = {
@@ -78,6 +92,7 @@ function CustomerDashboardPage() {
     setProfile(userProfile)
     setEditUid(userProfile.pubgUid)
     setEditPhone(userProfile.whatsappNumber)
+    setEditAvatarUrl(userProfile.avatarUrl || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '')
 
     const txs = await getWalletTransactions(user.email)
     setTransactions(txs)
@@ -104,6 +119,23 @@ function CustomerDashboardPage() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        alert('ছবি ৩ MB এর ছোট হতে হবে!')
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setEditAvatarUrl(reader.result)
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!profile) return
@@ -112,6 +144,7 @@ function CustomerDashboardPage() {
       ...profile,
       pubgUid: editUid,
       whatsappNumber: editPhone,
+      avatarUrl: editAvatarUrl,
     }
     await updateCustomerProfile(updated)
     setProfile(updated)
@@ -173,7 +206,7 @@ function CustomerDashboardPage() {
     }
   }
 
-  const userAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture
+  const userAvatar = profile?.avatarUrl || user?.user_metadata?.avatar_url || user?.user_metadata?.picture
   const userName = profile?.name || user?.user_metadata?.full_name || 'Player'
 
   return (
@@ -204,17 +237,26 @@ function CustomerDashboardPage() {
             <div className="relative bg-gradient-to-r from-red-950/80 via-[#121524] to-[#0a0c14] border border-red-500/30 rounded-3xl p-6 sm:p-8 overflow-hidden shadow-[0_0_30px_rgba(229,9,20,0.15)]">
               <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div className="flex items-center gap-4 sm:gap-6">
-                  {userAvatar ? (
-                    <img
-                      src={userAvatar}
-                      alt={userName}
-                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-red-500 shadow-md shadow-red-600/30 object-cover"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-red-600 border-2 border-red-500 flex items-center justify-center text-white text-2xl font-bold">
-                      {userName[0]?.toUpperCase()}
+                  <div 
+                    onClick={() => setEditProfileOpen(true)}
+                    className="relative cursor-pointer group rounded-full"
+                    title="Click to edit profile avatar"
+                  >
+                    {userAvatar ? (
+                      <img
+                        src={userAvatar}
+                        alt={userName}
+                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-red-500 shadow-md shadow-red-600/30 object-cover group-hover:opacity-80 transition-opacity"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-red-600 border-2 border-red-500 flex items-center justify-center text-white text-2xl font-bold group-hover:bg-red-700 transition-colors">
+                        {userName[0]?.toUpperCase()}
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <Camera className="w-5 h-5 text-white" />
                     </div>
-                  )}
+                  </div>
 
                   <div>
                     <div className="flex items-center gap-2">
@@ -602,15 +644,93 @@ function CustomerDashboardPage() {
       {/* MODAL 3: EDIT PROFILE */}
       {editProfileOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-[#0f121d] border border-white/20 rounded-3xl p-6 max-w-md w-full space-y-5">
+          <div className="bg-[#0f121d] border border-white/20 rounded-3xl p-6 max-w-md w-full space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <h3 className="font-bold text-lg text-white">Edit Profile Details</h3>
+              <h3 className="font-bold text-lg text-white flex items-center gap-2">
+                <User className="w-5 h-5 text-red-500" /> Edit Profile & Photo
+              </h3>
               <button onClick={() => setEditProfileOpen(false)} className="text-gray-400 hover:text-white">
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveProfile} className="space-y-5 text-xs">
+              {/* Profile Avatar Selector & Preview */}
+              <div className="bg-[#151929] border border-white/10 rounded-2xl p-4 text-center space-y-3">
+                <span className="text-gray-300 font-bold block text-left">Profile Picture / Avatar</span>
+                
+                <div className="relative inline-block mx-auto">
+                  {editAvatarUrl ? (
+                    <img
+                      src={editAvatarUrl}
+                      alt="Avatar Preview"
+                      className="w-20 h-20 rounded-full border-2 border-red-500 shadow-lg object-cover mx-auto"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-red-600/30 border-2 border-red-500 flex items-center justify-center text-white text-2xl font-bold mx-auto">
+                      {userName[0]?.toUpperCase()}
+                    </div>
+                  )}
+
+                  {editAvatarUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setEditAvatarUrl('')}
+                      className="absolute -top-1 -right-1 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full shadow"
+                      title="Remove custom photo"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Upload Button */}
+                <div className="flex justify-center gap-2 pt-1">
+                  <label className="cursor-pointer bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-red-600/20">
+                    <Upload className="w-3.5 h-3.5" /> Upload from Device
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Preset Avatars */}
+                <div className="pt-2">
+                  <span className="text-[11px] text-gray-400 block mb-2 font-medium flex items-center justify-center gap-1">
+                    <Sparkles className="w-3 h-3 text-amber-400" /> Or pick PUBG Gamer Preset:
+                  </span>
+                  <div className="flex items-center justify-center gap-2">
+                    {PRESET_AVATARS.map((url, idx) => (
+                      <button
+                        type="button"
+                        key={idx}
+                        onClick={() => setEditAvatarUrl(url)}
+                        className={`relative rounded-full p-0.5 border-2 transition-transform hover:scale-110 ${
+                          editAvatarUrl === url ? 'border-red-500 scale-105 shadow-md shadow-red-500/50' : 'border-transparent'
+                        }`}
+                      >
+                        <img src={url} alt={`Preset ${idx}`} className="w-9 h-9 rounded-full bg-[#0a0c14]" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Image URL Input Option */}
+                <div className="pt-2">
+                  <label className="text-[11px] text-gray-400 block text-left mb-1">Image URL (Optional):</label>
+                  <Input
+                    type="url"
+                    placeholder="https://example.com/avatar.jpg"
+                    value={editAvatarUrl}
+                    onChange={(e) => setEditAvatarUrl(e.target.value)}
+                    className="bg-[#0b0d16] border-white/10 text-white font-mono text-[11px] h-8"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="text-gray-300 font-bold block mb-1">PUBG Character ID (UID)</label>
                 <Input
@@ -633,7 +753,7 @@ function CustomerDashboardPage() {
                 />
               </div>
 
-              <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 font-bold py-3 text-xs rounded-xl">
+              <Button type="submit" className="w-full bg-[#e50914] hover:bg-red-600 font-bold py-3 text-xs rounded-xl shadow-lg shadow-red-600/30">
                 Save Profile Changes
               </Button>
             </form>

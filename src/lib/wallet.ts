@@ -103,6 +103,7 @@ export async function getCustomerProfile(email: string, name?: string): Promise<
         profile.walletBalance = Number(data.balance)
         profile.pubgUid = data.pubg_uid || profile.pubgUid
         profile.whatsappNumber = data.whatsapp_number || profile.whatsappNumber
+        profile.avatarUrl = data.avatar_url || profile.avatarUrl
       }
     } catch (err) {
       console.log('Supabase customer wallet sync err:', err)
@@ -126,6 +127,7 @@ export async function updateCustomerProfile(profile: CustomerProfile): Promise<b
         pubg_uid: profile.pubgUid,
         whatsapp_number: profile.whatsappNumber,
         balance: profile.walletBalance,
+        avatar_url: profile.avatarUrl,
       })
     } catch (err) {
       console.error('Supabase profile update error:', err)
