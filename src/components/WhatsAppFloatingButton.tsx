@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { X, Send, Sparkles, QrCode } from 'lucide-react'
 
 interface WhatsAppFloatingButtonProps {
@@ -14,24 +14,12 @@ export default function WhatsAppFloatingButton({
 }: WhatsAppFloatingButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [showNotificationBadge, setShowNotificationBadge] = useState(true)
-  const [hasInteracted, setHasInteracted] = useState(false)
   const [showQr, setShowQr] = useState(false)
-
-  // Auto pop-up suggestion bubble after 4 seconds if user hasn't interacted
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!hasInteracted) {
-        setIsOpen(true)
-      }
-    }, 4000)
-    return () => clearTimeout(timer)
-  }, [hasInteracted])
 
   const encodedMessage = encodeURIComponent(defaultMessage)
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`
 
   const handleToggle = () => {
-    setHasInteracted(true)
     setShowNotificationBadge(false)
     setIsOpen(!isOpen)
   }
@@ -39,7 +27,6 @@ export default function WhatsAppFloatingButton({
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation()
     setIsOpen(false)
-    setHasInteracted(true)
   }
 
   return (
@@ -113,7 +100,6 @@ export default function WhatsAppFloatingButton({
                     href="https://whatsapp.com/channel/0029Vb8kbvtK5cDCZ4I3rf0K"
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => setHasInteracted(true)}
                     className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-gray-950 font-bold font-gaming text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 no-underline"
                   >
                     <Sparkles className="w-4 h-4 text-yellow-950" />
@@ -125,7 +111,6 @@ export default function WhatsAppFloatingButton({
                       href={whatsappUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => setHasInteracted(true)}
                       className="flex items-center justify-center gap-1.5 py-2 px-3 bg-white/10 hover:bg-white/20 text-white font-bold font-gaming text-[11px] tracking-wide rounded-xl border border-white/10 transition-all no-underline"
                     >
                       <Send className="w-3.5 h-3.5 text-emerald-400" />
