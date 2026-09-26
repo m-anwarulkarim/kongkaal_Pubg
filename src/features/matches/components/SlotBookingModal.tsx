@@ -4,6 +4,7 @@ import type { MatchItem } from '@/types/match'
 import { saveRegistration } from '@/lib/db'
 import { useCustomerAuth } from '@/lib/auth'
 import { payMatchWithWallet } from '@/lib/wallet'
+import { slotRegistrationSchema, paymentTrxSchema, validateForm } from '@/lib/validations'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -80,10 +81,27 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
   const handleProceedToPayment = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!player1Name || !player1Uid || !whatsappNumber) {
-      toast.error('দয়া করে আপনার In-Game Name, PUBG Character ID এবং WhatsApp নাম্বার দিন!')
+
+    const validation = validateForm(slotRegistrationSchema, {
+      player1Name,
+      player1Uid,
+      whatsappNumber,
+      teamName: teamName || undefined,
+      player2Name: player2Name || undefined,
+      player2Uid: player2Uid || undefined,
+      player3Name: player3Name || undefined,
+      player3Uid: player3Uid || undefined,
+      player4Name: player4Name || undefined,
+      player4Uid: player4Uid || undefined,
+    })
+
+    if (!validation.success) return
+
+    if (match.mode !== 'SOLO' && (!teamName || teamName.trim().length < 2)) {
+      toast.error('দয়া করে আপনার টিম এর নাম (Team Name) কমপক্ষে ২ অক্ষরের দিন!')
       return
     }
+
     setStep('PAYMENT')
   }
 
@@ -133,10 +151,8 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
       return
     }
 
-    if (!trxId || trxId.length < 6) {
-      toast.error('দয়া করে সঠিক Transaction ID (TrxID) লিখুন!')
-      return
-    }
+    const trxValidation = validateForm(paymentTrxSchema, { trxId })
+    if (!trxValidation.success) return
 
     setIsSubmitting(true)
 

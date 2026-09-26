@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
+import { contactFormSchema, validateForm } from '@/lib/validations'
 import {
   MessageCircle,
   Mail,
@@ -30,15 +32,15 @@ export default function ContactSection() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.name || !formData.phone || !formData.message) {
-      alert('দয়া করে আপনার নাম, হোয়াটসঅ্যাপ নাম্বার এবং মেসেজ সঠিকভাবে লিখুন।')
-      return
-    }
+
+    const validation = validateForm(contactFormSchema, formData)
+    if (!validation.success) return
 
     setLoading(true)
     setTimeout(() => {
       setLoading(false)
       setSubmitted(true)
+      toast.success('🎉 আপনার মেসেজটি এডমিনের কাছে সফলভাবে পাঠানো হয়েছে!')
     }, 600)
   }
 
