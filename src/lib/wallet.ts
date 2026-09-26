@@ -481,61 +481,83 @@ export async function adminApproveTransaction(
   id: string,
   status: 'APPROVED' | 'REJECTED'
 ): Promise<{ success: boolean; message: string }> {
-  const txs = getLocalTxs()
-  const tx = txs.find((t) => t.id === id)
+  const localTxs = getLocalTxs()
+  let tx = localTxs.find((t) => t.id === id)
+  let userEmail = tx?.userEmail
+  let amount = tx?.amount || 0
+  let type = tx?.type
 
   if (tx) {
     if (tx.status !== 'PENDING') {
       return { success: false, message: 'Transaction is already processed' }
     }
     tx.status = status
+    saveLocalTxs(localTxs)
 
     const normEmail = tx.userEmail.trim().toLowerCase()
-    // If Deposit is APPROVED, add to user balance
     if (tx.type === 'DEPOSIT' && status === 'APPROVED') {
       const profile = await getCustomerProfile(normEmail, tx.userName)
       profile.walletBalance += tx.amount
       await updateCustomerProfile(profile)
-    }
-
-    // If Withdraw is REJECTED, refund balance back to user
-    if (tx.type === 'WITHDRAW' && status === 'REJECTED') {
+    } else if (tx.type === 'WITHDRAW' && status === 'REJECTED') {
       const profile = await getCustomerProfile(normEmail, tx.userName)
       profile.walletBalance += tx.amount
       await updateCustomerProfile(profile)
     }
-
-    saveLocalTxs(txs)
   }
 
   if (isSupabaseConfigured()) {
     try {
+      // If not found locally, fetch details from Supabase DB
+      if (!userEmail || !type || !amount) {
+        const { data: dbTx } = await supabase.from('wallet_transactions').select('*').eq('id', id).maybeSingle()
+        if (dbTx) {
+          userEmail = dbTx.user_email
+          amount = Number(dbTx.amount)
+          type = dbTx.type
+        }
+      }
+
       await supabase.from('wallet_transactions').update({ status }).eq('id', id)
-      // If transaction was deposit approved or withdraw rejected in Supabase DB:
-      if (tx) {
-        const normEmail = tx.userEmail.trim().toLowerCase()
-        if (tx.type === 'DEPOSIT' && status === 'APPROVED') {
+
+      if (userEmail && amount > 0) {
+        const normEmail = userEmail.trim().toLowerCase()
+        if (type === 'DEPOSIT' && status === 'APPROVED') {
           const { data: dbWallet } = await supabase.from('customer_wallets').select('balance').ilike('email', normEmail).maybeSingle()
+          const currentBal = dbWallet ? Number(dbWallet.balance || 0) : 0
+          const newBal = currentBal + amount
+
           if (dbWallet) {
-            await supabase.from('customer_wallets').update({ balance: Number(dbWallet.balance) + tx.amount }).ilike('email', normEmail)
+            await supabase.from('customer_wallets').update({ balance: newBal }).ilike('email', normEmail)
+          } else {
+            await supabase.from('customer_wallets').insert([{ email: normEmail, balance: newBal }])
           }
-        } else if (tx.type === 'WITHDRAW' && status === 'REJECTED') {
+
+          const profile = await getCustomerProfile(normEmail)
+          profile.walletBalance = newBal
+          saveLocalWallets({ ...getLocalWallets(), [normEmail]: profile })
+        } else if (type === 'WITHDRAW' && status === 'REJECTED') {
           const { data: dbWallet } = await supabase.from('customer_wallets').select('balance').ilike('email', normEmail).maybeSingle()
+          const currentBal = dbWallet ? Number(dbWallet.balance || 0) : 0
+          const newBal = currentBal + amount
+
           if (dbWallet) {
-            await supabase.from('customer_wallets').update({ balance: Number(dbWallet.balance) + tx.amount }).ilike('email', normEmail)
+            await supabase.from('customer_wallets').update({ balance: newBal }).ilike('email', normEmail)
+          } else {
+            await supabase.from('customer_wallets').insert([{ email: normEmail, balance: newBal }])
           }
+
+          const profile = await getCustomerProfile(normEmail)
+          profile.walletBalance = newBal
+          saveLocalWallets({ ...getLocalWallets(), [normEmail]: profile })
         }
       }
     } catch (err) {
-      console.warn('Supabase update transaction error:', err)
+      console.warn('Supabase update transaction exception:', err)
     }
   }
 
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event('wallet_updated'))
-    window.dispatchEvent(new Event('profile_updated'))
-  }
-
+  notifyWalletUpdate()
   return { success: true, message: `Transaction status updated to ${status}` }
 }
 
