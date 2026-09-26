@@ -455,7 +455,7 @@ export async function adminAdjustCustomerWallet(
 
   if (isSupabaseConfigured()) {
     try {
-      await supabase.from('wallet_transactions').insert([
+      const { error } = await supabase.from('wallet_transactions').insert([
         {
           user_email: normEmail,
           user_name: profile.name,
@@ -465,6 +465,7 @@ export async function adminAdjustCustomerWallet(
           note: txNote,
         },
       ])
+      if (error) console.warn('[Wallet Service] Supabase admin credit insert error:', error.message)
     } catch (err) {
       console.warn('Supabase admin credit insert error:', err)
     }
