@@ -21,11 +21,11 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
               alt="KongKaaL Gaming PUBG Warrior"
               priority
               fill
-              className="object-cover object-right opacity-60"
+              className="object-cover object-[80%_center] sm:object-right opacity-75 sm:opacity-60 transition-opacity"
             />
             {/* Gradient Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#07080b] via-[#07080b]/90 to-transparent w-full lg:w-3/4" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#07080b] via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#07080b]/95 via-[#07080b]/60 to-[#07080b]/20 sm:via-[#07080b]/90 sm:to-transparent w-full lg:w-3/4" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#07080b] via-transparent to-black/40" />
           </div>
 
           <div className="relative z-10 grid lg:grid-cols-12 gap-8 items-center">

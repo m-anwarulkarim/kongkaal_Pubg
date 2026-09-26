@@ -1,5 +1,5 @@
 import Link from '@/components/ui/Link'
-import { Heart, Sparkles, MessageCircle, ShieldCheck } from 'lucide-react'
+import { Sparkles, MessageCircle, ShieldCheck } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -67,7 +67,7 @@ export default function Footer() {
           {/* HaqPlus IT Developer Credit */}
           <div className="flex items-center gap-2 bg-[#0e121d] px-4 py-2 rounded-full border border-emerald-500/30 shadow-md">
             <span className="text-gray-300 text-xs font-bold flex items-center gap-1">
-              Developed with <Heart className="w-3.5 h-3.5 text-red-500 fill-current animate-pulse" /> by{' '}
+              Developed   by{' '}
               <strong className="text-white font-black">HaqPlus IT</strong>
             </span>
 
