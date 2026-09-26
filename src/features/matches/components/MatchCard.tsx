@@ -48,10 +48,30 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#10131a] via-transparent to-black/40 z-10" />
 
-          {/* Date Badge Top Right & Coming Soon Badge Left */}
+          {/* Date Badge Top Right & Status Badge Left */}
           {match.status === 'COMING_SOON' && (
             <div className="absolute top-3 left-3 bg-amber-500/90 text-black backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
               <span>COMING SOON ⏳</span>
+            </div>
+          )}
+          {match.status === 'FILLING_FAST' && (
+            <div className="absolute top-3 left-3 bg-red-600/90 text-white backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1 animate-pulse">
+              <span>FILLING FAST 🔥</span>
+            </div>
+          )}
+          {match.status === 'LIVE_SOON' && (
+            <div className="absolute top-3 left-3 bg-cyan-600/90 text-white backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
+              <span>LIVE SOON ⚡</span>
+            </div>
+          )}
+          {match.status === 'COMPLETED' && (
+            <div className="absolute top-3 left-3 bg-emerald-700/90 text-white backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
+              <span>COMPLETED ✅</span>
+            </div>
+          )}
+          {match.status === 'OPEN' && (
+            <div className="absolute top-3 left-3 bg-emerald-500/90 text-black backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
+              <span>OPEN 🟢</span>
             </div>
           )}
 
@@ -117,18 +137,40 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
             </button>
           </div>
 
-          {/* Progress Bar & Register / Coming Soon Button */}
+          {/* Progress Bar & Status Action Button */}
           <div>
             <div className="flex justify-between text-xs font-semibold mb-1.5">
               <span className="text-gray-400">{match.joinedSlots}/{match.maxSlots} Slots</span>
               {match.status === 'COMING_SOON' && (
-                <span className="text-amber-400 font-bold text-[11px]">Coming Soon</span>
+                <span className="text-amber-400 font-bold text-[11px]">Coming Soon ⏳</span>
+              )}
+              {match.status === 'FILLING_FAST' && (
+                <span className="text-red-400 font-bold text-[11px] animate-pulse">Filling Fast 🔥</span>
+              )}
+              {match.status === 'LIVE_SOON' && (
+                <span className="text-cyan-400 font-bold text-[11px]">Starting Soon ⚡</span>
+              )}
+              {match.status === 'COMPLETED' && (
+                <span className="text-emerald-400 font-bold text-[11px]">Completed ✅</span>
+              )}
+              {match.status === 'OPEN' && (
+                <span className="text-emerald-400 font-bold text-[11px]">Open 🟢</span>
               )}
             </div>
 
             <div className="w-full h-2 bg-[#0b0d14] rounded-full overflow-hidden mb-4 border border-white/5">
               <div
-                className={`h-full rounded-full ${match.status === 'COMING_SOON' ? 'bg-amber-500' : progressBg}`}
+                className={`h-full rounded-full ${
+                  match.status === 'COMING_SOON'
+                    ? 'bg-amber-500'
+                    : match.status === 'FILLING_FAST'
+                    ? 'bg-gradient-to-r from-red-600 to-amber-500'
+                    : match.status === 'LIVE_SOON'
+                    ? 'bg-cyan-500'
+                    : match.status === 'COMPLETED'
+                    ? 'bg-emerald-600'
+                    : progressBg
+                }`}
                 style={{ width: `${fillPercentage}%` }}
               />
             </div>
@@ -140,6 +182,30 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
               >
                 <span>COMING SOON</span>
                 <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+              </button>
+            ) : match.status === 'LIVE_SOON' ? (
+              <button
+                disabled
+                className="w-full py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500/20 via-blue-600/30 to-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-lg shadow-cyan-500/10 cursor-not-allowed select-none"
+              >
+                <span>MATCH STARTING SOON</span>
+                <Clock className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+              </button>
+            ) : match.status === 'COMPLETED' ? (
+              <button
+                disabled
+                className="w-full py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-950/40 via-emerald-900/30 to-emerald-950/40 text-emerald-400 border border-emerald-500/30 shadow-lg cursor-not-allowed select-none"
+              >
+                <span>MATCH COMPLETED</span>
+                <Trophy className="w-3.5 h-3.5 text-emerald-400" />
+              </button>
+            ) : match.status === 'FILLING_FAST' ? (
+              <button
+                onClick={() => onSelect(match)}
+                className="w-full py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 via-orange-600 to-red-600 hover:from-red-500 hover:to-orange-500 text-white shadow-lg shadow-red-600/30 transition-all cursor-pointer animate-pulse"
+              >
+                <span>FILLING FAST - REGISTER NOW</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             ) : (
               <button

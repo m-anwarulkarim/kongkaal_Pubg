@@ -75,6 +75,7 @@ export default function MatchesTab({
               <th className="p-3.5">Entry Fee</th>
               <th className="p-3.5">Prize Pool</th>
               <th className="p-3.5">Per Kill</th>
+              <th className="p-3.5">Status</th>
               <th className="p-3.5">Slots</th>
               <th className="p-3.5 text-right">Actions</th>
             </tr>
@@ -98,6 +99,17 @@ export default function MatchesTab({
                 <td className="p-3.5 font-bold text-white">৳{m.entryFee}</td>
                 <td className="p-3.5 font-bold text-emerald-400">৳{m.winnerPrize}</td>
                 <td className="p-3.5 font-bold text-gray-300">৳{m.perKillPrize}</td>
+                <td className="p-3.5">
+                  <Badge className={
+                    m.status === 'COMING_SOON' ? 'bg-amber-950 text-amber-400 border-amber-500/30' :
+                    m.status === 'FILLING_FAST' ? 'bg-red-950 text-red-400 border-red-500/30' :
+                    m.status === 'LIVE_SOON' ? 'bg-cyan-950 text-cyan-400 border-cyan-500/30' :
+                    m.status === 'COMPLETED' ? 'bg-emerald-950 text-emerald-400 border-emerald-500/30' :
+                    'bg-green-950 text-green-400 border-green-500/30'
+                  }>
+                    {m.status || 'OPEN'}
+                  </Badge>
+                </td>
                 <td className="p-3.5 text-amber-400 font-bold">
                   {m.joinedSlots}/{m.maxSlots}
                 </td>
