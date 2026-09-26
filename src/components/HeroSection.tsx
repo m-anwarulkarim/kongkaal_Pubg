@@ -66,7 +66,7 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
   const displayNextTime = upcomingMatchInfo?.time || heroSettings.nextMatchTime
   const displayNextMap = upcomingMatchInfo?.map || heroSettings.nextMatchMap
   const displayLiveCount = liveMatchInfo?.count || heroSettings.activePlayersCount
-  const bgVideoUrl = heroSettings.heroVideoUrl || 'https://assets.mixkit.co/videos/preview/mixkit-gameplay-of-a-first-person-shooter-game-41554-large.mp4'
+  const bgVideoUrl = heroSettings.heroVideoUrl || '/hero_bg.mp4'
   const rawYtUrl = heroSettings.youtubeVideoUrl || 'https://www.youtube.com/watch?v=L6P3nI6VnlY'
   const modalVideoUrl = formatYouTubeEmbedUrl(rawYtUrl, false)
 

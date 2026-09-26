@@ -680,7 +680,7 @@ export const DEFAULT_HERO_SETTINGS: HeroBannerSettings = {
   nextMatchMap: 'Erangel / Asia',
   liveStatusText: 'Tournament Ongoing',
   activePlayersCount: 128,
-  heroVideoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-gameplay-of-a-first-person-shooter-game-41554-large.mp4',
+  heroVideoUrl: '/hero_bg.mp4',
   youtubeVideoUrl: 'https://www.youtube.com/watch?v=L6P3nI6VnlY',
 }
 
@@ -690,8 +690,8 @@ export function getHeroBannerSettings(): HeroBannerSettings {
   if (!stored) return DEFAULT_HERO_SETTINGS
   try {
     const parsed = JSON.parse(stored)
-    if (!parsed.heroVideoUrl || parsed.heroVideoUrl.includes('uCd6tbLv6XY')) {
-      parsed.heroVideoUrl = DEFAULT_HERO_SETTINGS.heroVideoUrl
+    if (!parsed.heroVideoUrl || parsed.heroVideoUrl.includes('mixkit') || parsed.heroVideoUrl.includes('uCd6tbLv6XY')) {
+      parsed.heroVideoUrl = '/hero_bg.mp4'
     }
     if (!parsed.youtubeVideoUrl) {
       parsed.youtubeVideoUrl = DEFAULT_HERO_SETTINGS.youtubeVideoUrl
