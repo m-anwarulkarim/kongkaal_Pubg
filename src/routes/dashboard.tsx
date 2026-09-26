@@ -127,7 +127,7 @@ function CustomerDashboardPage() {
     )
     setMyMatches(userRegs)
 
-    const userMsgs = getUserSupportMessages(user.email)
+    const userMsgs = await getUserSupportMessages(user.email)
     setSupportMessages(userMsgs)
   }
 
@@ -157,12 +157,12 @@ function CustomerDashboardPage() {
     }
   }, [user])
 
-  const handleSendSupportMsg = (e: React.FormEvent) => {
+  const handleSendSupportMsg = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user?.email || !profile || !msgSubject.trim() || !msgContent.trim()) return
 
     setSendingMsg(true)
-    sendSupportMessage({
+    await sendSupportMessage({
       userId: user.email,
       userName: profile.name,
       userEmail: user.email,
@@ -176,7 +176,8 @@ function CustomerDashboardPage() {
     setNewMsgOpen(false)
     setSendingMsg(false)
 
-    setSupportMessages(getUserSupportMessages(user.email))
+    const updatedMsgs = await getUserSupportMessages(user.email)
+    setSupportMessages(updatedMsgs)
   }
 
   const handleCopy = (text: string, label: string) => {

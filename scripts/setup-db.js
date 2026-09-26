@@ -108,12 +108,28 @@ async function main() {
     created_at TIMESTAMPTZ DEFAULT now()
   );
 
-  -- 6. Disable RLS on public tables
+  -- 6. Support Messages Table
+  CREATE TABLE IF NOT EXISTS public.support_messages (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    user_id TEXT NOT NULL,
+    user_name TEXT NOT NULL,
+    user_email TEXT NOT NULL,
+    user_avatar TEXT,
+    subject TEXT NOT NULL,
+    message TEXT NOT NULL,
+    status TEXT DEFAULT 'PENDING',
+    admin_reply TEXT,
+    replied_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT now()
+  );
+
+  -- 7. Disable RLS on public tables
   ALTER TABLE public.matches DISABLE ROW LEVEL SECURITY;
   ALTER TABLE public.registrations DISABLE ROW LEVEL SECURITY;
   ALTER TABLE public.wallet_transactions DISABLE ROW LEVEL SECURITY;
   ALTER TABLE public.customer_wallets DISABLE ROW LEVEL SECURITY;
   ALTER TABLE public.leaderboards DISABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.support_messages DISABLE ROW LEVEL SECURITY;
   `
 
   console.log('⏳ Creating tables in Supabase Postgres...')

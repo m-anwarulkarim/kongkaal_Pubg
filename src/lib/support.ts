@@ -1,3 +1,5 @@
+import { supabase, isSupabaseConfigured } from './supabase'
+
 export interface SupportMessage {
   id: string
   userId: string
@@ -41,7 +43,29 @@ const INITIAL_SUPPORT_MESSAGES: SupportMessage[] = [
   },
 ]
 
-export function getSupportMessages(): SupportMessage[] {
+// BroadcastChannel for instant multi-tab sync
+let supportBroadcastChannel: BroadcastChannel | null = null
+if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+  try {
+    supportBroadcastChannel = new BroadcastChannel('kongkaal_support_channel')
+    supportBroadcastChannel.onmessage = (event) => {
+      if (event.data === 'support_updated') {
+        window.dispatchEvent(new Event('support_updated'))
+      }
+    }
+  } catch (err) {
+    console.warn('[Support Service] BroadcastChannel init error:', err)
+  }
+}
+
+export function notifySupportUpdate() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('support_updated'))
+    supportBroadcastChannel?.postMessage('support_updated')
+  }
+}
+
+function getLocalSupportMessages(): SupportMessage[] {
   if (typeof window === 'undefined') return INITIAL_SUPPORT_MESSAGES
   const stored = localStorage.getItem('kongkaal_support_messages')
   if (!stored) {
@@ -55,63 +79,152 @@ export function getSupportMessages(): SupportMessage[] {
   }
 }
 
-export function saveSupportMessages(messages: SupportMessage[]) {
+function saveLocalSupportMessages(messages: SupportMessage[]) {
   if (typeof window !== 'undefined') {
     localStorage.setItem('kongkaal_support_messages', JSON.stringify(messages))
-    window.dispatchEvent(new Event('support_updated'))
+    notifySupportUpdate()
   }
 }
 
-export function getUserSupportMessages(userEmail: string): SupportMessage[] {
-  const all = getSupportMessages()
+export async function getSupportMessages(): Promise<SupportMessage[]> {
+  const localMsgs = getLocalSupportMessages()
+  let dbMsgs: SupportMessage[] = []
+
+  if (isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase
+        .from('support_messages')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (!error && data && data.length > 0) {
+        dbMsgs = data.map((d: any) => ({
+          id: d.id,
+          userId: d.user_id || d.user_email,
+          userName: d.user_name || d.user_email.split('@')[0],
+          userEmail: d.user_email,
+          userAvatar: d.user_avatar || '',
+          subject: d.subject,
+          message: d.message,
+          createdAt: d.created_at,
+          status: d.status || 'PENDING',
+          adminReply: d.admin_reply || '',
+          repliedAt: d.replied_at || '',
+        }))
+      }
+    } catch (err) {
+      console.warn('Supabase getSupportMessages error:', err)
+    }
+  }
+
+  const map = new Map<string, SupportMessage>()
+  dbMsgs.forEach((m) => map.set(m.id, m))
+  localMsgs.forEach((m) => {
+    if (!map.has(m.id)) map.set(m.id, m)
+  })
+
+  return Array.from(map.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
+
+export async function getUserSupportMessages(userEmail: string): Promise<SupportMessage[]> {
+  const all = await getSupportMessages()
   return all.filter((m) => m.userEmail.toLowerCase() === userEmail.toLowerCase())
 }
 
-export function sendSupportMessage(data: {
+export async function sendSupportMessage(data: {
   userId: string
   userName: string
   userEmail: string
   userAvatar?: string
   subject: string
   message: string
-}): SupportMessage {
-  const messages = getSupportMessages()
+}): Promise<SupportMessage> {
+  const localMsgs = getLocalSupportMessages()
   const newMessage: SupportMessage = {
     id: `msg-${Date.now()}`,
     userId: data.userId,
     userName: data.userName,
-    userEmail: data.userEmail,
-    userAvatar: data.userAvatar,
+    userEmail: data.userEmail.trim().toLowerCase(),
+    userAvatar: data.userAvatar || '',
     subject: data.subject,
     message: data.message,
     createdAt: new Date().toISOString(),
     status: 'PENDING',
   }
-  const updated = [newMessage, ...messages]
-  saveSupportMessages(updated)
+
+  const updated = [newMessage, ...localMsgs]
+  saveLocalSupportMessages(updated)
+
+  if (isSupabaseConfigured()) {
+    try {
+      const { error } = await supabase.from('support_messages').insert([
+        {
+          user_id: data.userId,
+          user_name: data.userName,
+          user_email: data.userEmail.trim().toLowerCase(),
+          user_avatar: data.userAvatar || '',
+          subject: data.subject,
+          message: data.message,
+          status: 'PENDING',
+        },
+      ])
+      if (error) console.warn('Supabase sendSupportMessage error:', error.message)
+    } catch (err) {
+      console.warn('Supabase sendSupportMessage exception:', err)
+    }
+  }
+
   return newMessage
 }
 
-export function replySupportMessage(id: string, adminReply: string): { success: boolean } {
-  const messages = getSupportMessages()
-  const updated = messages.map((m) => {
+export async function replySupportMessage(id: string, adminReply: string): Promise<{ success: boolean }> {
+  const localMsgs = getLocalSupportMessages()
+  const repliedAt = new Date().toISOString()
+  const updated = localMsgs.map((m) => {
     if (m.id === id) {
       return {
         ...m,
         adminReply,
-        repliedAt: new Date().toISOString(),
+        repliedAt,
         status: 'REPLIED' as const,
       }
     }
     return m
   })
-  saveSupportMessages(updated)
+  saveLocalSupportMessages(updated)
+
+  if (isSupabaseConfigured()) {
+    try {
+      const { error } = await supabase
+        .from('support_messages')
+        .update({
+          admin_reply: adminReply,
+          replied_at: repliedAt,
+          status: 'REPLIED',
+        })
+        .eq('id', id)
+
+      if (error) console.warn('Supabase replySupportMessage error:', error.message)
+    } catch (err) {
+      console.warn('Supabase replySupportMessage exception:', err)
+    }
+  }
+
   return { success: true }
 }
 
-export function deleteSupportMessage(id: string): { success: boolean } {
-  const messages = getSupportMessages()
-  const updated = messages.filter((m) => m.id !== id)
-  saveSupportMessages(updated)
+export async function deleteSupportMessage(id: string): Promise<{ success: boolean }> {
+  const localMsgs = getLocalSupportMessages()
+  const updated = localMsgs.filter((m) => m.id !== id)
+  saveLocalSupportMessages(updated)
+
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.from('support_messages').delete().eq('id', id)
+    } catch (err) {
+      console.warn('Supabase deleteSupportMessage exception:', err)
+    }
+  }
+
   return { success: true }
 }

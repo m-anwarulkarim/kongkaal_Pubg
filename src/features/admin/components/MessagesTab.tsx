@@ -34,10 +34,10 @@ export default function MessagesTab({ initialSearch = '' }: MessagesTabProps) {
   const [replyText, setReplyText] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const loadData = () => {
+  const loadData = async () => {
     setLoading(true)
     try {
-      const data = getSupportMessages()
+      const data = await getSupportMessages()
       // Sort messages: PENDING first, then by date descending (newest first)
       const sorted = [...data].sort((a, b) => {
         if (a.status === 'PENDING' && b.status !== 'PENDING') return -1
