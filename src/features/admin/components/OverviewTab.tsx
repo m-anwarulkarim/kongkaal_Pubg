@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { RegistrationRecord } from '@/lib/db'
 import type { MatchItem } from '@/types/match'
 import type { AdminTabType } from '../types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { getVisitorStats, type VisitorStats } from '@/lib/db'
 import {
   DollarSign,
   TrendingUp,
@@ -15,6 +16,7 @@ import {
   Smartphone,
   X,
   AlertCircle,
+  Eye,
 } from 'lucide-react'
 
 interface OverviewTabProps {
@@ -39,6 +41,20 @@ export default function OverviewTab({
   handleStatusUpdate,
 }: OverviewTabProps) {
   const [confirmModalItem, setConfirmModalItem] = useState<{ id: string; name: string; amount: number; trxId: string } | null>(null)
+  const [visitorStats, setVisitorStats] = useState<VisitorStats>(() => getVisitorStats())
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setVisitorStats(getVisitorStats())
+    }
+    setVisitorStats(getVisitorStats())
+    window.addEventListener('visitor_stats_updated', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+    return () => {
+      window.removeEventListener('visitor_stats_updated', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
+  }, [])
 
   const handleConfirmApproval = () => {
     if (confirmModalItem) {
@@ -47,10 +63,11 @@ export default function OverviewTab({
     }
   }
 
+
   return (
     <div className="space-y-6">
       {/* Stat Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Total Revenue Card */}
         <Card
           onClick={() => setActiveTab('WALLET')}
@@ -124,6 +141,24 @@ export default function OverviewTab({
           </div>
           <span className="text-[11px] text-gray-400 font-medium">
             Click to View Customer Profiles Directory →
+          </span>
+        </Card>
+
+        {/* Total Website Visitors Card */}
+        <Card
+          className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-cyan-500/30 p-5 rounded-2xl shadow-xl hover:border-cyan-500/60 transition-all hover:scale-[1.01]"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-cyan-400 uppercase">WEBSITE VISITORS</span>
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+              <Eye className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="font-display text-4xl font-black text-cyan-400 mb-1">
+            {visitorStats.totalVisits.toLocaleString()}
+          </div>
+          <span className="text-[11px] text-gray-400 flex items-center gap-1 font-medium">
+            <span className="text-emerald-400 font-bold">+{visitorStats.todayVisits}</span> Today Visits Counter
           </span>
         </Card>
       </div>

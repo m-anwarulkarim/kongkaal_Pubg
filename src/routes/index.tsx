@@ -12,6 +12,7 @@ import ContactSection from '../components/ContactSection'
 import Footer from '../components/Footer'
 import WhatsAppFloatingButton from '../components/WhatsAppFloatingButton'
 import { useCustomerAuth } from '@/lib/auth'
+import { trackVisitor } from '@/lib/db'
 import type { MatchItem } from '@/types/match'
 
 export const Route = createFileRoute('/')({
@@ -37,6 +38,12 @@ function App() {
   const [selectedMatch, setSelectedMatch] = useState<MatchItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
+
+  // Track site visitor on homepage load
+  useEffect(() => {
+    trackVisitor()
+  }, [])
+
 
   const handleOpenBooking = (match?: MatchItem) => {
     const target = match || KONGKAAL_MATCHES[0]

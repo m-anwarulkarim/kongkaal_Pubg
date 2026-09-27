@@ -1014,4 +1014,64 @@ export function savePrizeBreakdownSettings(settings: PrizeBreakdownSettings) {
   }
 }
 
+// 14. Website Visitor Tracking & Counter Management
+export interface VisitorStats {
+  totalVisits: number
+  todayVisits: number
+  lastDate: string // YYYY-MM-DD
+}
+
+const DEFAULT_VISITOR_STATS: VisitorStats = {
+  totalVisits: 142,
+  todayVisits: 18,
+  lastDate: new Date().toISOString().split('T')[0],
+}
+
+export function getVisitorStats(): VisitorStats {
+  if (typeof window === 'undefined') return DEFAULT_VISITOR_STATS
+  const stored = localStorage.getItem('kongkaal_visitor_stats')
+  const todayStr = new Date().toISOString().split('T')[0]
+
+  if (!stored) {
+    const initial = { ...DEFAULT_VISITOR_STATS, lastDate: todayStr }
+    localStorage.setItem('kongkaal_visitor_stats', JSON.stringify(initial))
+    return initial
+  }
+
+  try {
+    const parsed: VisitorStats = JSON.parse(stored)
+    if (parsed.lastDate !== todayStr) {
+      parsed.todayVisits = 0
+      parsed.lastDate = todayStr
+      localStorage.setItem('kongkaal_visitor_stats', JSON.stringify(parsed))
+    }
+    return parsed
+  } catch {
+    return DEFAULT_VISITOR_STATS
+  }
+}
+
+export function trackVisitor(): VisitorStats {
+  if (typeof window === 'undefined') return DEFAULT_VISITOR_STATS
+
+  const todayStr = new Date().toISOString().split('T')[0]
+  const sessionVisited = sessionStorage.getItem('kongkaal_visited_session')
+  const current = getVisitorStats()
+
+  if (!sessionVisited) {
+    sessionStorage.setItem('kongkaal_visited_session', 'true')
+    const updated: VisitorStats = {
+      totalVisits: (current.totalVisits || 0) + 1,
+      todayVisits: (current.lastDate === todayStr ? current.todayVisits || 0 : 0) + 1,
+      lastDate: todayStr,
+    }
+    localStorage.setItem('kongkaal_visitor_stats', JSON.stringify(updated))
+    window.dispatchEvent(new Event('visitor_stats_updated'))
+    return updated
+  }
+
+  return current
+}
+
+
 
