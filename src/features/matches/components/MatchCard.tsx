@@ -147,13 +147,13 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
               >
                 <div className="grid grid-cols-3 gap-1.5 text-[10px] font-bold text-center bg-white/5 group-hover/prize:bg-amber-950/40 p-2 rounded-xl border border-white/10 group-hover/prize:border-amber-500/40 transition-all">
                   <div className="bg-amber-950/60 border border-amber-500/30 text-amber-300 py-1 px-1 rounded-lg">
-                    🥇 1st: ৳{match.firstPrize || match.winnerPrize}
+                    🥇 1st: ৳{match.firstPrize !== undefined && match.firstPrize !== null ? match.firstPrize : match.winnerPrize}
                   </div>
                   <div className="bg-slate-900 border border-slate-400/30 text-slate-300 py-1 px-1 rounded-lg">
-                    🥈 2nd: ৳{match.secondPrize || Math.round(match.winnerPrize * 0.4)}
+                    🥈 2nd: ৳{match.secondPrize || 0}
                   </div>
                   <div className="bg-amber-950/30 border border-amber-700/30 text-amber-500 py-1 px-1 rounded-lg">
-                    🥉 3rd: ৳{match.thirdPrize || Math.round(match.winnerPrize * 0.2)}
+                    🥉 3rd: ৳{match.thirdPrize || 0}
                   </div>
                 </div>
                 <div className="text-[10px] font-bold text-amber-400 hover:text-amber-300 flex items-center justify-center gap-1 mt-1">
@@ -165,13 +165,13 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
               <div className="mb-4">
                 <div className="grid grid-cols-3 gap-1.5 text-[10px] font-bold text-center bg-white/5 p-2 rounded-xl border border-white/10">
                   <div className="bg-amber-950/60 border border-amber-500/30 text-amber-300 py-1 px-1 rounded-lg">
-                    🥇 1st: ৳{match.firstPrize || match.winnerPrize}
+                    🥇 1st: ৳{match.firstPrize !== undefined && match.firstPrize !== null ? match.firstPrize : match.winnerPrize}
                   </div>
                   <div className="bg-slate-900 border border-slate-400/30 text-slate-300 py-1 px-1 rounded-lg">
-                    🥈 2nd: ৳{match.secondPrize || Math.round(match.winnerPrize * 0.4)}
+                    🥈 2nd: ৳{match.secondPrize || 0}
                   </div>
                   <div className="bg-amber-950/30 border border-amber-700/30 text-amber-500 py-1 px-1 rounded-lg">
-                    🥉 3rd: ৳{match.thirdPrize || Math.round(match.winnerPrize * 0.2)}
+                    🥉 3rd: ৳{match.thirdPrize || 0}
                   </div>
                 </div>
               </div>

@@ -561,7 +561,8 @@ export async function adminAdjustCustomerWallet(
   userEmail: string,
   amount: number,
   action: 'ADD' | 'DEDUCT',
-  note?: string
+  note?: string,
+  txType?: WalletTransaction['type']
 ): Promise<{ success: boolean; message: string }> {
   const normEmail = userEmail.trim().toLowerCase()
   const profile = await getCustomerProfile(normEmail)
@@ -577,11 +578,12 @@ export async function adminAdjustCustomerWallet(
   await updateCustomerProfile(profile)
 
   const txNote = note || (action === 'ADD' ? 'Added by Admin (+)' : 'Deducted by Admin (-)')
+  const typeToUse = txType || (action === 'ADD' ? 'ADMIN_CREDIT' : 'WITHDRAW')
   const tx: WalletTransaction = {
     id: 'tx-admin-' + Date.now(),
     userEmail: normEmail,
     userName: profile.name,
-    type: action === 'ADD' ? 'ADMIN_CREDIT' : 'WITHDRAW',
+    type: typeToUse,
     amount,
     status: 'APPROVED',
     createdAt: new Date().toISOString(),
@@ -600,7 +602,7 @@ export async function adminAdjustCustomerWallet(
           {
             user_email: normEmail,
             user_name: profile.name,
-            type: action === 'ADD' ? 'ADMIN_CREDIT' : 'WITHDRAW',
+            type: typeToUse,
             amount,
             status: 'APPROVED',
             note: txNote,

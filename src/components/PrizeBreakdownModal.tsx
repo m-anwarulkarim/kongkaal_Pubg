@@ -17,8 +17,8 @@ export default function PrizeBreakdownModal({
   if (!open || !match) return null
 
   const firstPrize = match.firstPrize || match.winnerPrize || 500
-  const secondPrize = match.secondPrize || Math.round(firstPrize * 0.4) || 200
-  const thirdPrize = match.thirdPrize || Math.round(firstPrize * 0.2) || 100
+  const secondPrize = match.secondPrize || 0
+  const thirdPrize = match.thirdPrize || 0
   const defaultFourthToNinth = Math.round(firstPrize * 0.05) || 25
 
   const rankPrizesList = match.rankPrizes && match.rankPrizes.length > 0

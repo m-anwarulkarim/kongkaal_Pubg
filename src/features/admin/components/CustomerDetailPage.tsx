@@ -143,7 +143,9 @@ export default function CustomerDetailPage({
       return
     }
     setSubmitting(true)
-    const res = await adminAdjustCustomerWallet(customer.email, Number(amount), actionType, note)
+    const isPrize = actionType === 'ADD' && note.toLowerCase().includes('prize')
+    const txType = isPrize ? 'WINNING_PRIZE' : undefined
+    const res = await adminAdjustCustomerWallet(customer.email, Number(amount), actionType, note, txType)
     setSubmitting(false)
     if (res.success) {
       toast.success(res.message)

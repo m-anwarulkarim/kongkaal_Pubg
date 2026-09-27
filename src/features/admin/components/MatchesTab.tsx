@@ -381,7 +381,7 @@ export default function MatchesTab({
                     <Label className="text-[10px] font-bold text-gray-400 block mb-0.5">🥇 1st Prize</Label>
                     <Input
                       type="number"
-                      value={editingMatch.firstPrize || editingMatch.winnerPrize}
+                      value={editingMatch.firstPrize !== undefined ? editingMatch.firstPrize : editingMatch.winnerPrize}
                       onChange={(e) => setEditingMatch({ ...editingMatch, firstPrize: Number(e.target.value) })}
                       className="bg-[#101420] border-gray-700 text-white text-xs"
                     />
