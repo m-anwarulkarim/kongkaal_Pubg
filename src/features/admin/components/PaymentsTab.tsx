@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { updateRegistrationRoomCredentials, deleteRegistrationRecord, getMatches, type RegistrationRecord } from '@/lib/db'
 import type { MatchItem } from '@/types/match'
-import { getAllCustomerProfiles, getWalletTransactions, adminApproveTransaction } from '@/lib/wallet'
+import { getAllCustomerProfiles, getWalletTransactions, adminApproveTransaction, adminAdjustCustomerWallet } from '@/lib/wallet'
 import type { CustomerProfile, WalletTransaction } from '@/types/wallet'
 import CustomerDetailPage from './CustomerDetailPage'
 import { Card } from '@/components/ui/card'
@@ -51,6 +51,7 @@ export default function PaymentsTab({
   const [approvingTxId, setApprovingTxId] = useState<string | null>(null)
 
   const [confirmModalItem, setConfirmModalItem] = useState<{ id: string; name: string; amount: number; trxId: string } | null>(null)
+  const [rejectModalItem, setRejectModalItem] = useState<RegistrationRecord | null>(null)
   const [deleteModalReg, setDeleteModalReg] = useState<{ id: string; name: string; amount: number; trxId: string } | null>(null)
 
   // Room ID & Password Modal State
@@ -181,6 +182,26 @@ export default function PaymentsTab({
       handleStatusUpdate(confirmModalItem.id, 'VERIFIED')
       setConfirmModalItem(null)
     }
+  }
+
+  const handleRejectAction = async (reg: RegistrationRecord, refundAmount: number) => {
+    if (refundAmount > 0 && reg.userEmail) {
+      const res = await adminAdjustCustomerWallet(
+        reg.userEmail,
+        refundAmount,
+        'ADD',
+        `Refund for Rejected Slot Booking (${reg.matchId})`,
+        'ADMIN_CREDIT'
+      )
+      if (res.success) {
+        toast.success(`৳${refundAmount} refunded to Wallet!`)
+      } else {
+        toast.error(`Refund failed: ${res.message}`)
+      }
+    }
+    handleStatusUpdate(reg.id, 'REJECTED')
+    setRejectModalItem(null)
+    loadCustomers()
   }
 
   const handleOpenRoomModal = (reg: RegistrationRecord) => {
@@ -540,7 +561,7 @@ export default function PaymentsTab({
                             <CheckCircle2 className="w-3.5 h-3.5" /> Approve
                           </Button>
                           <Button
-                            onClick={() => handleStatusUpdate(reg.id, 'REJECTED')}
+                            onClick={() => setRejectModalItem(reg)}
                             size="sm"
                             className="bg-red-950 hover:bg-red-900 border border-red-600 text-red-400 text-xs font-bold py-1.5 px-3 h-auto inline-flex items-center gap-1"
                           >
@@ -640,6 +661,72 @@ export default function PaymentsTab({
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-1.5"
               >
                 <CheckCircle2 className="w-4 h-4" /> Yes, Confirm Approve
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REJECT CONFIRMATION POPUP MODAL */}
+      {rejectModalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0f121d] border border-red-500/40 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative overflow-hidden">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400">
+                  <XCircle className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-white">Confirm Rejection</h3>
+              </div>
+              <button onClick={() => setRejectModalItem(null)} className="text-gray-400 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-[#161a29] border border-white/10 rounded-2xl p-4 space-y-2 text-xs">
+              <div className="flex justify-between text-gray-300">
+                <span>Player Name:</span>
+                <strong className="text-white">{rejectModalItem.player1Name}</strong>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>Method:</span>
+                <strong className="text-amber-400 font-mono">{rejectModalItem.paymentMethod}</strong>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>Amount:</span>
+                <strong className="text-red-400 text-sm font-display">৳{rejectModalItem.amount}</strong>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-300">
+              আপনি কি এই স্লট বুকিংটি রিজেক্ট করতে চান?
+            </p>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <Button
+                type="button"
+                onClick={() => handleRejectAction(rejectModalItem, rejectModalItem.amount)}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg flex items-center justify-center gap-1.5"
+              >
+                <CheckCircle2 className="w-4 h-4" /> Reject & Refund (৳{rejectModalItem.amount})
+              </Button>
+              
+              {rejectModalItem.paymentMethod !== 'WALLET' && (
+                <Button
+                  type="button"
+                  onClick={() => handleRejectAction(rejectModalItem, 0)}
+                  className="w-full bg-red-950/60 hover:bg-red-900 border border-red-500/40 text-red-400 hover:text-white font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5"
+                >
+                  <XCircle className="w-4 h-4" /> Reject ONLY (No Refund)
+                </Button>
+              )}
+              
+              <Button
+                type="button"
+                onClick={() => setRejectModalItem(null)}
+                className="w-full mt-1 bg-white/5 hover:bg-white/10 text-white font-bold text-xs py-2.5 rounded-xl border border-white/10"
+              >
+                Cancel
               </Button>
             </div>
           </div>
