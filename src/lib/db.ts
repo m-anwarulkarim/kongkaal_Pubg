@@ -327,20 +327,11 @@ export async function updateMatch(match: MatchItem): Promise<{ success: boolean;
         room_password: match.roomPassword || '',
       }
 
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(match.id)
-      if (isUuid) {
+      const { error, data } = await supabase.from('matches').update(payload).eq('id', match.id).select()
+      if (error || !data || data.length === 0) {
+        // Fallback: If record with ID doesn't exist, try to insert it (or upsert if id is allowed)
         payload.id = match.id
-        const { error } = await supabase.from('matches').upsert(payload)
-        if (error) {
-          console.warn('Supabase upsert match error:', error)
-          await supabase.from('matches').update(payload).eq('title', match.title).eq('mode', match.mode)
-        }
-      } else {
-        const { error } = await supabase.from('matches').update(payload).eq('title', match.title).eq('mode', match.mode)
-        if (error) {
-          console.warn('Supabase update match by title error, trying insert:', error)
-          await supabase.from('matches').insert([payload])
-        }
+        await supabase.from('matches').upsert(payload, { onConflict: 'id' })
       }
     } catch (err: any) {
       console.warn('Supabase update match exception:', err)
