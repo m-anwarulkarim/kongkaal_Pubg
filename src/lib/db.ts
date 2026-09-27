@@ -191,7 +191,7 @@ export async function getMatches(forceFetch = false): Promise<MatchItem[]> {
       return local
     }
 
-    const matches: MatchItem[] = data.map((m) => ({
+    const sbMatches: MatchItem[] = data.map((m) => ({
       id: m.id,
       title: m.title,
       mode: m.mode,
@@ -209,11 +209,20 @@ export async function getMatches(forceFetch = false): Promise<MatchItem[]> {
       image: m.image,
       status: m.status,
       whatsappGroupLink: m.whatsapp_group_link,
+      roomId: m.room_id,
+      roomPassword: m.room_password,
     }))
 
-    matchesCache = { data: matches, timestamp: Date.now() }
-    saveLocalMatches(matches, false)
-    return matches
+    // Merge Supabase matches with local storage so local updates to default/custom matches are preserved
+    const local = getLocalMatches()
+    const mergedMap = new Map<string, MatchItem>()
+    local.forEach((m) => mergedMap.set(m.id, m))
+    sbMatches.forEach((m) => mergedMap.set(m.id, m))
+
+    const finalMatches = Array.from(mergedMap.values())
+    matchesCache = { data: finalMatches, timestamp: Date.now() }
+    saveLocalMatches(finalMatches, false)
+    return finalMatches
   } catch (err) {
     console.error('[DB Service] Supabase query failed:', err)
     const local = getLocalMatches()
@@ -299,36 +308,49 @@ export async function updateMatch(match: MatchItem): Promise<{ success: boolean;
   const local = getLocalMatches()
   const exists = local.some((m) => m.id === match.id)
   const updated = exists ? local.map((m) => (m.id === match.id ? match : m)) : [match, ...local]
-  saveLocalMatches(updated)
+  saveLocalMatches(updated, true)
 
   // 3. Sync to Supabase if configured
   if (isSupabaseConfigured()) {
     try {
-      await supabase
-        .from('matches')
-        .upsert({
-          id: match.id,
-          title: match.title,
-          mode: match.mode,
-          map: match.map,
-          time: match.time,
-          match_date: match.matchDate || null,
-          entry_fee: match.entryFee,
-          winner_prize: match.winnerPrize,
-          first_prize: match.firstPrize || match.winnerPrize,
-          second_prize: match.secondPrize || 0,
-          third_prize: match.thirdPrize || 0,
-          per_kill_prize: match.perKillPrize,
-          joined_slots: match.joinedSlots || 0,
-          max_slots: match.maxSlots || 100,
-          image: match.image,
-          status: match.status || 'OPEN',
-          whatsapp_group_link: match.whatsappGroupLink || '',
-          room_id: match.roomId || '',
-          room_password: match.roomPassword || '',
-        })
+      const payload: Record<string, any> = {
+        title: match.title,
+        mode: match.mode,
+        map: match.map,
+        time: match.time,
+        match_date: match.matchDate || null,
+        entry_fee: Number(match.entryFee) || 0,
+        winner_prize: Number(match.winnerPrize) || 0,
+        first_prize: Number(match.firstPrize) || Number(match.winnerPrize) || 0,
+        second_prize: Number(match.secondPrize) || 0,
+        third_prize: Number(match.thirdPrize) || 0,
+        per_kill_prize: Number(match.perKillPrize) || 0,
+        joined_slots: Number(match.joinedSlots) || 0,
+        max_slots: Number(match.maxSlots) || 100,
+        image: match.image,
+        status: match.status || 'OPEN',
+        whatsapp_group_link: match.whatsappGroupLink || '',
+        room_id: match.roomId || '',
+        room_password: match.roomPassword || '',
+      }
+
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(match.id)
+      if (isUuid) {
+        payload.id = match.id
+        const { error } = await supabase.from('matches').upsert(payload)
+        if (error) {
+          console.warn('Supabase upsert match error:', error)
+          await supabase.from('matches').update(payload).eq('title', match.title).eq('mode', match.mode)
+        }
+      } else {
+        const { error } = await supabase.from('matches').update(payload).eq('title', match.title).eq('mode', match.mode)
+        if (error) {
+          console.warn('Supabase update match by title error, trying insert:', error)
+          await supabase.from('matches').insert([payload])
+        }
+      }
     } catch (err: any) {
-      console.warn('Supabase update match error:', err)
+      console.warn('Supabase update match exception:', err)
     }
   }
 
