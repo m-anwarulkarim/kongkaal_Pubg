@@ -160,15 +160,15 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
     saveLocalWallets(wallets)
   } else {
     let updated = false
-    if (pendingIgn && profile.name !== pendingIgn) {
+    if (pendingIgn && (!profile.name || profile.name.trim() === '')) {
       profile.name = pendingIgn
       updated = true
     }
-    if (pendingUid && profile.pubgUid !== pendingUid) {
+    if (pendingUid && (!profile.pubgUid || profile.pubgUid.trim() === '')) {
       profile.pubgUid = pendingUid
       updated = true
     }
-    if (pendingPhone && profile.whatsappNumber !== pendingPhone) {
+    if (pendingPhone && (!profile.whatsappNumber || profile.whatsappNumber.trim() === '')) {
       profile.whatsappNumber = pendingPhone
       updated = true
     }
@@ -200,23 +200,21 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
 
       if (data) {
         profile.walletBalance = Number(data.balance !== undefined ? data.balance : profile.walletBalance)
-        profile.name = pendingIgn || profile.name || data.name || ''
-        profile.pubgUid = pendingUid || profile.pubgUid || data.pubg_uid || ''
-        profile.whatsappNumber = pendingPhone || profile.whatsappNumber || data.whatsapp_number || ''
+        profile.name = profile.name || data.name || pendingIgn || ''
+        profile.pubgUid = profile.pubgUid || data.pubg_uid || pendingUid || ''
+        profile.whatsappNumber = profile.whatsappNumber || data.whatsapp_number || pendingPhone || ''
         profile.avatarUrl = profile.avatarUrl || data.avatar_url || ''
         wallets[normEmail] = profile
         saveLocalWallets(wallets)
 
-        if (pendingIgn || pendingUid || pendingPhone) {
-          await supabase.from('customer_wallets').upsert({
-            email: normEmail,
-            name: profile.name,
-            pubg_uid: profile.pubgUid,
-            whatsapp_number: profile.whatsappNumber,
-            balance: profile.walletBalance,
-            avatar_url: profile.avatarUrl,
-          }, { onConflict: 'email' })
-        }
+        await supabase.from('customer_wallets').upsert({
+          email: normEmail,
+          name: profile.name,
+          pubg_uid: profile.pubgUid,
+          whatsapp_number: profile.whatsappNumber,
+          balance: profile.walletBalance,
+          avatar_url: profile.avatarUrl,
+        }, { onConflict: 'email' })
       } else if (!error) {
         // Upsert new profile to Supabase if not present yet
         await supabase.from('customer_wallets').upsert(
