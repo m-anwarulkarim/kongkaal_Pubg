@@ -385,6 +385,7 @@ export async function requestDeposit(data: {
   }
 
   clearTxsCache()
+  notifyWalletUpdate()
   return {
     success: true,
     message: 'Deposit request submitted successfully! Admin will verify your TrxID shortly.',
@@ -458,6 +459,7 @@ export async function requestWithdraw(data: {
   }
 
   clearTxsCache()
+  notifyWalletUpdate()
   return {
     success: true,
     message: 'Withdrawal request submitted! Amount deducted from balance.',
@@ -527,6 +529,7 @@ export async function payMatchWithWallet(
   }
 
   clearTxsCache()
+  notifyWalletUpdate()
   return {
     success: true,
     message: 'Entry fee paid using wallet balance successfully!',
@@ -599,6 +602,7 @@ export async function adminAdjustCustomerWallet(
   }
 
   clearTxsCache()
+  notifyWalletUpdate()
   return {
     success: true,
     message: `${action === 'ADD' ? '+' : '-'}৳${amount} ${action === 'ADD' ? 'added to' : 'deducted from'} ${normEmail} successfully!`,

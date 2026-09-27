@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { updateRegistrationRoomCredentials, deleteRegistrationRecord, type RegistrationRecord } from '@/lib/db'
-import { getAllCustomerProfiles } from '@/lib/wallet'
-import type { CustomerProfile } from '@/types/wallet'
+import { getAllCustomerProfiles, getWalletTransactions, adminApproveTransaction } from '@/lib/wallet'
+import type { CustomerProfile, WalletTransaction } from '@/types/wallet'
 import CustomerDetailPage from './CustomerDetailPage'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,7 @@ import {
   Eye,
   Copy,
   Check,
+  ArrowDownLeft,
 } from 'lucide-react'
 
 interface PaymentsTabProps {
@@ -42,8 +43,10 @@ export default function PaymentsTab({
 }: PaymentsTabProps) {
   const [limit, setLimit] = useState(25)
   const [customers, setCustomers] = useState<CustomerProfile[]>([])
+  const [walletTxs, setWalletTxs] = useState<WalletTransaction[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerProfile | null>(null)
   const [copiedText, setCopiedText] = useState<string | null>(null)
+  const [approvingTxId, setApprovingTxId] = useState<string | null>(null)
 
   const [confirmModalItem, setConfirmModalItem] = useState<{ id: string; name: string; amount: number; trxId: string } | null>(null)
   const [deleteModalReg, setDeleteModalReg] = useState<{ id: string; name: string; amount: number; trxId: string } | null>(null)
@@ -56,13 +59,17 @@ export default function PaymentsTab({
 
   const loadCustomers = async () => {
     try {
-      const data = await getAllCustomerProfiles()
-      setCustomers(data)
+      const [custData, txData] = await Promise.all([
+        getAllCustomerProfiles(),
+        getWalletTransactions(),
+      ])
+      setCustomers(custData)
+      setWalletTxs(txData)
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search)
         const emailFromUrl = params.get('email')
         if (emailFromUrl) {
-          const matched = data.find(c => c.email.toLowerCase() === emailFromUrl.toLowerCase())
+          const matched = custData.find(c => c.email.toLowerCase() === emailFromUrl.toLowerCase())
           if (matched) {
             setSelectedCustomer(matched)
           } else {
@@ -83,7 +90,26 @@ export default function PaymentsTab({
 
   useEffect(() => {
     loadCustomers()
+    const handleUpdate = () => loadCustomers()
+    window.addEventListener('wallet_updated', handleUpdate)
+    window.addEventListener('profile_updated', handleUpdate)
+    return () => {
+      window.removeEventListener('wallet_updated', handleUpdate)
+      window.removeEventListener('profile_updated', handleUpdate)
+    }
   }, [])
+
+  const handleApproveDeposit = async (id: string, status: 'APPROVED' | 'REJECTED') => {
+    setApprovingTxId(id)
+    const res = await adminApproveTransaction(id, status)
+    setApprovingTxId(null)
+    if (res.success) {
+      toast.success(status === 'APPROVED' ? 'টাকা জমার অনুরোধ সফলভাবে এপ্রুভ ও ওয়ালেটে যুক্ত করা হয়েছে! 🎉' : 'রিকোয়েস্ট রিজেক্ট করা হয়েছে!')
+      loadCustomers()
+    } else {
+      toast.error(res.message)
+    }
+  }
 
   useEffect(() => {
     const handlePopState = () => {
@@ -183,6 +209,8 @@ export default function PaymentsTab({
     }
   }
 
+  const pendingDepositTxs = walletTxs.filter((t) => t.status === 'PENDING')
+
   // If a customer profile is selected, render the FULL-PAGE details view!
   if (selectedCustomer) {
     return (
@@ -197,22 +225,108 @@ export default function PaymentsTab({
   }
 
   return (
-    <Card className="bg-[#101422] border-white/10 p-6 rounded-2xl space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
-        <div>
-          <h3 className="font-display text-2xl font-black text-white uppercase">
-            Slot Booking Payments & Approvals
-          </h3>
-          <span className="text-xs text-gray-400 font-medium">
-            প্লেয়ারের নামের বোতামে চাপলে তার ফুল ডিটেইলস পেজ ওপেন হবে এবং ১-ক্লিকে TrxID, নাম ও নাম্বার কপি করা যাবে।
-          </span>
-        </div>
+    <div className="space-y-6">
+      {/* 1. Pending Wallet Deposit & Add Money Requests Card */}
+      {pendingDepositTxs.length > 0 && (
+        <Card className="bg-[#101422] border-emerald-500/40 p-6 rounded-2xl space-y-4 shadow-2xl animate-in fade-in">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                <ArrowDownLeft className="w-5 h-5 animate-bounce" />
+              </div>
+              <div>
+                <h3 className="font-display text-lg font-black text-white uppercase flex items-center gap-2">
+                  <span>Pending Add Money & Deposit Requests</span>
+                </h3>
+                <span className="text-xs text-emerald-400 font-semibold">
+                  কাস্টমারদের টাকা জমার (Add Money) নতুন অনুরোধ এখানে জমাকৃত অবস্থায় রয়েছে।
+                </span>
+              </div>
+            </div>
 
-        <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-3 py-2 shrink-0">
-          {pendingCount} Pending Approvals
-        </Badge>
-      </div>
+            <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold px-3 py-1.5 animate-pulse">
+              {pendingDepositTxs.length} New Requests
+            </Badge>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#070910] text-gray-400 font-gaming uppercase tracking-wider text-[11px]">
+                <tr>
+                  <th className="p-3">User Email / Name</th>
+                  <th className="p-3">Type</th>
+                  <th className="p-3">Method</th>
+                  <th className="p-3">TrxID</th>
+                  <th className="p-3">Amount</th>
+                  <th className="p-3">Date & Time</th>
+                  <th className="p-3 text-right">Approve / Reject Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5 font-medium">
+                {pendingDepositTxs.map((tx) => (
+                  <tr key={tx.id} className="hover:bg-emerald-950/20 transition-colors">
+                    <td className="p-3 font-bold text-white">
+                      <div>{tx.userName || 'Player'}</div>
+                      <div className="text-[11px] text-gray-400 font-mono font-normal">{tx.userEmail}</div>
+                    </td>
+                    <td className="p-3">
+                      <Badge className="bg-emerald-950 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
+                        {tx.type}
+                      </Badge>
+                    </td>
+                    <td className="p-3 font-mono font-bold text-purple-400">{tx.paymentMethod || 'bKash'}</td>
+                    <td className="p-3 font-mono text-amber-400 font-bold">
+                      {tx.trxId || 'N/A'}
+                    </td>
+                    <td className="p-3 font-bold text-emerald-400 text-sm">
+                      +৳{tx.amount} BDT
+                    </td>
+                    <td className="p-3 text-gray-400 text-[11px]">
+                      {new Date(tx.createdAt).toLocaleString()}
+                    </td>
+                    <td className="p-3 text-right space-x-2">
+                      <button
+                        onClick={() => handleApproveDeposit(tx.id, 'APPROVED')}
+                        disabled={approvingTxId === tx.id}
+                        className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/30 transition-all cursor-pointer inline-flex items-center gap-1.5"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>{approvingTxId === tx.id ? 'Approving...' : 'Approve (+Add)'}</span>
+                      </button>
+                      <button
+                        onClick={() => handleApproveDeposit(tx.id, 'REJECTED')}
+                        disabled={approvingTxId === tx.id}
+                        className="px-3 py-1.5 rounded-lg bg-red-950/60 border border-red-500/40 text-red-300 hover:bg-red-900 font-bold text-xs transition-colors cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        <span>Reject</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {/* 2. Slot Booking Payments Card */}
+      <Card className="bg-[#101422] border-white/10 p-6 rounded-2xl space-y-4">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
+          <div>
+            <h3 className="font-display text-2xl font-black text-white uppercase">
+              Slot Booking Payments & Approvals
+            </h3>
+            <span className="text-xs text-gray-400 font-medium">
+              প্লেয়ারের নামের বোতামে চাপলে তার ফুল ডিটেইলস পেজ ওপেন হবে এবং ১-ক্লিকে TrxID, নাম ও নাম্বার কপি করা যাবে।
+            </span>
+          </div>
+
+          <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-3 py-2 shrink-0">
+            {pendingCount} Pending Approvals
+          </Badge>
+        </div>
 
       {loading ? (
         <div className="text-center py-12 text-gray-400 font-bold flex items-center justify-center gap-2">
@@ -633,6 +747,7 @@ export default function PaymentsTab({
         </div>
       )}
     </Card>
+    </div>
   )
 }
 
