@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { updateRegistrationRoomCredentials, deleteRegistrationRecord, type RegistrationRecord } from '@/lib/db'
+import { updateRegistrationRoomCredentials, deleteRegistrationRecord, getMatches, type RegistrationRecord } from '@/lib/db'
+import type { MatchItem } from '@/types/match'
 import { getAllCustomerProfiles, getWalletTransactions, adminApproveTransaction } from '@/lib/wallet'
 import type { CustomerProfile, WalletTransaction } from '@/types/wallet'
 import CustomerDetailPage from './CustomerDetailPage'
@@ -44,6 +45,7 @@ export default function PaymentsTab({
   const [limit, setLimit] = useState(25)
   const [customers, setCustomers] = useState<CustomerProfile[]>([])
   const [walletTxs, setWalletTxs] = useState<WalletTransaction[]>([])
+  const [matches, setMatches] = useState<MatchItem[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerProfile | null>(null)
   const [copiedText, setCopiedText] = useState<string | null>(null)
   const [approvingTxId, setApprovingTxId] = useState<string | null>(null)
@@ -59,12 +61,14 @@ export default function PaymentsTab({
 
   const loadCustomers = async () => {
     try {
-      const [custData, txData] = await Promise.all([
+      const [custData, txData, matchData] = await Promise.all([
         getAllCustomerProfiles(),
         getWalletTransactions(),
+        getMatches(),
       ])
       setCustomers(custData)
       setWalletTxs(txData)
+      setMatches(matchData)
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search)
         const emailFromUrl = params.get('email')
@@ -342,6 +346,7 @@ export default function PaymentsTab({
             <thead className="bg-[#070910] text-gray-400 font-gaming uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="p-3.5">PUBG Player Name & Profile</th>
+                <th className="p-3.5">Match Info</th>
                 <th className="p-3.5">Gmail Email</th>
                 <th className="p-3.5">PUBG UID</th>
                 <th className="p-3.5">Method</th>
@@ -401,6 +406,24 @@ export default function PaymentsTab({
                           )}
                         </button>
                       </span>
+                    </td>
+
+                    {/* Match Info Cell */}
+                    <td className="p-3.5">
+                      {(() => {
+                        const m = matches.find(match => match.id === reg.matchId)
+                        if (m) {
+                          return (
+                            <div className="flex flex-col gap-1">
+                              <span className="font-bold text-amber-400 text-[11px] truncate max-w-[120px]">{m.title}</span>
+                              <Badge className="bg-white/10 text-gray-300 border-white/20 text-[9px] w-fit font-bold">
+                                {m.mode}
+                              </Badge>
+                            </div>
+                          )
+                        }
+                        return <span className="text-gray-500 text-[10px] font-mono">{reg.matchId}</span>
+                      })()}
                     </td>
 
                     {/* Email Cell with Copy */}
