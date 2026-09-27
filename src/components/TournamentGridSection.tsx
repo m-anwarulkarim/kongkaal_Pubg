@@ -4,7 +4,7 @@ import MatchCard from '@/features/matches/components/MatchCard'
 import RightSidebar from './RightSidebar'
 import type { MatchItem } from '@/types/match'
 import { Trophy, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
-import { getMatches, clearMatchesCache, DEFAULT_MATCHES } from '@/lib/db'
+import { getMatches, clearMatchesCache, DEFAULT_MATCHES, getMatchModeSettings, type MatchModeSettings } from '@/lib/db'
 
 export const KONGKAAL_MATCHES: MatchItem[] = DEFAULT_MATCHES
 
@@ -15,6 +15,7 @@ interface TournamentGridSectionProps {
 export default function TournamentGridSection({ onSelectMatch }: TournamentGridSectionProps) {
   const [selectedMode, setSelectedMode] = useState<MatchFilterMode>('ALL')
   const [matches, setMatches] = useState<MatchItem[]>([])
+  const [modeSettings, setModeSettings] = useState<MatchModeSettings>(() => getMatchModeSettings())
   const [loading, setLoading] = useState(true)
   const [isPaused, setIsPaused] = useState(false)
 
@@ -37,19 +38,31 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
 
     const handleUpdate = () => {
       loadTournamentMatches()
+      setModeSettings(getMatchModeSettings())
     }
 
     window.addEventListener('matches_updated', handleUpdate)
+    window.addEventListener('mode_settings_updated', handleUpdate)
     window.addEventListener('storage', handleUpdate)
     return () => {
       window.removeEventListener('matches_updated', handleUpdate)
+      window.removeEventListener('mode_settings_updated', handleUpdate)
       window.removeEventListener('storage', handleUpdate)
     }
   }, [])
 
-  const filteredMatches = selectedMode === 'ALL'
-    ? matches
-    : matches.filter((m) => m.mode === selectedMode)
+  const filteredMatches = matches.filter((m) => {
+    // Hide matches of modes disabled by Admin
+    if (m.mode === 'SOLO' && !modeSettings.solo) return false
+    if (m.mode === 'DUO' && !modeSettings.duo) return false
+    if (m.mode === 'SQUAD' && !modeSettings.squad) return false
+
+    // Filter by selected tab mode
+    if (selectedMode !== 'ALL' && m.mode !== selectedMode) return false
+
+    return true
+  })
+
 
   // Auto-Slide Timer Logic (3.5 seconds)
   useEffect(() => {
