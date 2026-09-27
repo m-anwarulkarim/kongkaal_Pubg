@@ -72,10 +72,12 @@ function getLocalWallets(): Record<string, CustomerProfile> {
   }
 }
 
-function saveLocalWallets(wallets: Record<string, CustomerProfile>) {
+function saveLocalWallets(wallets: Record<string, CustomerProfile>, notify = true) {
   if (typeof window === 'undefined') return
   localStorage.setItem(LOCAL_WALLET_KEY, JSON.stringify(wallets))
-  notifyWalletUpdate()
+  if (notify) {
+    notifyWalletUpdate()
+  }
 }
 
 function getLocalTxs(): WalletTransaction[] {
@@ -88,10 +90,12 @@ function getLocalTxs(): WalletTransaction[] {
   }
 }
 
-function saveLocalTxs(txs: WalletTransaction[]) {
+function saveLocalTxs(txs: WalletTransaction[], notify = true) {
   if (typeof window === 'undefined') return
   localStorage.setItem(LOCAL_TX_KEY, JSON.stringify(txs))
-  notifyWalletUpdate()
+  if (notify) {
+    notifyWalletUpdate()
+  }
 }
 
 // Initial Mock Seed
@@ -157,7 +161,7 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
       avatarUrl: avatarUrl || '',
     }
     wallets[normEmail] = profile
-    saveLocalWallets(wallets)
+    saveLocalWallets(wallets, false)
   } else {
     let updated = false
     if (pendingIgn && (!profile.name || profile.name.trim() === '')) {
@@ -178,7 +182,7 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
     }
     if (updated) {
       wallets[normEmail] = profile
-      saveLocalWallets(wallets)
+      saveLocalWallets(wallets, false)
     }
   }
 
@@ -205,7 +209,7 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
         profile.whatsappNumber = profile.whatsappNumber || data.whatsapp_number || pendingPhone || ''
         profile.avatarUrl = profile.avatarUrl || data.avatar_url || ''
         wallets[normEmail] = profile
-        saveLocalWallets(wallets)
+        saveLocalWallets(wallets, false)
 
         await supabase.from('customer_wallets').upsert({
           email: normEmail,
@@ -349,7 +353,7 @@ export async function requestDeposit(data: {
   }
 
   txs.unshift(tx)
-  saveLocalTxs(txs)
+  saveLocalTxs(txs, false)
 
   if (isSupabaseConfigured()) {
     try {
@@ -373,7 +377,7 @@ export async function requestDeposit(data: {
         const idx = allTxs.findIndex((t) => t.id === tx.id)
         if (idx !== -1) {
           allTxs[idx].id = dbData[0].id
-          saveLocalTxs(allTxs)
+          saveLocalTxs(allTxs, false)
         }
       }
       if (error) {
@@ -426,7 +430,7 @@ export async function requestWithdraw(data: {
 
   const txs = getLocalTxs()
   txs.unshift(tx)
-  saveLocalTxs(txs)
+  saveLocalTxs(txs, false)
 
   if (isSupabaseConfigured()) {
     try {
@@ -450,7 +454,7 @@ export async function requestWithdraw(data: {
         const idx = allTxs.findIndex((t) => t.id === tx.id)
         if (idx !== -1) {
           allTxs[idx].id = dbData[0].id
-          saveLocalTxs(allTxs)
+          saveLocalTxs(allTxs, false)
         }
       }
     } catch (err) {
