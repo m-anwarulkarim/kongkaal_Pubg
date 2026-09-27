@@ -5,7 +5,9 @@ import type { AdminTabType } from '../types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { getVisitorStats, type VisitorStats } from '@/lib/db'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { getVisitorStats, fetchVisitorStatsFromDB, syncVisitorStatsWithDB, type VisitorStats } from '@/lib/db'
+import { toast } from 'sonner'
 import {
   DollarSign,
   TrendingUp,
@@ -17,6 +19,9 @@ import {
   X,
   AlertCircle,
   Eye,
+  Calendar,
+  RefreshCw,
+  Plus,
 } from 'lucide-react'
 
 interface OverviewTabProps {
@@ -42,12 +47,21 @@ export default function OverviewTab({
 }: OverviewTabProps) {
   const [confirmModalItem, setConfirmModalItem] = useState<{ id: string; name: string; amount: number; trxId: string } | null>(null)
   const [visitorStats, setVisitorStats] = useState<VisitorStats>(() => getVisitorStats())
+  const [visitorModalOpen, setVisitorModalOpen] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const loadLatestStats = async () => {
+    setRefreshing(true)
+    const dbStats = await fetchVisitorStatsFromDB()
+    setVisitorStats(dbStats)
+    setRefreshing(false)
+  }
 
   useEffect(() => {
     const handleUpdate = () => {
       setVisitorStats(getVisitorStats())
     }
-    setVisitorStats(getVisitorStats())
+    loadLatestStats()
     window.addEventListener('visitor_stats_updated', handleUpdate)
     window.addEventListener('storage', handleUpdate)
     return () => {
@@ -56,12 +70,30 @@ export default function OverviewTab({
     }
   }, [])
 
+  const handleTestVisit = () => {
+    const todayStr = new Date().toISOString().split('T')[0]
+    const updated: VisitorStats = {
+      totalVisits: (visitorStats.totalVisits || 0) + 1,
+      todayVisits: (visitorStats.todayVisits || 0) + 1,
+      lastDate: todayStr,
+      dailyHistory: {
+        ...(visitorStats.dailyHistory || {}),
+        [todayStr]: ((visitorStats.dailyHistory && visitorStats.dailyHistory[todayStr]) || visitorStats.todayVisits || 0) + 1,
+      },
+    }
+    localStorage.setItem('kongkaal_visitor_stats', JSON.stringify(updated))
+    window.dispatchEvent(new Event('visitor_stats_updated'))
+    syncVisitorStatsWithDB(updated)
+    toast.success('টেস্ট ভিজিটর (+১) সফলভাবে কাউন্ট করা হয়েছে!')
+  }
+
   const handleConfirmApproval = () => {
     if (confirmModalItem) {
       handleStatusUpdate(confirmModalItem.id, 'VERIFIED')
       setConfirmModalItem(null)
     }
   }
+
 
 
   return (
@@ -146,7 +178,8 @@ export default function OverviewTab({
 
         {/* Total Website Visitors Card */}
         <Card
-          className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-cyan-500/30 p-5 rounded-2xl shadow-xl hover:border-cyan-500/60 transition-all hover:scale-[1.01]"
+          onClick={() => setVisitorModalOpen(true)}
+          className="bg-gradient-to-br from-[#101422] to-[#151b2e] border border-cyan-500/30 p-5 rounded-2xl shadow-xl cursor-pointer hover:border-cyan-500/60 transition-all hover:scale-[1.01]"
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-cyan-400 uppercase">WEBSITE VISITORS</span>
@@ -158,10 +191,11 @@ export default function OverviewTab({
             {visitorStats.totalVisits.toLocaleString()}
           </div>
           <span className="text-[11px] text-gray-400 flex items-center gap-1 font-medium">
-            <span className="text-emerald-400 font-bold">+{visitorStats.todayVisits}</span> Today Visits Counter
+            <span className="text-emerald-400 font-bold">+{visitorStats.todayVisits}</span> Today Visits • Click for Details →
           </span>
         </Card>
       </div>
+
 
       {/* Quick Pending Approvals Preview */}
       <Card className="bg-[#101422] border-white/10 p-6 rounded-2xl">
@@ -289,6 +323,91 @@ export default function OverviewTab({
           </div>
         </div>
       )}
+
+      {/* WEBSITE VISITOR ANALYTICS & HISTORY MODAL */}
+      <Dialog open={visitorModalOpen} onOpenChange={setVisitorModalOpen}>
+        <DialogContent className="bg-[#0f121d] text-white border border-cyan-500/40 max-w-lg rounded-3xl p-6 shadow-2xl">
+          <DialogHeader className="border-b border-white/10 pb-3">
+            <DialogTitle className="font-display text-xl font-bold text-cyan-400 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Eye className="w-5 h-5 text-cyan-400" />
+                <span>Website Visitor Analytics & History</span>
+              </div>
+              <Button
+                size="sm"
+                onClick={loadLatestStats}
+                disabled={refreshing}
+                className="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold py-1 px-2.5 rounded-xl flex items-center gap-1.5 cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+                <span>Sync DB</span>
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-[#161a29] border border-cyan-500/30 p-4 rounded-2xl text-center">
+                <span className="text-xs font-bold text-gray-400 block mb-1">TOTAL ALL-TIME VISITS</span>
+                <span className="font-display text-3xl font-black text-cyan-400">
+                  {visitorStats.totalVisits.toLocaleString()}
+                </span>
+              </div>
+              <div className="bg-[#161a29] border border-emerald-500/30 p-4 rounded-2xl text-center">
+                <span className="text-xs font-bold text-gray-400 block mb-1">TODAY'S VISITS</span>
+                <span className="font-display text-3xl font-black text-emerald-400">
+                  +{visitorStats.todayVisits}
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-[#161a29] border border-white/10 rounded-2xl p-4 space-y-3">
+              <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                <span className="text-xs font-bold text-white uppercase flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-cyan-400" />
+                  <span>Date-wise Visit Log History</span>
+                </span>
+                <span className="text-[10px] text-gray-400">Recorded per Date</span>
+              </div>
+
+              <div className="max-h-48 overflow-y-auto space-y-2 pr-1 text-xs">
+                {visitorStats.dailyHistory && Object.keys(visitorStats.dailyHistory).length > 0 ? (
+                  Object.entries(visitorStats.dailyHistory)
+                    .sort((a, b) => b[0].localeCompare(a[0]))
+                    .map(([date, count]) => (
+                      <div key={date} className="flex justify-between items-center bg-[#0d101a] p-2.5 rounded-xl border border-white/5">
+                        <span className="font-mono text-gray-300 font-bold">{date}</span>
+                        <span className="font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-lg">{count} visits</span>
+                      </div>
+                    ))
+                ) : (
+                  <div className="text-center py-4 text-gray-400">
+                    No date history recorded yet.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-between items-center border-t border-white/10">
+              <Button
+                type="button"
+                onClick={handleTestVisit}
+                className="bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/40 text-emerald-400 hover:text-white text-xs font-bold py-2 px-3 rounded-xl flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Test Live Visit (+1)</span>
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setVisitorModalOpen(false)}
+                className="bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2 px-4 rounded-xl cursor-pointer"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
