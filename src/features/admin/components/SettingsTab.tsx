@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
-import { Database, Crown, Calendar, Save, CheckCircle2, Shield, Clock } from 'lucide-react'
-import { getHeroBannerSettings, saveHeroBannerSettings, type HeroBannerSettings } from '@/lib/db'
+import { Database, Crown, Calendar, Save, CheckCircle2, Shield, Clock, Gamepad2, User, Users } from 'lucide-react'
+import { getHeroBannerSettings, saveHeroBannerSettings, type HeroBannerSettings, getMatchModeSettings, saveMatchModeSettings, type MatchModeSettings } from '@/lib/db'
 import { getDepositCooldownMinutes, saveDepositCooldownMinutes } from '@/lib/wallet'
 import { toast } from 'sonner'
 
@@ -10,10 +10,13 @@ export default function SettingsTab() {
   const [savedSuccess, setSavedSuccess] = useState(false)
   const [cooldownMins, setCooldownMins] = useState<number>(() => getDepositCooldownMinutes())
   const [cooldownSaved, setCooldownSaved] = useState(false)
+  const [modeSettings, setModeSettings] = useState<MatchModeSettings>(() => getMatchModeSettings())
+  const [modeSaved, setModeSaved] = useState(false)
 
   useEffect(() => {
     setHeroSettings(getHeroBannerSettings())
     setCooldownMins(getDepositCooldownMinutes())
+    setModeSettings(getMatchModeSettings())
   }, [])
 
   const handleSaveBannerSettings = (e: React.FormEvent) => {
@@ -31,8 +34,105 @@ export default function SettingsTab() {
     setTimeout(() => setCooldownSaved(false), 3000)
   }
 
+  const handleSaveModeSettings = (e: React.FormEvent) => {
+    e.preventDefault()
+    saveMatchModeSettings(modeSettings)
+    setModeSaved(true)
+    toast.success('ম্যাচ মোড সেটিংস সফলভাবে সেভ করা হয়েছে!')
+    setTimeout(() => setModeSaved(false), 3000)
+  }
+
   return (
     <div className="space-y-6">
+      {/* 1. Tournament Match Modes Control Card */}
+      <Card className="bg-[#101422] border-white/10 p-6 rounded-2xl space-y-5">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div>
+            <h3 className="font-display text-xl font-black text-white uppercase flex items-center gap-2">
+              <Gamepad2 className="w-5 h-5 text-red-500" />
+              <span>Tournament Match Modes Control (গেম মোড কন্ট্রোল)</span>
+            </h3>
+            <span className="text-xs text-gray-400">
+              সাইটে কোন কোন ম্যাচ মোড (Solo, Duo, Squad) অন বা অফ থাকবে তা এডমিন প্যানেল থেকে সক্রিয়/নিষ্ক্রিয় করুন।
+            </span>
+          </div>
+          {modeSaved && (
+            <span className="px-3 py-1 rounded-full bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-bold flex items-center gap-1.5 animate-in fade-in">
+              <CheckCircle2 className="w-3.5 h-3.5" /> সেটিংস আপডেট হয়েছে!
+            </span>
+          )}
+        </div>
+
+        <form onSubmit={handleSaveModeSettings} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            {/* Solo Toggle */}
+            <div className={`p-4 rounded-xl border transition-all ${modeSettings.solo ? 'bg-red-950/30 border-red-500/50' : 'bg-[#080b12] border-white/10 opacity-60'}`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold text-sm text-white flex items-center gap-2">
+                  <User className="w-4 h-4 text-red-400" /> SOLO Mode
+                </span>
+                <input
+                  type="checkbox"
+                  checked={modeSettings.solo}
+                  onChange={(e) => setModeSettings({ ...modeSettings, solo: e.target.checked })}
+                  className="w-5 h-5 accent-red-600 rounded cursor-pointer"
+                />
+              </div>
+              <p className="text-[11px] text-gray-400">
+                {modeSettings.solo ? '✅ SOLO মোড অন রয়েছে (সাইটে সচল)' : '❌ SOLO মোড অফ করা আছে'}
+              </p>
+            </div>
+
+            {/* Duo Toggle */}
+            <div className={`p-4 rounded-xl border transition-all ${modeSettings.duo ? 'bg-blue-950/30 border-blue-500/50' : 'bg-[#080b12] border-white/10 opacity-60'}`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold text-sm text-white flex items-center gap-2">
+                  <Users className="w-4 h-4 text-blue-400" /> DUO Mode
+                </span>
+                <input
+                  type="checkbox"
+                  checked={modeSettings.duo}
+                  onChange={(e) => setModeSettings({ ...modeSettings, duo: e.target.checked })}
+                  className="w-5 h-5 accent-blue-600 rounded cursor-pointer"
+                />
+              </div>
+              <p className="text-[11px] text-gray-400">
+                {modeSettings.duo ? '✅ DUO মোড অন রয়েছে (সাইটে সচল)' : '❌ DUO মোড অফ করা আছে (অফলাইনে থাকবে)'}
+              </p>
+            </div>
+
+            {/* Squad Toggle */}
+            <div className={`p-4 rounded-xl border transition-all ${modeSettings.squad ? 'bg-purple-950/30 border-purple-500/50' : 'bg-[#080b12] border-white/10 opacity-60'}`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold text-sm text-white flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-purple-400" /> SQUAD Mode
+                </span>
+                <input
+                  type="checkbox"
+                  checked={modeSettings.squad}
+                  onChange={(e) => setModeSettings({ ...modeSettings, squad: e.target.checked })}
+                  className="w-5 h-5 accent-purple-600 rounded cursor-pointer"
+                />
+              </div>
+              <p className="text-[11px] text-gray-400">
+                {modeSettings.squad ? '✅ SQUAD মোড অন রয়েছে (সাইটে সচল)' : '❌ SQUAD মোড অফ করা আছে (অফলাইনে থাকবে)'}
+              </p>
+            </div>
+
+          </div>
+
+          <div className="flex justify-end pt-1">
+            <button
+              type="submit"
+              className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer shadow-lg shadow-red-600/30"
+            >
+              <Save className="w-4 h-4" />
+              <span>Save Mode Settings</span>
+            </button>
+          </div>
+        </form>
+      </Card>
       {/* 1. Next Match Hero Banner Settings Card */}
       <Card className="bg-[#101422] border-white/10 p-6 rounded-2xl space-y-5">
         <div className="flex items-center justify-between border-b border-white/10 pb-4">

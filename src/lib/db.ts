@@ -925,3 +925,35 @@ export function saveHeroBannerSettings(settings: HeroBannerSettings) {
   }
 }
 
+// 12. Match Mode Settings Management (SOLO, DUO, SQUAD Control)
+export interface MatchModeSettings {
+  solo: boolean
+  duo: boolean
+  squad: boolean
+}
+
+export const DEFAULT_MODE_SETTINGS: MatchModeSettings = {
+  solo: true,
+  duo: false, // Turned off by default per user request
+  squad: false, // Turned off by default per user request
+}
+
+export function getMatchModeSettings(): MatchModeSettings {
+  if (typeof window === 'undefined') return DEFAULT_MODE_SETTINGS
+  const stored = localStorage.getItem('kongkaal_mode_settings')
+  if (!stored) return DEFAULT_MODE_SETTINGS
+  try {
+    const parsed = JSON.parse(stored)
+    return { ...DEFAULT_MODE_SETTINGS, ...parsed }
+  } catch {
+    return DEFAULT_MODE_SETTINGS
+  }
+}
+
+export function saveMatchModeSettings(settings: MatchModeSettings) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('kongkaal_mode_settings', JSON.stringify(settings))
+    window.dispatchEvent(new Event('mode_settings_updated'))
+  }
+}
+
