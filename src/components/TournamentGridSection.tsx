@@ -4,7 +4,7 @@ import MatchCard from '@/features/matches/components/MatchCard'
 import RightSidebar from './RightSidebar'
 import type { MatchItem } from '@/types/match'
 import { Trophy, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
-import { getMatches, clearMatchesCache, DEFAULT_MATCHES, getMatchModeSettings, type MatchModeSettings } from '@/lib/db'
+import { getMatches, DEFAULT_MATCHES, getMatchModeSettings, getLocalMatches, type MatchModeSettings } from '@/lib/db'
 
 export const KONGKAAL_MATCHES: MatchItem[] = DEFAULT_MATCHES
 
@@ -14,9 +14,9 @@ interface TournamentGridSectionProps {
 
 export default function TournamentGridSection({ onSelectMatch }: TournamentGridSectionProps) {
   const [selectedMode, setSelectedMode] = useState<MatchFilterMode>('ALL')
-  const [matches, setMatches] = useState<MatchItem[]>([])
+  const [matches, setMatches] = useState<MatchItem[]>(() => getLocalMatches())
   const [modeSettings, setModeSettings] = useState<MatchModeSettings>(() => getMatchModeSettings())
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
 
   const sliderRef = useRef<HTMLDivElement>(null)
@@ -24,17 +24,14 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
   useEffect(() => {
     async function loadTournamentMatches() {
       try {
-        clearMatchesCache()
-        const data = await getMatches(true)
+        const data = await getMatches()
         setMatches(data)
       } catch (err) {
         console.error('Failed to load dynamic matches:', err)
-        setMatches(DEFAULT_MATCHES)
-      } finally {
-        setLoading(false)
       }
     }
     loadTournamentMatches()
+
 
     const handleUpdate = () => {
       loadTournamentMatches()

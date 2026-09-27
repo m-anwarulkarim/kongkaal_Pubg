@@ -67,7 +67,7 @@ export const DEFAULT_MATCHES: MatchItem[] = [
   },
 ]
 
-function getLocalMatches(): MatchItem[] {
+export function getLocalMatches(): MatchItem[] {
   if (typeof window === 'undefined') return DEFAULT_MATCHES
   const stored = localStorage.getItem('kongkaal_matches')
   if (!stored) {
@@ -1033,6 +1033,19 @@ const DEFAULT_VISITOR_STATS: VisitorStats = {
   },
 }
 
+export async function syncVisitorStatsWithDB(stats: VisitorStats) {
+  if (!isSupabaseConfigured()) return
+  try {
+    await supabase.from('site_settings').upsert({
+      key: 'visitor_stats',
+      value: JSON.stringify(stats),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'key' })
+  } catch (err) {
+    // Silently continue with local stats if table not set up
+  }
+}
+
 export function getVisitorStats(): VisitorStats {
   if (typeof window === 'undefined') return DEFAULT_VISITOR_STATS
   const stored = localStorage.getItem('kongkaal_visitor_stats')
@@ -1063,6 +1076,34 @@ export function getVisitorStats(): VisitorStats {
   }
 }
 
+export async function fetchVisitorStatsFromDB(): Promise<VisitorStats> {
+  const localStats = getVisitorStats()
+  if (!isSupabaseConfigured()) return localStats
+
+  try {
+    const { data } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'visitor_stats')
+      .maybeSingle()
+
+    if (data && data.value) {
+      const parsed: VisitorStats = JSON.parse(data.value)
+      const merged: VisitorStats = {
+        totalVisits: Math.max(parsed.totalVisits || 0, localStats.totalVisits || 0),
+        todayVisits: Math.max(parsed.todayVisits || 0, localStats.todayVisits || 0),
+        lastDate: localStats.lastDate,
+        dailyHistory: { ...(parsed.dailyHistory || {}), ...(localStats.dailyHistory || {}) },
+      }
+      localStorage.setItem('kongkaal_visitor_stats', JSON.stringify(merged))
+      return merged
+    }
+  } catch (err) {
+    // Ignore error
+  }
+  return localStats
+}
+
 export function trackVisitor(): VisitorStats {
   if (typeof window === 'undefined') return DEFAULT_VISITOR_STATS
 
@@ -1087,11 +1128,16 @@ export function trackVisitor(): VisitorStats {
     }
     localStorage.setItem('kongkaal_visitor_stats', JSON.stringify(updated))
     window.dispatchEvent(new Event('visitor_stats_updated'))
+    
+    // Background async sync to Supabase database for real global visitor tracking
+    syncVisitorStatsWithDB(updated)
+
     return updated
   }
 
   return current
 }
+
 
 
 

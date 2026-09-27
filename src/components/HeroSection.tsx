@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Trophy, Shield, Zap, ArrowRight, Eye, Gamepad2, Calendar, Crown, Clock, Play, Film, X } from 'lucide-react'
 import Image from '@/components/ui/Image'
-import { getHeroBannerSettings, getMatches, getMatchModeSettings, type HeroBannerSettings } from '@/lib/db'
+import { getHeroBannerSettings, getMatches, getMatchModeSettings, getLocalMatches, type HeroBannerSettings } from '@/lib/db'
 import { formatYouTubeEmbedUrl } from '@/lib/imageUtils'
 
 interface HeroSectionProps {
@@ -11,7 +11,19 @@ interface HeroSectionProps {
 
 export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSectionProps) {
   const [heroSettings, setHeroSettings] = useState<HeroBannerSettings>(() => getHeroBannerSettings())
-  const [upcomingMatchInfo, setUpcomingMatchInfo] = useState<{ time: string; map: string } | null>(null)
+  const [upcomingMatchInfo, setUpcomingMatchInfo] = useState<{ time: string; map: string } | null>(() => {
+    if (typeof window === 'undefined') return null
+    const local = getLocalMatches()
+    const modeSettings = getMatchModeSettings()
+    const validMatches = local.filter((m) => {
+      if (m.mode === 'SOLO' && !modeSettings.solo) return false
+      if (m.mode === 'DUO' && !modeSettings.duo) return false
+      if (m.mode === 'SQUAD' && !modeSettings.squad) return false
+      return true
+    })
+    const upcoming = validMatches.find((m) => m.status === 'OPEN' || m.status === 'FILLING_FAST' || m.status === 'LIVE_SOON')
+    return upcoming ? { time: upcoming.time || 'Today • 10:00 PM', map: `${upcoming.map} / ${upcoming.mode || 'Asia'}` } : null
+  })
   const [liveMatchInfo, setLiveMatchInfo] = useState<{ count: number } | null>(null)
   const [videoModalOpen, setVideoModalOpen] = useState(false)
 
@@ -21,7 +33,8 @@ export default function HeroSection({ onJoinClick, onViewAllClick }: HeroSection
       setHeroSettings(banner)
 
       try {
-        const matches = await getMatches(true)
+        const matches = await getMatches()
+
         const modeSettings = getMatchModeSettings()
         const validMatches = matches.filter((m) => {
           if (m.mode === 'SOLO' && !modeSettings.solo) return false
