@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import type { MatchItem } from '@/types/match'
 import { saveRegistration } from '@/lib/db'
 import { useCustomerAuth, signInWithGoogle } from '@/lib/auth'
-import { payMatchWithWallet } from '@/lib/wallet'
+import { payMatchWithWallet, getCustomerProfile, updateCustomerProfile } from '@/lib/wallet'
 import { slotRegistrationSchema, paymentTrxSchema, validateForm } from '@/lib/validations'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -56,11 +56,46 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
   const [player1Uid, setPlayer1Uid] = useState('')
   const [whatsappNumber, setWhatsappNumber] = useState('')
 
-  // Auto pre-fill if customer logged in via Google
+  // Auto pre-fill player info from customer profile or auth session
   useEffect(() => {
-    if (user && !player1Name) {
-      const googleName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || ''
-      setPlayer1Name(googleName)
+    if (!open) return
+
+    if (user?.email) {
+      getCustomerProfile(user.email, user.user_metadata?.full_name || user.email.split('@')[0]).then((profile) => {
+        if (profile) {
+          if (profile.name) {
+            setPlayer1Name(profile.name)
+          } else {
+            const googleName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || ''
+            if (googleName) setPlayer1Name(googleName)
+          }
+
+          if (profile.pubgUid) {
+            setPlayer1Uid(profile.pubgUid)
+          } else {
+            const pendingUid = typeof window !== 'undefined' ? localStorage.getItem('pending_pubg_uid') || '' : ''
+            if (pendingUid) setPlayer1Uid(pendingUid)
+          }
+
+          if (profile.whatsappNumber) {
+            setWhatsappNumber(profile.whatsappNumber)
+          } else {
+            const pendingPhone = typeof window !== 'undefined' ? localStorage.getItem('pending_whatsapp') || '' : ''
+            if (pendingPhone) setWhatsappNumber(pendingPhone)
+          }
+        }
+      })
+    } else {
+      // Unauthenticated fallback from localStorage if user entered info during login attempt
+      if (typeof window !== 'undefined') {
+        const pendingIgn = localStorage.getItem('pending_pubg_ign') || ''
+        const pendingUid = localStorage.getItem('pending_pubg_uid') || ''
+        const pendingPhone = localStorage.getItem('pending_whatsapp') || ''
+
+        if (pendingIgn && !player1Name) setPlayer1Name(pendingIgn)
+        if (pendingUid && !player1Uid) setPlayer1Uid(pendingUid)
+        if (pendingPhone && !whatsappNumber) setWhatsappNumber(pendingPhone)
+      }
     }
   }, [user, open])
 
@@ -112,6 +147,19 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
     if (match.mode !== 'SOLO' && (!teamName || teamName.trim().length < 2)) {
       toast.error('দয়া করে আপনার টিম এর নাম (Team Name) কমপক্ষে ২ অক্ষরের দিন!')
       return
+    }
+
+    // Save/update customer profile with latest IGN, UID, and WhatsApp number if user is logged in
+    if (user?.email) {
+      getCustomerProfile(user.email).then((prof) => {
+        updateCustomerProfile({
+          ...prof,
+          email: user.email!,
+          name: player1Name.trim() || prof.name,
+          pubgUid: player1Uid.trim() || prof.pubgUid,
+          whatsappNumber: whatsappNumber.trim() || prof.whatsappNumber,
+        })
+      })
     }
 
     setStep('PAYMENT')
@@ -290,6 +338,36 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                 <span>১. খেলোয়াড় ও টিম সংক্রান্ত তথ্য পূরণ করুন</span>
               </h4>
 
+              {/* Connected Gmail Address */}
+              <div>
+                <Label className="text-xs font-bold text-gray-300 uppercase mb-1 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <span>গুগল জিমেইল (GMAIL ADDRESS)</span>
+                    <span className="text-red-500">*</span>
+                  </span>
+                  {user?.email ? (
+                    <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-400" /> অটো ফিল্ড (Auto Filled)
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-amber-400 font-normal">
+                      (গুগলে লগইন থাকলে অটো ফিল হবে)
+                    </span>
+                  )}
+                </Label>
+                <div className="relative">
+                  <Input
+                    type="email"
+                    readOnly={!!user?.email}
+                    value={user?.email || ''}
+                    placeholder="e.g. yourname@gmail.com"
+                    className={`bg-[#0b0e14] border-gray-700 text-white text-xs sm:text-sm font-mono ${
+                      user?.email ? 'cursor-not-allowed opacity-90 border-emerald-500/30' : ''
+                    }`}
+                  />
+                </div>
+              </div>
+
               {match.mode !== 'SOLO' && (
                 <div>
                   <Label className="text-xs font-bold text-gray-300 uppercase mb-1 block">
@@ -316,7 +394,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                     value={player1Name}
                     onChange={(e) => setPlayer1Name(e.target.value)}
                     placeholder="e.g. OP_DEADSHOT"
-                    className="bg-[#0b0e14] border-gray-700 text-white text-xs sm:text-sm"
+                    className="bg-[#0b0e14] border-gray-700 text-white text-xs sm:text-sm focus:border-red-500"
                   />
                 </div>
                 <div>
@@ -328,15 +406,20 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                     value={player1Uid}
                     onChange={(e) => setPlayer1Uid(e.target.value)}
                     placeholder="e.g. 5123456789"
-                    className="bg-[#0b0e14] border-gray-700 text-white text-xs sm:text-sm font-mono"
+                    className="bg-[#0b0e14] border-gray-700 text-white text-xs sm:text-sm font-mono focus:border-red-500"
                   />
                 </div>
               </div>
 
               {/* WhatsApp Contact Number */}
               <div>
-                <Label className="text-xs font-bold text-gray-300 uppercase mb-1 block">
-                  WhatsApp নাম্বার (Room ID পাঠানোর জন্য) <span className="text-red-500">*</span>
+                <Label className="text-xs font-bold text-gray-300 uppercase mb-1 flex items-center justify-between">
+                  <span>
+                    WHATSAPP নম্বর (ROOM ID পাঠানোর জন্য) <span className="text-red-500">*</span>
+                  </span>
+                  <span className="text-[10px] text-gray-400 font-normal">
+                    (চাইলে পরিবর্তন করতে পারবেন)
+                  </span>
                 </Label>
                 <Input
                   type="tel"
@@ -344,7 +427,7 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                   value={whatsappNumber}
                   onChange={(e) => setWhatsappNumber(e.target.value)}
                   placeholder="e.g. 01700000000"
-                  className="bg-[#0b0e14] border-gray-700 text-white text-xs sm:text-sm font-mono"
+                  className="bg-[#0b0e14] border-gray-700 text-white text-xs sm:text-sm font-mono focus:border-red-500"
                 />
               </div>
 

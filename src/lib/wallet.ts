@@ -434,6 +434,14 @@ export async function requestWithdraw(data: {
 
   if (isSupabaseConfigured()) {
     try {
+      // Deduct balance directly in Supabase customer_wallets table
+      const { data: dbWallet } = await supabase.from('customer_wallets').select('balance').ilike('email', normEmail).maybeSingle()
+      if (dbWallet) {
+        const currentBal = Number(dbWallet.balance || 0)
+        const newBal = Math.max(0, currentBal - data.amount)
+        await supabase.from('customer_wallets').update({ balance: newBal }).ilike('email', normEmail)
+      }
+
       const { data: dbData } = await supabase
         .from('wallet_transactions')
         .insert([
@@ -673,6 +681,13 @@ export async function adminApproveTransaction(
           const profile = await getCustomerProfile(normEmail)
           profile.walletBalance = newBal
           saveLocalWallets({ ...getLocalWallets(), [normEmail]: profile })
+        } else if (type === 'WITHDRAW' && status === 'APPROVED') {
+          // Ensure Supabase DB balance is synced to the deducted profile balance
+          const { data: dbWallet } = await supabase.from('customer_wallets').select('balance').ilike('email', normEmail).maybeSingle()
+          const profile = await getCustomerProfile(normEmail)
+          if (dbWallet) {
+            await supabase.from('customer_wallets').update({ balance: profile.walletBalance }).ilike('email', normEmail)
+          }
         } else if (type === 'WITHDRAW' && status === 'REJECTED') {
           const { data: dbWallet } = await supabase.from('customer_wallets').select('balance').ilike('email', normEmail).maybeSingle()
           const currentBal = dbWallet ? Number(dbWallet.balance || 0) : 0

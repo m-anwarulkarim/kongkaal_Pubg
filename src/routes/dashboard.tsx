@@ -610,24 +610,26 @@ function CustomerDashboardPage() {
                         {match.status === 'VERIFIED' ? (
                           <div className="p-3.5 bg-emerald-950/40 border border-emerald-500/30 rounded-xl space-y-2 text-xs">
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-emerald-300 font-bold font-mono">
-                              <span>Room ID: <strong className="text-white text-sm font-black">{match.roomId || '1234567'}</strong></span>
-                              <span>Password: <strong className="text-amber-400 text-sm font-black">{match.roomPassword || '8899'}</strong></span>
+                              <span>Room ID: <strong className="text-white text-sm font-black">{match.roomId || 'পেন্ডিং (অপেক্ষা করুন)'}</strong></span>
+                              <span>Password: <strong className="text-amber-400 text-sm font-black">{match.roomPassword || 'পেন্ডিং'}</strong></span>
                             </div>
                             <div className="flex flex-wrap justify-between items-center gap-1.5 text-[10px] text-emerald-400 border-t border-emerald-500/20 pt-1.5">
                               <span>ম্যাচ শুরু হওয়ার ১৫ মিনিট আগে ইন-গেম রুমে জয়েন করুন।</span>
-                              <Button
-                                onClick={() => handleCopy(`Room ID: ${match.roomId || '1234567'}, Password: ${match.roomPassword || '8899'}`, match.id)}
-                                size="sm"
-                                className="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] px-2.5 py-1 h-auto font-mono font-bold rounded-lg shrink-0"
-                              >
-                                <Copy className="w-3 h-3 mr-1" />
-                                {copiedId === match.id ? 'Copied!' : 'Copy Code'}
-                              </Button>
+                              {match.roomId && (
+                                <Button
+                                  onClick={() => handleCopy(`Room ID: ${match.roomId}, Password: ${match.roomPassword || ''}`, match.id)}
+                                  size="sm"
+                                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] px-2.5 py-1 h-auto font-mono font-bold rounded-lg shrink-0"
+                                >
+                                  <Copy className="w-3 h-3 mr-1" />
+                                  {copiedId === match.id ? 'Copied!' : 'Copy Code'}
+                                </Button>
+                              )}
                             </div>
                           </div>
                         ) : (
                           <div className="p-3 bg-amber-950/30 border border-amber-500/30 rounded-xl text-xs text-amber-300">
-                            এডমিন পেমেন্ট ট্রানজেকশন আইডি ভেরিফাই করলে এখানে ইন-গেম রুম আইডি এবং পাসওয়ার্ড দেখাবে।
+                            এডমিন পেমেন্ট ট্রানজেকশন আইডি ভেরিফাই (VERIFIED) করলে এখানে ইন-গেম রুম আইডি এবং পাসওয়ার্ড দেখাবে।
                           </div>
                         )}
                       </div>
