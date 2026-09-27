@@ -213,11 +213,18 @@ export async function getMatches(forceFetch = false): Promise<MatchItem[]> {
       roomPassword: m.room_password,
     }))
 
-    // Merge Supabase matches with local storage so local updates to default/custom matches are preserved
+    // Merge Supabase matches with local storage (Local user edits take precedence over stale DB reads)
     const local = getLocalMatches()
     const mergedMap = new Map<string, MatchItem>()
-    local.forEach((m) => mergedMap.set(m.id, m))
     sbMatches.forEach((m) => mergedMap.set(m.id, m))
+    local.forEach((m) => {
+      const existing = mergedMap.get(m.id)
+      if (existing) {
+        mergedMap.set(m.id, { ...existing, ...m })
+      } else {
+        mergedMap.set(m.id, m)
+      }
+    })
 
     const finalMatches = Array.from(mergedMap.values())
     matchesCache = { data: finalMatches, timestamp: Date.now() }
