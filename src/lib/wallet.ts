@@ -213,9 +213,9 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
 
         profile.walletBalance = Number(data.balance !== undefined ? data.balance : profile.walletBalance)
         profile.name = bestName
-        profile.pubgUid = profile.pubgUid || data.pubg_uid || pendingUid || ''
-        profile.whatsappNumber = profile.whatsappNumber || data.whatsapp_number || pendingPhone || ''
-        profile.avatarUrl = profile.avatarUrl || data.avatar_url || ''
+        profile.pubgUid = data.pubg_uid || profile.pubgUid || pendingUid || ''
+        profile.whatsappNumber = data.whatsapp_number || profile.whatsappNumber || pendingPhone || ''
+        profile.avatarUrl = data.avatar_url || profile.avatarUrl || ''
         wallets[normEmail] = profile
         saveLocalWallets(wallets, false)
 
@@ -850,10 +850,10 @@ export async function getAllCustomerProfiles(): Promise<CustomerProfile[]> {
           map[normKey] = {
             email: normKey,
             name: bestName,
-            pubgUid: localProfile?.pubgUid || d.pubg_uid || '',
-            whatsappNumber: localProfile?.whatsappNumber || d.whatsapp_number || '',
+            pubgUid: d.pubg_uid || localProfile?.pubgUid || '',
+            whatsappNumber: d.whatsapp_number || localProfile?.whatsappNumber || '',
             walletBalance: Number(d.balance !== undefined ? d.balance : (localProfile?.walletBalance || 0)),
-            avatarUrl: localProfile?.avatarUrl || d.avatar_url || '',
+            avatarUrl: d.avatar_url || localProfile?.avatarUrl || '',
           }
         })
       }
