@@ -442,14 +442,6 @@ export async function requestWithdraw(data: {
 
   if (isSupabaseConfigured()) {
     try {
-      // Deduct balance directly in Supabase customer_wallets table
-      const { data: dbWallet } = await supabase.from('customer_wallets').select('balance').ilike('email', normEmail).maybeSingle()
-      if (dbWallet) {
-        const currentBal = Number(dbWallet.balance || 0)
-        const newBal = Math.max(0, currentBal - data.amount)
-        await supabase.from('customer_wallets').update({ balance: newBal }).ilike('email', normEmail)
-      }
-
       const { data: dbData } = await supabase
         .from('wallet_transactions')
         .insert([
@@ -648,17 +640,6 @@ export async function adminApproveTransaction(
     }
     tx.status = status
     saveLocalTxs(localTxs)
-
-    const normEmail = tx.userEmail.trim().toLowerCase()
-    if (tx.type === 'DEPOSIT' && status === 'APPROVED') {
-      const profile = await getCustomerProfile(normEmail, tx.userName)
-      profile.walletBalance += tx.amount
-      await updateCustomerProfile(profile)
-    } else if (tx.type === 'WITHDRAW' && status === 'REJECTED') {
-      const profile = await getCustomerProfile(normEmail, tx.userName)
-      profile.walletBalance += tx.amount
-      await updateCustomerProfile(profile)
-    }
   }
 
   if (isSupabaseConfigured()) {
@@ -667,6 +648,7 @@ export async function adminApproveTransaction(
       if (!userEmail || !type || !amount) {
         const { data: dbTx } = await supabase.from('wallet_transactions').select('*').eq('id', id).maybeSingle()
         if (dbTx) {
+          if (dbTx.status !== 'PENDING') return { success: false, message: 'Transaction is already processed' }
           userEmail = dbTx.user_email
           amount = Number(dbTx.amount)
           type = dbTx.type
@@ -674,48 +656,21 @@ export async function adminApproveTransaction(
       }
 
       await supabase.from('wallet_transactions').update({ status }).eq('id', id)
-
-      if (userEmail && amount > 0) {
-        const normEmail = userEmail.trim().toLowerCase()
-        if (type === 'DEPOSIT' && status === 'APPROVED') {
-          const { data: dbWallet } = await supabase.from('customer_wallets').select('balance').ilike('email', normEmail).maybeSingle()
-          const currentBal = dbWallet ? Number(dbWallet.balance || 0) : 0
-          const newBal = currentBal + amount
-
-          if (dbWallet) {
-            await supabase.from('customer_wallets').update({ balance: newBal }).ilike('email', normEmail)
-          } else {
-            await supabase.from('customer_wallets').insert([{ email: normEmail, balance: newBal }])
-          }
-
-          const profile = await getCustomerProfile(normEmail)
-          profile.walletBalance = newBal
-          saveLocalWallets({ ...getLocalWallets(), [normEmail]: profile })
-        } else if (type === 'WITHDRAW' && status === 'APPROVED') {
-          // Ensure Supabase DB balance is synced to the deducted profile balance
-          const { data: dbWallet } = await supabase.from('customer_wallets').select('balance').ilike('email', normEmail).maybeSingle()
-          const profile = await getCustomerProfile(normEmail)
-          if (dbWallet) {
-            await supabase.from('customer_wallets').update({ balance: profile.walletBalance }).ilike('email', normEmail)
-          }
-        } else if (type === 'WITHDRAW' && status === 'REJECTED') {
-          const { data: dbWallet } = await supabase.from('customer_wallets').select('balance').ilike('email', normEmail).maybeSingle()
-          const currentBal = dbWallet ? Number(dbWallet.balance || 0) : 0
-          const newBal = currentBal + amount
-
-          if (dbWallet) {
-            await supabase.from('customer_wallets').update({ balance: newBal }).ilike('email', normEmail)
-          } else {
-            await supabase.from('customer_wallets').insert([{ email: normEmail, balance: newBal }])
-          }
-
-          const profile = await getCustomerProfile(normEmail)
-          profile.walletBalance = newBal
-          saveLocalWallets({ ...getLocalWallets(), [normEmail]: profile })
-        }
-      }
     } catch (err) {
       console.warn('Supabase update transaction exception:', err)
+    }
+  }
+
+  if (userEmail && amount > 0) {
+    const normEmail = userEmail.trim().toLowerCase()
+    if (type === 'DEPOSIT' && status === 'APPROVED') {
+      const profile = await getCustomerProfile(normEmail, tx?.userName)
+      profile.walletBalance += amount
+      await updateCustomerProfile(profile)
+    } else if (type === 'WITHDRAW' && status === 'REJECTED') {
+      const profile = await getCustomerProfile(normEmail, tx?.userName)
+      profile.walletBalance += amount
+      await updateCustomerProfile(profile)
     }
   }
 
