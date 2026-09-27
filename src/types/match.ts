@@ -30,6 +30,7 @@ export interface MatchItem {
   whatsappGroupLink?: string
   roomId?: string
   roomPassword?: string
+  showPrizeBreakdown?: boolean
 }
 
 export interface PlayerRegistration {

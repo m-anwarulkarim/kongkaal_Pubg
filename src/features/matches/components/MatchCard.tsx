@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { MatchItem } from '@/types/match'
 import { Shield, Clock, ArrowRight, Trophy } from 'lucide-react'
 import Image from '@/components/ui/Image'
 import PrizeBreakdownModal from '@/components/PrizeBreakdownModal'
+import { getPrizeBreakdownSettings } from '@/lib/db'
 
 interface MatchCardProps {
   match: MatchItem
@@ -11,6 +12,18 @@ interface MatchCardProps {
 
 export default function MatchCard({ match, onSelect }: MatchCardProps) {
   const [prizeModalOpen, setPrizeModalOpen] = useState(false)
+  const [globalBreakdownEnabled, setGlobalBreakdownEnabled] = useState(() => getPrizeBreakdownSettings().enableGlobalModal)
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setGlobalBreakdownEnabled(getPrizeBreakdownSettings().enableGlobalModal)
+    }
+    window.addEventListener('prize_breakdown_settings_updated', handleUpdate)
+    return () => window.removeEventListener('prize_breakdown_settings_updated', handleUpdate)
+  }, [])
+
+  const isBreakdownAllowed = globalBreakdownEnabled && match.showPrizeBreakdown !== false
+
 
   // Dynamic Date formatting — prefers matchDate field, falls back to parsing time string
   let dayStr: string
@@ -127,26 +140,42 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
             </div>
 
             {/* 1st, 2nd, 3rd Place Prize Breakdown Badges & View Full Breakdown Button */}
-            <button
-              onClick={() => setPrizeModalOpen(true)}
-              className="w-full text-left group/prize focus:outline-none mb-4 cursor-pointer"
-            >
-              <div className="grid grid-cols-3 gap-1.5 text-[10px] font-bold text-center bg-white/5 group-hover/prize:bg-amber-950/40 p-2 rounded-xl border border-white/10 group-hover/prize:border-amber-500/40 transition-all">
-                <div className="bg-amber-950/60 border border-amber-500/30 text-amber-300 py-1 px-1 rounded-lg">
-                  🥇 1st: ৳{match.firstPrize || match.winnerPrize}
+            {isBreakdownAllowed ? (
+              <button
+                onClick={() => setPrizeModalOpen(true)}
+                className="w-full text-left group/prize focus:outline-none mb-4 cursor-pointer"
+              >
+                <div className="grid grid-cols-3 gap-1.5 text-[10px] font-bold text-center bg-white/5 group-hover/prize:bg-amber-950/40 p-2 rounded-xl border border-white/10 group-hover/prize:border-amber-500/40 transition-all">
+                  <div className="bg-amber-950/60 border border-amber-500/30 text-amber-300 py-1 px-1 rounded-lg">
+                    🥇 1st: ৳{match.firstPrize || match.winnerPrize}
+                  </div>
+                  <div className="bg-slate-900 border border-slate-400/30 text-slate-300 py-1 px-1 rounded-lg">
+                    🥈 2nd: ৳{match.secondPrize || Math.round(match.winnerPrize * 0.4)}
+                  </div>
+                  <div className="bg-amber-950/30 border border-amber-700/30 text-amber-500 py-1 px-1 rounded-lg">
+                    🥉 3rd: ৳{match.thirdPrize || Math.round(match.winnerPrize * 0.2)}
+                  </div>
                 </div>
-                <div className="bg-slate-900 border border-slate-400/30 text-slate-300 py-1 px-1 rounded-lg">
-                  🥈 2nd: ৳{match.secondPrize || Math.round(match.winnerPrize * 0.4)}
+                <div className="text-[10px] font-bold text-amber-400 hover:text-amber-300 flex items-center justify-center gap-1 mt-1">
+                  <Trophy className="w-3 h-3 text-amber-400" />
+                  <span>View Full Prize Pool Breakdown (1st-9th Place) →</span>
                 </div>
-                <div className="bg-amber-950/30 border border-amber-700/30 text-amber-500 py-1 px-1 rounded-lg">
-                  🥉 3rd: ৳{match.thirdPrize || Math.round(match.winnerPrize * 0.2)}
+              </button>
+            ) : (
+              <div className="mb-4">
+                <div className="grid grid-cols-3 gap-1.5 text-[10px] font-bold text-center bg-white/5 p-2 rounded-xl border border-white/10">
+                  <div className="bg-amber-950/60 border border-amber-500/30 text-amber-300 py-1 px-1 rounded-lg">
+                    🥇 1st: ৳{match.firstPrize || match.winnerPrize}
+                  </div>
+                  <div className="bg-slate-900 border border-slate-400/30 text-slate-300 py-1 px-1 rounded-lg">
+                    🥈 2nd: ৳{match.secondPrize || Math.round(match.winnerPrize * 0.4)}
+                  </div>
+                  <div className="bg-amber-950/30 border border-amber-700/30 text-amber-500 py-1 px-1 rounded-lg">
+                    🥉 3rd: ৳{match.thirdPrize || Math.round(match.winnerPrize * 0.2)}
+                  </div>
                 </div>
               </div>
-              <div className="text-[10px] font-bold text-amber-400 hover:text-amber-300 flex items-center justify-center gap-1 mt-1">
-                <Trophy className="w-3 h-3 text-amber-400" />
-                <span>View Full Prize Pool Breakdown (1st-9th Place) →</span>
-              </div>
-            </button>
+            )}
           </div>
 
           {/* Progress Bar & Status Action Button */}
@@ -234,12 +263,15 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
       </div>
 
       {/* Prize Pool Poster Modal */}
-      <PrizeBreakdownModal
-        match={match}
-        open={prizeModalOpen}
-        onClose={() => setPrizeModalOpen(false)}
-        onJoinClick={() => onSelect(match)}
-      />
+      {isBreakdownAllowed && (
+        <PrizeBreakdownModal
+          match={match}
+          open={prizeModalOpen}
+          onClose={() => setPrizeModalOpen(false)}
+          onJoinClick={() => onSelect(match)}
+        />
+      )}
     </>
   )
 }
+

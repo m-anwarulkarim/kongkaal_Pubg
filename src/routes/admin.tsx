@@ -114,7 +114,9 @@ export function AdminDashboard() {
     perKillPrize: 10,
     maxSlots: 100,
     image: '/solo_battle.webp',
+    showPrizeBreakdown: true,
   })
+
 
   // Check persistent session on mount
   useEffect(() => {
@@ -282,6 +284,7 @@ export function AdminDashboard() {
       maxSlots: newMatchForm.maxSlots,
       image: newMatchForm.image,
       status: newMatchForm.status || 'OPEN',
+      showPrizeBreakdown: newMatchForm.showPrizeBreakdown !== false,
     })
 
     if (res.success) {

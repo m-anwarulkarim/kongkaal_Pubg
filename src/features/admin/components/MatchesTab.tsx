@@ -414,6 +414,18 @@ export default function MatchesTab({
                     />
                   </div>
                 </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                  <span className="text-[11px] font-semibold text-gray-300">
+                    🏆 Enable Prize Breakdown Modal Popup for this match
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={editingMatch.showPrizeBreakdown !== false}
+                    onChange={(e) => setEditingMatch({ ...editingMatch, showPrizeBreakdown: e.target.checked })}
+                    className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+                  />
+                </div>
               </div>
 
               {/* Extra Prize Places Controller (4th, 5th, 6th ... any positions) */}

@@ -1,7 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
-import { Database, Crown, Calendar, Save, CheckCircle2, Shield, Clock, Gamepad2, User, Users } from 'lucide-react'
-import { getHeroBannerSettings, saveHeroBannerSettings, type HeroBannerSettings, getMatchModeSettings, saveMatchModeSettings, type MatchModeSettings } from '@/lib/db'
+import { Database, Crown, Calendar, Save, CheckCircle2, Shield, Clock, Gamepad2, User, Users, Trophy } from 'lucide-react'
+import {
+  getHeroBannerSettings,
+  saveHeroBannerSettings,
+  type HeroBannerSettings,
+  getMatchModeSettings,
+  saveMatchModeSettings,
+  type MatchModeSettings,
+  getPrizeBreakdownSettings,
+  savePrizeBreakdownSettings,
+  type PrizeBreakdownSettings,
+} from '@/lib/db'
 import { getDepositCooldownMinutes, saveDepositCooldownMinutes } from '@/lib/wallet'
 import { toast } from 'sonner'
 
@@ -12,11 +22,14 @@ export default function SettingsTab() {
   const [cooldownSaved, setCooldownSaved] = useState(false)
   const [modeSettings, setModeSettings] = useState<MatchModeSettings>(() => getMatchModeSettings())
   const [modeSaved, setModeSaved] = useState(false)
+  const [prizeSettings, setPrizeSettings] = useState<PrizeBreakdownSettings>(() => getPrizeBreakdownSettings())
+  const [prizeSaved, setPrizeSaved] = useState(false)
 
   useEffect(() => {
     setHeroSettings(getHeroBannerSettings())
     setCooldownMins(getDepositCooldownMinutes())
     setModeSettings(getMatchModeSettings())
+    setPrizeSettings(getPrizeBreakdownSettings())
   }, [])
 
   const handleSaveBannerSettings = (e: React.FormEvent) => {
@@ -41,6 +54,15 @@ export default function SettingsTab() {
     toast.success('ম্যাচ মোড সেটিংস সফলভাবে সেভ করা হয়েছে!')
     setTimeout(() => setModeSaved(false), 3000)
   }
+
+  const handleSavePrizeSettings = (e: React.FormEvent) => {
+    e.preventDefault()
+    savePrizeBreakdownSettings(prizeSettings)
+    setPrizeSaved(true)
+    toast.success('Prize Pool Breakdown Modal সেটিংস আপডেট করা হয়েছে!')
+    setTimeout(() => setPrizeSaved(false), 3000)
+  }
+
 
   return (
     <div className="space-y-6">
@@ -133,6 +155,60 @@ export default function SettingsTab() {
           </div>
         </form>
       </Card>
+
+      {/* 2. Global Prize Breakdown Popup Control Card */}
+      <Card className="bg-[#101422] border-white/10 p-6 rounded-2xl space-y-5">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div>
+            <h3 className="font-display text-xl font-black text-amber-400 uppercase flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-amber-400" />
+              <span>Prize Pool Breakdown Popup System (ব্রেকডাউন পপআপ কন্ট্রোল)</span>
+            </h3>
+            <span className="text-xs text-gray-400">
+              ইউজারদের জন্য প্রাইজ পোল পপআপ বাটন (1st-9th Place breakdown poster) গ্লোবালি প্রদর্শন বা বন্ধ রাখুন।
+            </span>
+          </div>
+          {prizeSaved && (
+            <span className="px-3 py-1 rounded-full bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-bold flex items-center gap-1.5 animate-in fade-in">
+              <CheckCircle2 className="w-3.5 h-3.5" /> সেটিংস সেভ হয়েছে!
+            </span>
+          )}
+        </div>
+
+        <form onSubmit={handleSavePrizeSettings} className="space-y-4">
+          <div className={`p-4 rounded-xl border transition-all ${prizeSettings.enableGlobalModal ? 'bg-amber-950/20 border-amber-500/40' : 'bg-[#080b12] border-white/10 opacity-75'}`}>
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <span className="font-bold text-sm text-white flex items-center gap-2">
+                  🏆 Global Prize Breakdown Modal Popup
+                </span>
+                <p className="text-xs text-gray-400">
+                  {prizeSettings.enableGlobalModal
+                    ? '✅ বর্তমানে সকল টুর্নামেন্ট কার্ডে প্রাইজ পোল পপআপ বাটন সক্রিয় (ON) রয়েছে।'
+                    : '❌ গ্লোবালি প্রাইজ পোল পপআপ বন্ধ (OFF) করা আছে। ইউজাররা ব্রেকডাউন পপআপ দেখতে পাবে না।'}
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={prizeSettings.enableGlobalModal}
+                onChange={(e) => setPrizeSettings({ ...prizeSettings, enableGlobalModal: e.target.checked })}
+                className="w-6 h-6 accent-amber-500 rounded cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-1">
+            <button
+              type="submit"
+              className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-extrabold text-xs flex items-center gap-2 transition-colors cursor-pointer shadow-lg shadow-amber-500/20"
+            >
+              <Save className="w-4 h-4" />
+              <span>Save Breakdown Settings</span>
+            </button>
+          </div>
+        </form>
+      </Card>
+
       {/* 1. Next Match Hero Banner Settings Card */}
       <Card className="bg-[#101422] border-white/10 p-6 rounded-2xl space-y-5">
         <div className="flex items-center justify-between border-b border-white/10 pb-4">

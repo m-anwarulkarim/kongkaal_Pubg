@@ -229,6 +229,18 @@ export default function AdminHeader({
                     />
                   </div>
                 </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                  <span className="text-[11px] font-semibold text-gray-300">
+                    🏆 Enable Prize Breakdown Modal Popup for this match
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={newMatchForm.showPrizeBreakdown !== false}
+                    onChange={(e) => setNewMatchForm((prev) => ({ ...prev, showPrizeBreakdown: e.target.checked }))}
+                    className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-4 gap-3">

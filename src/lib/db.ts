@@ -986,3 +986,32 @@ export function saveMatchModeSettings(settings: MatchModeSettings) {
   }
 }
 
+// 13. Prize Breakdown Modal Settings Management (Global Control)
+export interface PrizeBreakdownSettings {
+  enableGlobalModal: boolean
+}
+
+export const DEFAULT_PRIZE_BREAKDOWN_SETTINGS: PrizeBreakdownSettings = {
+  enableGlobalModal: true,
+}
+
+export function getPrizeBreakdownSettings(): PrizeBreakdownSettings {
+  if (typeof window === 'undefined') return DEFAULT_PRIZE_BREAKDOWN_SETTINGS
+  const stored = localStorage.getItem('kongkaal_prize_breakdown_settings')
+  if (!stored) return DEFAULT_PRIZE_BREAKDOWN_SETTINGS
+  try {
+    const parsed = JSON.parse(stored)
+    return { ...DEFAULT_PRIZE_BREAKDOWN_SETTINGS, ...parsed }
+  } catch {
+    return DEFAULT_PRIZE_BREAKDOWN_SETTINGS
+  }
+}
+
+export function savePrizeBreakdownSettings(settings: PrizeBreakdownSettings) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('kongkaal_prize_breakdown_settings', JSON.stringify(settings))
+    window.dispatchEvent(new Event('prize_breakdown_settings_updated'))
+  }
+}
+
+

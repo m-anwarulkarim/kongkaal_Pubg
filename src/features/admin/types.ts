@@ -17,5 +17,6 @@ export interface NewMatchFormData {
   maxSlots: number
   image: string
   status?: MatchStatus
+  showPrizeBreakdown?: boolean
 }
 
