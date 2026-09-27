@@ -93,16 +93,14 @@ export default function WalletTab({ registrations = [], onSelectUserMessage }: W
 
     window.addEventListener('wallet_updated', handleUpdate)
     window.addEventListener('profile_updated', handleUpdate)
-    window.addEventListener('storage', handleUpdate)
     window.addEventListener('popstate', handlePopState)
 
     return () => {
       window.removeEventListener('wallet_updated', handleUpdate)
       window.removeEventListener('profile_updated', handleUpdate)
-      window.removeEventListener('storage', handleUpdate)
       window.removeEventListener('popstate', handlePopState)
     }
-  }, [customers])
+  }, [])
 
   const handleOpenCustomerDetail = (email: string, name?: string, uid?: string, phone?: string) => {
     const targetEmail = email || (name ? `${name.toLowerCase().replace(/\s+/g, '')}@gmail.com` : '')
@@ -164,24 +162,6 @@ export default function WalletTab({ registrations = [], onSelectUserMessage }: W
     }
     setDeleteCustomerModal(null)
   }
-
-  useEffect(() => {
-    loadWalletData()
-
-    const handleUpdate = () => {
-      loadWalletData()
-    }
-
-    window.addEventListener('wallet_updated', handleUpdate)
-    window.addEventListener('profile_updated', handleUpdate)
-    window.addEventListener('storage', handleUpdate)
-
-    return () => {
-      window.removeEventListener('wallet_updated', handleUpdate)
-      window.removeEventListener('profile_updated', handleUpdate)
-      window.removeEventListener('storage', handleUpdate)
-    }
-  }, [])
 
   const handleSendMoneySubmit = async (e: React.FormEvent) => {
     e.preventDefault()

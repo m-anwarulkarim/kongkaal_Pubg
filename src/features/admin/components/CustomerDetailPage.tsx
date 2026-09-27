@@ -105,21 +105,36 @@ export default function CustomerDetailPage({
   }
 
   useEffect(() => {
-    loadTxs()
-  }, [customer.email])
+    if (customer?.email) {
+      loadTxs()
+    }
+  }, [customer?.email])
 
-  const customerRegistrations = registrations.filter(
-    (r) =>
-      r.whatsappNumber === customer.whatsappNumber ||
-      r.player1Uid === customer.pubgUid ||
-      r.player1Name.toLowerCase().includes(customer.name.toLowerCase())
-  )
+  const customerName = (customer?.name || '').toLowerCase().trim()
+  const customerUid = (customer?.pubgUid || '').trim()
+  const customerPhone = (customer?.whatsappNumber || '').trim()
+  const customerEmail = (customer?.email || '').toLowerCase().trim()
 
-  const totalDeposited = txs.filter(t => t.type === 'DEPOSIT' && t.status === 'APPROVED').reduce((s, t) => s + t.amount, 0)
-  const totalWithdrawn = txs.filter(t => t.type === 'WITHDRAW' && t.status === 'APPROVED').reduce((s, t) => s + t.amount, 0)
-  const totalPrizeWon = txs.filter(t => t.type === 'WINNING_PRIZE').reduce((s, t) => s + t.amount, 0)
-  const totalEntryFees = txs.filter(t => t.type === 'ENTRY_FEE').reduce((s, t) => s + t.amount, 0)
-  const pendingTxs = txs.filter(t => t.status === 'PENDING')
+  const customerRegistrations = (registrations || []).filter((r) => {
+    if (!r) return false
+    const rPhone = (r.whatsappNumber || '').trim()
+    const rUid = (r.player1Uid || '').trim()
+    const rName = (r.player1Name || '').toLowerCase().trim()
+    const rEmail = (r.userEmail || '').toLowerCase().trim()
+
+    return (
+      (customerPhone && rPhone === customerPhone) ||
+      (customerUid && rUid === customerUid) ||
+      (customerName && rName && rName.includes(customerName)) ||
+      (customerEmail && rEmail === customerEmail)
+    )
+  })
+
+  const totalDeposited = (txs || []).filter(t => t.type === 'DEPOSIT' && t.status === 'APPROVED').reduce((s, t) => s + (Number(t.amount) || 0), 0)
+  const totalWithdrawn = (txs || []).filter(t => t.type === 'WITHDRAW' && t.status === 'APPROVED').reduce((s, t) => s + (Number(t.amount) || 0), 0)
+  const totalPrizeWon = (txs || []).filter(t => t.type === 'WINNING_PRIZE').reduce((s, t) => s + (Number(t.amount) || 0), 0)
+  const totalEntryFees = (txs || []).filter(t => t.type === 'ENTRY_FEE').reduce((s, t) => s + (Number(t.amount) || 0), 0)
+  const pendingTxs = (txs || []).filter(t => t.status === 'PENDING')
 
   const handleAdjust = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -164,12 +179,13 @@ export default function CustomerDetailPage({
     }
   }
 
-  const filteredTxs = txs.filter((t) => {
+  const filteredTxs = (txs || []).filter((t) => {
+    if (!t) return false
     if (txFilter !== 'ALL' && t.type !== txFilter && t.status !== txFilter) return false
     if (txSearch) {
       const q = txSearch.toLowerCase()
       return (
-        t.type.toLowerCase().includes(q) ||
+        (t.type && t.type.toLowerCase().includes(q)) ||
         (t.trxId && t.trxId.toLowerCase().includes(q)) ||
         (t.accountNumber && t.accountNumber.includes(q)) ||
         (t.note && t.note.toLowerCase().includes(q))

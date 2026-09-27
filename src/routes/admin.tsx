@@ -177,7 +177,7 @@ export function AdminDashboard() {
         setMatches(m)
         setRegistrations(r)
         setCustomerCount(c.length)
-      } else if (tabToLoad === 'PAYMENTS' || tabToLoad === 'PLAYERS') {
+      } else if (tabToLoad === 'PAYMENTS' || tabToLoad === 'PLAYERS' || tabToLoad === 'WALLET') {
         const [r, c] = await Promise.all([
           getAllRegistrations(),
           getAllCustomerProfiles(),
@@ -243,7 +243,6 @@ export function AdminDashboard() {
       window.addEventListener('profile_updated', handleUpdate)
       window.addEventListener('leaderboard_updated', handleUpdate)
       window.addEventListener('support_updated', handleUpdate)
-      window.addEventListener('storage', handleUpdate)
 
       return () => {
         window.removeEventListener('matches_updated', handleUpdate)
@@ -252,7 +251,6 @@ export function AdminDashboard() {
         window.removeEventListener('profile_updated', handleUpdate)
         window.removeEventListener('leaderboard_updated', handleUpdate)
         window.removeEventListener('support_updated', handleUpdate)
-        window.removeEventListener('storage', handleUpdate)
       }
     }
   }, [isAuthenticated])
@@ -398,7 +396,15 @@ export function AdminDashboard() {
             />
           )}
 
-          {activeTab === 'WALLET' && <WalletTab />}
+          {activeTab === 'WALLET' && (
+            <WalletTab
+              registrations={registrations}
+              onSelectUserMessage={(email) => {
+                setSelectedMessageEmail(email)
+                setActiveTab('MESSAGES')
+              }}
+            />
+          )}
 
           {activeTab === 'MATCHES' && (
             <MatchesTab
