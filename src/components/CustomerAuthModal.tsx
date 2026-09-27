@@ -15,6 +15,7 @@ export default function CustomerAuthModal({ open, onClose, user }: CustomerAuthM
   const [errorMsg, setErrorMsg] = useState('')
 
   const [pubgIgn, setPubgIgn] = useState('')
+  const [pubgUid, setPubgUid] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
 
   if (!open) return null
@@ -24,6 +25,9 @@ export default function CustomerAuthModal({ open, onClose, user }: CustomerAuthM
 
     if (pubgIgn.trim()) {
       localStorage.setItem('pending_pubg_ign', pubgIgn.trim())
+    }
+    if (pubgUid.trim()) {
+      localStorage.setItem('pending_pubg_uid', pubgUid.trim())
     }
     if (whatsapp.trim()) {
       localStorage.setItem('pending_whatsapp', whatsapp.trim())
@@ -135,16 +139,16 @@ export default function CustomerAuthModal({ open, onClose, user }: CustomerAuthM
               </div>
             </div>
           ) : (
-            /* Logged Out State - Google Sign In with IGN & WhatsApp */
+            /* Logged Out State - Google Sign In with IGN, UID & WhatsApp */
             <div className="space-y-4">
               <div className="text-center text-xs text-gray-300">
                 <p className="font-bold text-white text-sm">লগইন বা সাইন-ইন করুন</p>
                 <p className="text-[11px] text-gray-400 mt-1">
-                  আপনার <strong className="text-red-400">PUBG In-Game Name</strong> এবং <strong className="text-emerald-400">WhatsApp নম্বর</strong> দিয়ে গুগলে সাইন-ইন করুন:
+                  আপনার <strong className="text-red-400">PUBG In-Game Name</strong>, <strong className="text-amber-400">Character ID (UID)</strong> এবং <strong className="text-emerald-400">WhatsApp নম্বর</strong> দিয়ে গুগলে সাইন-ইন করুন:
                 </p>
               </div>
 
-              <form onSubmit={handleGoogleLogin} className="space-y-3.5">
+              <form onSubmit={handleGoogleLogin} className="space-y-3">
                 <div>
                   <label className="text-gray-300 font-bold block mb-1 text-xs">
                     PUBG IN-GAME NAME <span className="text-red-500">*</span>
@@ -155,6 +159,20 @@ export default function CustomerAuthModal({ open, onClose, user }: CustomerAuthM
                     value={pubgIgn}
                     onChange={(e) => setPubgIgn(e.target.value)}
                     className="bg-[#161a29] border-white/10 text-white font-bold"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-gray-300 font-bold block mb-1 text-xs">
+                    PUBG CHARACTER ID (UID) <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. 5123456789"
+                    value={pubgUid}
+                    onChange={(e) => setPubgUid(e.target.value)}
+                    className="bg-[#161a29] border-white/10 text-white font-mono"
                     required
                   />
                 </div>

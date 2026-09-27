@@ -139,9 +139,11 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
   let profile = wallets[normEmail]
 
   let pendingIgn = ''
+  let pendingUid = ''
   let pendingPhone = ''
   if (typeof window !== 'undefined') {
     pendingIgn = (localStorage.getItem('pending_pubg_ign') || '').trim()
+    pendingUid = (localStorage.getItem('pending_pubg_uid') || '').trim()
     pendingPhone = (localStorage.getItem('pending_whatsapp') || '').trim()
   }
 
@@ -149,7 +151,7 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
     profile = {
       email: normEmail,
       name: pendingIgn || name || normEmail.split('@')[0],
-      pubgUid: '',
+      pubgUid: pendingUid || '',
       whatsappNumber: pendingPhone || '',
       walletBalance: 0,
       avatarUrl: avatarUrl || '',
@@ -160,6 +162,10 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
     let updated = false
     if (pendingIgn && profile.name !== pendingIgn) {
       profile.name = pendingIgn
+      updated = true
+    }
+    if (pendingUid && profile.pubgUid !== pendingUid) {
+      profile.pubgUid = pendingUid
       updated = true
     }
     if (pendingPhone && profile.whatsappNumber !== pendingPhone) {
@@ -177,8 +183,9 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
   }
 
   // Clear pending items from storage
-  if (typeof window !== 'undefined' && (pendingIgn || pendingPhone)) {
+  if (typeof window !== 'undefined' && (pendingIgn || pendingUid || pendingPhone)) {
     localStorage.removeItem('pending_pubg_ign')
+    localStorage.removeItem('pending_pubg_uid')
     localStorage.removeItem('pending_whatsapp')
   }
 
@@ -194,13 +201,13 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
       if (data) {
         profile.walletBalance = Number(data.balance !== undefined ? data.balance : profile.walletBalance)
         profile.name = pendingIgn || profile.name || data.name || ''
-        profile.pubgUid = profile.pubgUid || data.pubg_uid || ''
-        profile.whatsappNumber = profile.whatsappNumber || pendingPhone || data.whatsapp_number || ''
+        profile.pubgUid = pendingUid || profile.pubgUid || data.pubg_uid || ''
+        profile.whatsappNumber = pendingPhone || profile.whatsappNumber || data.whatsapp_number || ''
         profile.avatarUrl = profile.avatarUrl || data.avatar_url || ''
         wallets[normEmail] = profile
         saveLocalWallets(wallets)
 
-        if (pendingIgn || pendingPhone) {
+        if (pendingIgn || pendingUid || pendingPhone) {
           await supabase.from('customer_wallets').upsert({
             email: normEmail,
             name: profile.name,
