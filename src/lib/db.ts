@@ -600,10 +600,6 @@ export async function getAllRegistrations(forceFetch = false): Promise<Registrat
   })
 
   const merged = Array.from(map.values())
-  if (merged.length === 0) {
-    registrationsCache = { data: INITIAL_MOCK_REGISTRATIONS, timestamp: Date.now() }
-    return INITIAL_MOCK_REGISTRATIONS
-  }
 
   // Cache the merged result
   registrationsCache = { data: merged, timestamp: Date.now() }
