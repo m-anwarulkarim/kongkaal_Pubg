@@ -348,18 +348,29 @@ export async function requestDeposit(data: {
 
   if (isSupabaseConfigured()) {
     try {
-      const { error } = await supabase.from('wallet_transactions').insert([
-        {
-          user_email: normEmail,
-          user_name: data.userName,
-          type: 'DEPOSIT',
-          amount: data.amount,
-          payment_method: data.paymentMethod,
-          trx_id: cleanTrxId,
-          status: 'PENDING',
-          note: tx.note,
-        },
-      ])
+      const { data: dbData, error } = await supabase
+        .from('wallet_transactions')
+        .insert([
+          {
+            user_email: normEmail,
+            user_name: data.userName,
+            type: 'DEPOSIT',
+            amount: data.amount,
+            payment_method: data.paymentMethod,
+            trx_id: cleanTrxId,
+            status: 'PENDING',
+            note: tx.note,
+          },
+        ])
+        .select()
+      if (dbData && dbData.length > 0 && dbData[0].id) {
+        const allTxs = getLocalTxs()
+        const idx = allTxs.findIndex((t) => t.id === tx.id)
+        if (idx !== -1) {
+          allTxs[idx].id = dbData[0].id
+          saveLocalTxs(allTxs)
+        }
+      }
       if (error) {
         console.warn('[Wallet Service] Supabase deposit insert error:', error.message)
       }
@@ -368,6 +379,7 @@ export async function requestDeposit(data: {
     }
   }
 
+  clearTxsCache()
   return {
     success: true,
     message: 'Deposit request submitted successfully! Admin will verify your TrxID shortly.',
@@ -412,23 +424,35 @@ export async function requestWithdraw(data: {
 
   if (isSupabaseConfigured()) {
     try {
-      await supabase.from('wallet_transactions').insert([
-        {
-          user_email: normEmail,
-          user_name: data.userName,
-          type: 'WITHDRAW',
-          amount: data.amount,
-          payment_method: data.paymentMethod,
-          account_number: data.accountNumber,
-          status: 'PENDING',
-          note: tx.note,
-        },
-      ])
+      const { data: dbData } = await supabase
+        .from('wallet_transactions')
+        .insert([
+          {
+            user_email: normEmail,
+            user_name: data.userName,
+            type: 'WITHDRAW',
+            amount: data.amount,
+            payment_method: data.paymentMethod,
+            account_number: data.accountNumber,
+            status: 'PENDING',
+            note: tx.note,
+          },
+        ])
+        .select()
+      if (dbData && dbData.length > 0 && dbData[0].id) {
+        const allTxs = getLocalTxs()
+        const idx = allTxs.findIndex((t) => t.id === tx.id)
+        if (idx !== -1) {
+          allTxs[idx].id = dbData[0].id
+          saveLocalTxs(allTxs)
+        }
+      }
     } catch (err) {
       console.warn('Supabase withdraw insert warning:', err)
     }
   }
 
+  clearTxsCache()
   return {
     success: true,
     message: 'Withdrawal request submitted! Amount deducted from balance.',
@@ -470,22 +494,34 @@ export async function payMatchWithWallet(
 
   if (isSupabaseConfigured()) {
     try {
-      await supabase.from('wallet_transactions').insert([
-        {
-          user_email: normEmail,
-          user_name: userName,
-          type: 'ENTRY_FEE',
-          amount,
-          payment_method: 'WALLET',
-          status: 'APPROVED',
-          note: tx.note,
-        },
-      ])
+      const { data: dbData } = await supabase
+        .from('wallet_transactions')
+        .insert([
+          {
+            user_email: normEmail,
+            user_name: userName,
+            type: 'ENTRY_FEE',
+            amount,
+            payment_method: 'WALLET',
+            status: 'APPROVED',
+            note: tx.note,
+          },
+        ])
+        .select()
+      if (dbData && dbData.length > 0 && dbData[0].id) {
+        const allTxs = getLocalTxs()
+        const idx = allTxs.findIndex((t) => t.id === tx.id)
+        if (idx !== -1) {
+          allTxs[idx].id = dbData[0].id
+          saveLocalTxs(allTxs)
+        }
+      }
     } catch (err) {
       console.warn('Supabase pay entry fee insert warning:', err)
     }
   }
 
+  clearTxsCache()
   return {
     success: true,
     message: 'Entry fee paid using wallet balance successfully!',
@@ -530,22 +566,34 @@ export async function adminAdjustCustomerWallet(
 
   if (isSupabaseConfigured()) {
     try {
-      const { error } = await supabase.from('wallet_transactions').insert([
-        {
-          user_email: normEmail,
-          user_name: profile.name,
-          type: action === 'ADD' ? 'ADMIN_CREDIT' : 'WITHDRAW',
-          amount,
-          status: 'APPROVED',
-          note: txNote,
-        },
-      ])
+      const { data: dbData, error } = await supabase
+        .from('wallet_transactions')
+        .insert([
+          {
+            user_email: normEmail,
+            user_name: profile.name,
+            type: action === 'ADD' ? 'ADMIN_CREDIT' : 'WITHDRAW',
+            amount,
+            status: 'APPROVED',
+            note: txNote,
+          },
+        ])
+        .select()
+      if (dbData && dbData.length > 0 && dbData[0].id) {
+        const allTxs = getLocalTxs()
+        const idx = allTxs.findIndex((t) => t.id === tx.id)
+        if (idx !== -1) {
+          allTxs[idx].id = dbData[0].id
+          saveLocalTxs(allTxs)
+        }
+      }
       if (error) console.warn('[Wallet Service] Supabase admin credit insert error:', error.message)
     } catch (err) {
       console.warn('Supabase admin credit insert error:', err)
     }
   }
 
+  clearTxsCache()
   return {
     success: true,
     message: `${action === 'ADD' ? '+' : '-'}৳${amount} ${action === 'ADD' ? 'added to' : 'deducted from'} ${normEmail} successfully!`,
@@ -633,6 +681,7 @@ export async function adminApproveTransaction(
     }
   }
 
+  clearTxsCache()
   notifyWalletUpdate()
   return { success: true, message: `Transaction status updated to ${status}` }
 }
@@ -687,12 +736,30 @@ export async function getWalletTransactions(userEmail?: string): Promise<WalletT
   dbTxs.forEach((t) => txMap.set(t.id, t))
 
   const filteredLocal = normEmail ? localTxs.filter((t) => t.userEmail.toLowerCase() === normEmail) : localTxs
+  let localModified = false
   filteredLocal.forEach((t) => {
-    const exists = Array.from(txMap.values()).some((dbT) => dbT.id === t.id || (t.trxId && dbT.trxId === t.trxId))
-    if (!exists) {
+    const existingDbT = Array.from(txMap.values()).find((dbT) => {
+      if (dbT.id === t.id) return true
+      if (t.trxId && dbT.trxId && t.trxId.trim().toLowerCase() === dbT.trxId.trim().toLowerCase()) return true
+      const sameEmail = dbT.userEmail.toLowerCase() === t.userEmail.toLowerCase()
+      const sameAmount = Number(dbT.amount) === Number(t.amount)
+      const sameType = dbT.type === t.type
+      const sameNote = (dbT.note || '') === (t.note || '')
+      const timeDiff = Math.abs(new Date(dbT.createdAt).getTime() - new Date(t.createdAt).getTime())
+      return sameEmail && sameAmount && sameType && sameNote && timeDiff < 120_000
+    })
+
+    if (!existingDbT) {
       txMap.set(t.id, t)
+    } else if (t.id !== existingDbT.id && t.id.startsWith('tx-')) {
+      t.id = existingDbT.id
+      localModified = true
     }
   })
+
+  if (localModified) {
+    saveLocalTxs(localTxs)
+  }
 
   const result = Array.from(txMap.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
