@@ -1014,17 +1014,23 @@ export function savePrizeBreakdownSettings(settings: PrizeBreakdownSettings) {
   }
 }
 
-// 14. Website Visitor Tracking & Counter Management
+// 14. Website Visitor Tracking & Counter Management (Date-Wise History)
 export interface VisitorStats {
   totalVisits: number
   todayVisits: number
   lastDate: string // YYYY-MM-DD
+  dailyHistory: Record<string, number> // e.g. { "2026-09-27": 18, "2026-09-26": 24 }
 }
+
+const todayDefault = new Date().toISOString().split('T')[0]
 
 const DEFAULT_VISITOR_STATS: VisitorStats = {
   totalVisits: 142,
   todayVisits: 18,
-  lastDate: new Date().toISOString().split('T')[0],
+  lastDate: todayDefault,
+  dailyHistory: {
+    [todayDefault]: 18,
+  },
 }
 
 export function getVisitorStats(): VisitorStats {
@@ -1033,15 +1039,21 @@ export function getVisitorStats(): VisitorStats {
   const todayStr = new Date().toISOString().split('T')[0]
 
   if (!stored) {
-    const initial = { ...DEFAULT_VISITOR_STATS, lastDate: todayStr }
+    const initial = {
+      ...DEFAULT_VISITOR_STATS,
+      lastDate: todayStr,
+      dailyHistory: { [todayStr]: 18 },
+    }
     localStorage.setItem('kongkaal_visitor_stats', JSON.stringify(initial))
     return initial
   }
 
   try {
     const parsed: VisitorStats = JSON.parse(stored)
+    if (!parsed.dailyHistory) parsed.dailyHistory = {}
+
     if (parsed.lastDate !== todayStr) {
-      parsed.todayVisits = 0
+      parsed.todayVisits = parsed.dailyHistory[todayStr] || 0
       parsed.lastDate = todayStr
       localStorage.setItem('kongkaal_visitor_stats', JSON.stringify(parsed))
     }
@@ -1060,10 +1072,18 @@ export function trackVisitor(): VisitorStats {
 
   if (!sessionVisited) {
     sessionStorage.setItem('kongkaal_visited_session', 'true')
+    const currentTodayCount = current.dailyHistory[todayStr] || (current.lastDate === todayStr ? current.todayVisits : 0) || 0
+    const newTodayCount = currentTodayCount + 1
+    const newTotal = (current.totalVisits || 0) + 1
+
     const updated: VisitorStats = {
-      totalVisits: (current.totalVisits || 0) + 1,
-      todayVisits: (current.lastDate === todayStr ? current.todayVisits || 0 : 0) + 1,
+      totalVisits: newTotal,
+      todayVisits: newTodayCount,
       lastDate: todayStr,
+      dailyHistory: {
+        ...(current.dailyHistory || {}),
+        [todayStr]: newTodayCount,
+      },
     }
     localStorage.setItem('kongkaal_visitor_stats', JSON.stringify(updated))
     window.dispatchEvent(new Event('visitor_stats_updated'))
@@ -1072,6 +1092,7 @@ export function trackVisitor(): VisitorStats {
 
   return current
 }
+
 
 
 
