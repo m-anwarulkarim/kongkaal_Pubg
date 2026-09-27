@@ -200,25 +200,24 @@ function CustomerDashboardPage() {
       const normEmail = user.email.toLowerCase().trim()
       const normPhone = userProfile?.whatsappNumber ? userProfile.whatsappNumber.trim() : ''
       const normUid = userProfile?.pubgUid ? userProfile.pubgUid.trim() : ''
-      const normName = userProfile?.name ? userProfile.name.toLowerCase().trim() : ''
 
       const userRegs = allRegs.filter((r) => {
-        // 1. Primary check: Exact email match
-        if (r.userEmail && r.userEmail.toLowerCase().trim() === normEmail) {
-          return true
+        const rEmail = r.userEmail ? r.userEmail.toLowerCase().trim() : ''
+
+        // 1. Primary rule: If registration has userEmail attached, it MUST match current user's email
+        if (rEmail) {
+          return rEmail === normEmail
         }
-        // 2. Exact WhatsApp phone match (only if phone exists)
-        if (normPhone && normPhone.length > 5 && r.whatsappNumber && r.whatsappNumber.trim() === normPhone) {
-          return true
-        }
-        // 3. Exact PUBG UID match (only if UID exists)
+
+        // 2. Legacy fallback for old records created before email field:
+        // Match ONLY if PUBG UID or WhatsApp phone number matches user profile
         if (normUid && normUid.length > 3 && r.player1Uid && r.player1Uid.trim() === normUid) {
           return true
         }
-        // 4. Exact Player Name match (only if name exists and >= 3 chars)
-        if (normName && normName.length >= 3 && r.player1Name && r.player1Name.toLowerCase().trim() === normName) {
+        if (normPhone && normPhone.length > 5 && r.whatsappNumber && r.whatsappNumber.trim() === normPhone) {
           return true
         }
+
         return false
       })
       setMyMatches(userRegs)
