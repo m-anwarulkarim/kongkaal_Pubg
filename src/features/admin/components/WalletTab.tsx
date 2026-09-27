@@ -15,7 +15,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Send, CheckCircle2, XCircle, Search, RefreshCw, PlusCircle, MinusCircle, X, AlertCircle, Trash2, Eye } from 'lucide-react'
+import { Send, CheckCircle2, XCircle, Search, RefreshCw, PlusCircle, MinusCircle, X, AlertCircle, Trash2, Eye, Loader2 } from 'lucide-react'
 
 interface WalletTabProps {
   registrations?: RegistrationRecord[]
@@ -319,20 +319,27 @@ export default function WalletTab({ registrations = [], onSelectUserMessage }: W
             <Button
               type="submit"
               disabled={sending}
-              className={`w-full font-bold py-2.5 text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 ${
+              className={`w-full font-bold py-2.5 text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
                 actionType === 'ADD'
                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30'
                   : 'bg-red-600 hover:bg-red-700 text-white shadow-red-600/30'
               }`}
             >
-              <Send className="w-4 h-4" />
-              <span>
-                {sending
-                  ? 'Processing...'
-                  : actionType === 'ADD'
-                  ? 'Add Money (+) to Customer Wallet'
-                  : 'Deduct Money (-) from Customer Wallet'}
-              </span>
+              {sending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  <span>
+                    {actionType === 'ADD'
+                      ? 'Add Money (+) to Customer Wallet'
+                      : 'Deduct Money (-) from Customer Wallet'}
+                  </span>
+                </>
+              )}
             </Button>
           </form>
         </Card>

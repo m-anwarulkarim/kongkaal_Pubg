@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Crown, Users, Lock, ShieldAlert, ChevronRight } from 'lucide-react'
+import { Crown, Users, Lock, ShieldAlert, ChevronRight, Loader2 } from 'lucide-react'
 
 interface AdminLoginProps {
   email: string
@@ -12,6 +12,7 @@ interface AdminLoginProps {
   setPassword: (password: string) => void
   errorMsg: string
   handleLogin: (e: React.FormEvent) => void
+  loading?: boolean
 }
 
 export default function AdminLogin({
@@ -21,6 +22,7 @@ export default function AdminLogin({
   setPassword,
   errorMsg,
   handleLogin,
+  loading = false,
 }: AdminLoginProps) {
   return (
     <div className="min-h-screen bg-[#07080b] flex items-center justify-center p-4 relative overflow-hidden font-sans">
@@ -80,10 +82,20 @@ export default function AdminLogin({
 
             <Button
               type="submit"
-              className="w-full btn-kong-red py-3.5 rounded-xl font-gaming text-sm font-black uppercase tracking-wider shadow-lg shadow-red-600/30 flex items-center justify-center gap-2 group"
+              disabled={loading}
+              className="w-full btn-kong-red py-3.5 rounded-xl font-gaming text-sm font-black uppercase tracking-wider shadow-lg shadow-red-600/30 flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-50"
             >
-              <span>ENTER ADMIN DASHBOARD</span>
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                  <span>VERIFYING CREDENTIALS...</span>
+                </>
+              ) : (
+                <>
+                  <span>ENTER ADMIN DASHBOARD</span>
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </Button>
           </form>
         </CardContent>

@@ -36,6 +36,7 @@ import {
   Search,
   Copy,
   Check,
+  Loader2,
 } from 'lucide-react'
 
 interface CustomerDetailPageProps {
@@ -436,17 +437,22 @@ export default function CustomerDetailPage({
             <Button
               type="submit"
               disabled={submitting}
-              className={`w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider font-gaming transition-all ${
+              className={`w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider font-gaming transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
                 actionType === 'ADD'
                   ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-950'
                   : 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-950'
               }`}
             >
-              {submitting
-                ? 'Processing Adjustment...'
-                : actionType === 'ADD'
-                ? `➕ Confirm Add ৳${amount} to ${customer.name}`
-                : `➖ Confirm Deduct ৳${amount} from ${customer.name}`}
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                  <span>Processing Adjustment...</span>
+                </>
+              ) : actionType === 'ADD' ? (
+                `➕ Confirm Add ৳${amount} to ${customer.name}`
+              ) : (
+                `➖ Confirm Deduct ৳${amount} from ${customer.name}`
+              )}
             </Button>
           </form>
         </div>

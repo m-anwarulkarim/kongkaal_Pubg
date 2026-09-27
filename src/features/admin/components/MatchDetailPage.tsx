@@ -32,6 +32,7 @@ import {
   ExternalLink,
   DollarSign,
   Award,
+  Loader2,
 } from 'lucide-react'
 
 interface MatchDetailPageProps {
@@ -444,10 +445,19 @@ export default function MatchDetailPage({
               <Button
                 type="submit"
                 disabled={savingRoom}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 text-xs rounded-xl shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 text-xs rounded-xl shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                <Key className="w-4 h-4" />
-                <span>{savingRoom ? 'Broadcasting...' : 'Save & Broadcast Room ID'}</span>
+                {savingRoom ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                    <span>Broadcasting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Key className="w-4 h-4" />
+                    <span>Save & Broadcast Room ID</span>
+                  </>
+                )}
               </Button>
             </form>
           </Card>

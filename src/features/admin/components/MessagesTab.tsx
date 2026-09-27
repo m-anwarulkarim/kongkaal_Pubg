@@ -11,6 +11,7 @@ import {
   Sparkles,
   MessageCircle,
   AlertCircle,
+  Loader2,
 } from 'lucide-react'
 import {
   getSupportMessages,
@@ -534,10 +535,19 @@ export default function MessagesTab({ initialSearch = '' }: MessagesTabProps) {
                   <button
                     type="submit"
                     disabled={submitting || !replyText.trim()}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-gaming font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-600/20 disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-gaming font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-600/20 disabled:opacity-50 cursor-pointer"
                   >
-                    <Send className="w-4 h-4" />
-                    {submitting ? 'Sending...' : 'Send Response'}
+                    {submitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                        <span>Sending...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Send Response</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>

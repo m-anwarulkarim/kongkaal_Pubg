@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { AdminTabType, NewMatchFormData } from '../types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -6,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Link from '@/components/ui/Link'
 import { convertFileToWebP } from '@/lib/imageUtils'
-import { ChevronRight, Search, RefreshCw, Plus, Gamepad2, Globe, PanelLeft } from 'lucide-react'
+import { ChevronRight, Search, RefreshCw, Plus, Gamepad2, Globe, PanelLeft, Loader2 } from 'lucide-react'
 
 interface AdminHeaderProps {
   activeTab: AdminTabType
@@ -35,6 +36,18 @@ export default function AdminHeader({
   handleCreateMatch,
   onToggleSidebar,
 }: AdminHeaderProps) {
+  const [isCreating, setIsCreating] = useState(false)
+
+  const onSubmitMatch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsCreating(true)
+    try {
+      await handleCreateMatch(e)
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
   return (
     <header className="bg-[#0c0f17]/95 backdrop-blur-md border-b border-white/10 px-4 sm:px-6 py-3.5 sticky top-0 z-40 flex flex-wrap items-center justify-between gap-3">
       {/* Active Section Title / Breadcrumb + Menu Toggle */}
@@ -93,7 +106,7 @@ export default function AdminHeader({
                 <span>Create New Match</span>
               </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleCreateMatch} className="space-y-4 pt-2">
+            <form onSubmit={onSubmitMatch} className="space-y-4 pt-2">
               <div>
                 <Label className="text-xs font-bold text-gray-300">Match Title</Label>
                 <Input
@@ -327,8 +340,19 @@ export default function AdminHeader({
                 </div>
               </div>
 
-              <Button type="submit" className="w-full btn-kong-red py-3 rounded-xl font-gaming text-sm font-extrabold mt-2">
-                Save Match to Supabase
+              <Button
+                type="submit"
+                disabled={isCreating}
+                className="w-full btn-kong-red py-3 rounded-xl font-gaming text-sm font-extrabold mt-2 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {isCreating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                    <span>SAVING MATCH...</span>
+                  </>
+                ) : (
+                  <span>Save Match to Supabase</span>
+                )}
               </Button>
             </form>
           </DialogContent>

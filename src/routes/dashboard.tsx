@@ -1302,10 +1302,19 @@ function CustomerDashboardPage() {
               <Button
                 type="submit"
                 disabled={sendingMsg}
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-3 rounded-xl shadow-lg shadow-red-600/30 flex items-center justify-center gap-2"
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-3 rounded-xl shadow-lg shadow-red-600/30 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                <Send className="w-4 h-4" />
-                {sendingMsg ? 'Sending...' : 'Send Message'}
+                {sendingMsg ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                    <span>মেসেজ পাঠানো হচ্ছে...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Send Message</span>
+                  </>
+                )}
               </Button>
             </form>
           </div>

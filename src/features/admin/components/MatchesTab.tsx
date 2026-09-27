@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { updateMatch } from '@/lib/db'
 import { convertFileToWebP } from '@/lib/imageUtils'
-import { Plus, Trash2, Edit3, Image as ImageIcon, Eye } from 'lucide-react'
+import { Plus, Trash2, Edit3, Image as ImageIcon, Eye, Loader2 } from 'lucide-react'
 
 // Ordinal suffix helper: 4 -> "4th", 5 -> "5th" etc.
 function ordinal(n: number): string {
@@ -535,9 +535,16 @@ export default function MatchesTab({
               <Button
                 type="submit"
                 disabled={saving}
-                className="w-full btn-kong-red py-3 rounded-xl font-gaming text-sm font-extrabold"
+                className="w-full btn-kong-red py-3 rounded-xl font-gaming text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                {saving ? 'Updating Match...' : 'Save Match Changes'}
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                    <span>UPDATING MATCH...</span>
+                  </>
+                ) : (
+                  <span>Save Match Changes</span>
+                )}
               </Button>
             </form>
           </div>
