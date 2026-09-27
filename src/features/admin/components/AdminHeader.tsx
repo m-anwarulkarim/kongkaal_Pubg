@@ -218,9 +218,18 @@ export default function AdminHeader({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 gap-3">
+                <div className="col-span-2">
+                  <Label className="text-xs font-bold text-gray-300">📅 Match Date</Label>
+                  <Input
+                    type="date"
+                    value={newMatchForm.matchDate || ''}
+                    onChange={(e) => setNewMatchForm((prev) => ({ ...prev, matchDate: e.target.value }))}
+                    className="bg-[#07080b] border-gray-700 text-white rounded-xl [color-scheme:dark]"
+                  />
+                </div>
                 <div>
-                  <Label className="text-xs font-bold text-gray-300">Match Time</Label>
+                  <Label className="text-xs font-bold text-gray-300">⏰ Match Time</Label>
                   <Input
                     value={newMatchForm.time}
                     onChange={(e) => setNewMatchForm((prev) => ({ ...prev, time: e.target.value }))}
@@ -241,24 +250,25 @@ export default function AdminHeader({
                     className="bg-[#07080b] border-gray-700 text-white rounded-xl"
                   />
                 </div>
-                <div>
-                  <Label className="text-xs font-bold text-gray-300">Status / Button</Label>
-                  <Select
-                    value={newMatchForm.status || 'OPEN'}
-                    onValueChange={(v: any) => setNewMatchForm((prev) => ({ ...prev, status: v }))}
-                  >
-                    <SelectTrigger className="bg-[#07080b] border-gray-700 text-white rounded-xl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#101420] text-white">
-                      <SelectItem value="OPEN">🟢 OPEN (Register Now)</SelectItem>
-                      <SelectItem value="COMING_SOON">⏳ COMING SOON</SelectItem>
-                      <SelectItem value="FILLING_FAST">🔥 FILLING FAST</SelectItem>
-                      <SelectItem value="LIVE_SOON">⚡ LIVE SOON</SelectItem>
-                      <SelectItem value="COMPLETED">✅ COMPLETED</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              </div>
+
+              <div>
+                <Label className="text-xs font-bold text-gray-300">Status / Button</Label>
+                <Select
+                  value={newMatchForm.status || 'OPEN'}
+                  onValueChange={(v: any) => setNewMatchForm((prev) => ({ ...prev, status: v }))}
+                >
+                  <SelectTrigger className="bg-[#07080b] border-gray-700 text-white rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#101420] text-white">
+                    <SelectItem value="OPEN">🟢 OPEN (Register Now)</SelectItem>
+                    <SelectItem value="COMING_SOON">⏳ COMING SOON</SelectItem>
+                    <SelectItem value="FILLING_FAST">🔥 FILLING FAST</SelectItem>
+                    <SelectItem value="LIVE_SOON">⚡ LIVE SOON</SelectItem>
+                    <SelectItem value="COMPLETED">✅ COMPLETED</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Match Picture / Banner Selection & Custom Upload */}

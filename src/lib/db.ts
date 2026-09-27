@@ -197,6 +197,7 @@ export async function getMatches(forceFetch = false): Promise<MatchItem[]> {
       mode: m.mode,
       map: m.map,
       time: m.time,
+      matchDate: m.match_date || undefined,
       entryFee: Number(m.entry_fee),
       winnerPrize: Number(m.winner_prize),
       firstPrize: m.first_prize ? Number(m.first_prize) : Number(m.winner_prize),
@@ -246,6 +247,7 @@ export async function createMatch(match: Omit<MatchItem, 'id'>): Promise<{ succe
           mode: match.mode,
           map: match.map,
           time: match.time,
+          match_date: match.matchDate || null,
           entry_fee: match.entryFee,
           winner_prize: match.winnerPrize,
           first_prize: match.firstPrize || match.winnerPrize,
@@ -288,36 +290,51 @@ export async function deleteMatch(id: string): Promise<{ success: boolean; messa
   return { success: true, message: 'Match deleted successfully' }
 }
 
-// 3b. Update Existing Match (Title, Image Picture, Entry Fee, Prize, etc.)
+// 3b. Update Existing Match (Title, Image Picture, Entry Fee, Prize, Time, Date, etc.)
 export async function updateMatch(match: MatchItem): Promise<{ success: boolean; message: string }> {
+  // 1. Invalidate cache
+  clearMatchesCache()
+
+  // 2. Save locally
   const local = getLocalMatches()
-  const updated = local.map((m) => (m.id === match.id ? match : m))
+  const exists = local.some((m) => m.id === match.id)
+  const updated = exists ? local.map((m) => (m.id === match.id ? match : m)) : [match, ...local]
   saveLocalMatches(updated)
 
+  // 3. Sync to Supabase if configured
   if (isSupabaseConfigured()) {
     try {
       await supabase
         .from('matches')
-        .update({
+        .upsert({
+          id: match.id,
           title: match.title,
           mode: match.mode,
           map: match.map,
           time: match.time,
+          match_date: match.matchDate || null,
           entry_fee: match.entryFee,
           winner_prize: match.winnerPrize,
-          first_prize: match.firstPrize,
-          second_prize: match.secondPrize,
-          third_prize: match.thirdPrize,
+          first_prize: match.firstPrize || match.winnerPrize,
+          second_prize: match.secondPrize || 0,
+          third_prize: match.thirdPrize || 0,
           per_kill_prize: match.perKillPrize,
-          max_slots: match.maxSlots,
+          joined_slots: match.joinedSlots || 0,
+          max_slots: match.maxSlots || 100,
           image: match.image,
-          status: match.status,
+          status: match.status || 'OPEN',
           whatsapp_group_link: match.whatsappGroupLink || '',
+          room_id: match.roomId || '',
+          room_password: match.roomPassword || '',
         })
-        .eq('id', match.id)
     } catch (err: any) {
       console.warn('Supabase update match error:', err)
     }
+  }
+
+  // 4. Dispatch instant UI update event across app
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('matches_updated'))
   }
 
   return { success: true, message: 'Match updated successfully!' }
@@ -500,8 +517,23 @@ const INITIAL_MOCK_REGISTRATIONS: RegistrationRecord[] = [
   },
 ]
 
+// SWR In-Memory Cache for registrations (30s TTL for high-traffic scale)
+let registrationsCache: { data: RegistrationRecord[]; timestamp: number } | null = null
+const REG_CACHE_TTL_MS = 30_000
+
+export function clearRegistrationsCache() {
+  registrationsCache = null
+}
+
 // 5. Fetch All Registrations for Admin Dashboard
-export async function getAllRegistrations(): Promise<RegistrationRecord[]> {
+export async function getAllRegistrations(forceFetch = false): Promise<RegistrationRecord[]> {
+  if (forceFetch) registrationsCache = null
+
+  // Return cached data if fresh
+  if (registrationsCache && Date.now() - registrationsCache.timestamp < REG_CACHE_TTL_MS) {
+    return registrationsCache.data
+  }
+
   const localRegs = getLocalRegistrationRecords()
   let dbRegs: RegistrationRecord[] = []
 
@@ -550,9 +582,12 @@ export async function getAllRegistrations(): Promise<RegistrationRecord[]> {
 
   const merged = Array.from(map.values())
   if (merged.length === 0) {
+    registrationsCache = { data: INITIAL_MOCK_REGISTRATIONS, timestamp: Date.now() }
     return INITIAL_MOCK_REGISTRATIONS
   }
 
+  // Cache the merged result
+  registrationsCache = { data: merged, timestamp: Date.now() }
   return merged
 }
 

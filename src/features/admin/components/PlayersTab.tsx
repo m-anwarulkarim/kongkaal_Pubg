@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import type { RegistrationRecord } from '@/lib/db'
 import { getAllCustomerProfiles } from '@/lib/wallet'
 import type { CustomerProfile } from '@/types/wallet'
 import { getSupportMessages, type SupportMessage } from '@/lib/support'
+import CustomerDetailPage from './CustomerDetailPage'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Users, Gamepad2, Search, Smartphone, Wallet, RefreshCw, Mail, ShieldCheck, MessageSquare } from 'lucide-react'
+import { Users, Gamepad2, Search, Smartphone, Wallet, RefreshCw, Mail, ShieldCheck, MessageSquare, Eye, Copy, Check } from 'lucide-react'
 
 interface PlayersTabProps {
   registrations: RegistrationRecord[]
@@ -23,6 +25,7 @@ export default function PlayersTab({
   const [supportMsgs, setSupportMsgs] = useState<SupportMessage[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerProfile | null>(null)
 
   const loadCustomers = async () => {
     setLoading(true)
@@ -33,6 +36,19 @@ export default function PlayersTab({
       ])
       setCustomers(data)
       setSupportMsgs(msgsData)
+
+      // Sync active customer from URL search param if present (?email=...)
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search)
+        const emailFromUrl = params.get('email')
+        if (emailFromUrl) {
+          const matched = data.find(c => c.email.toLowerCase() === emailFromUrl.toLowerCase())
+          if (matched) setSelectedCustomer(matched)
+        } else if (selectedCustomer) {
+          const updated = data.find(c => c.email.toLowerCase() === selectedCustomer.email.toLowerCase())
+          if (updated) setSelectedCustomer(updated)
+        }
+      }
     } catch (err) {
       console.error('Failed to load customers:', err)
     } finally {
@@ -43,6 +59,62 @@ export default function PlayersTab({
   useEffect(() => {
     loadCustomers()
   }, [])
+
+  // Listen for browser Back/Forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search)
+        const emailFromUrl = params.get('email')
+        if (emailFromUrl && customers.length > 0) {
+          const matched = customers.find(c => c.email.toLowerCase() === emailFromUrl.toLowerCase())
+          setSelectedCustomer(matched || null)
+        } else {
+          setSelectedCustomer(null)
+        }
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [customers])
+
+  const handleSelectCustomer = (cust: CustomerProfile) => {
+    setSelectedCustomer(cust)
+    if (typeof window !== 'undefined') {
+      const newUrl = `/admin/players?email=${encodeURIComponent(cust.email)}`
+      window.history.pushState({}, '', newUrl)
+    }
+  }
+
+  const handleBackToList = () => {
+    setSelectedCustomer(null)
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/admin/players')
+    }
+  }
+
+  const [copiedText, setCopiedText] = useState<string | null>(null)
+
+  const handleCopyField = (e: React.MouseEvent, text: string, label: string) => {
+    e.stopPropagation()
+    navigator.clipboard.writeText(text)
+    toast.success(`Copied ${label} "${text}" to clipboard!`)
+    setCopiedText(text)
+    setTimeout(() => setCopiedText(null), 1500)
+  }
+
+  // If a customer is selected, render the dedicated FULL-PAGE details view!
+  if (selectedCustomer) {
+    return (
+      <CustomerDetailPage
+        customer={selectedCustomer}
+        registrations={registrations}
+        onBack={handleBackToList}
+        onRefreshCustomer={loadCustomers}
+        onSelectUserMessage={onSelectUserMessage}
+      />
+    )
+  }
 
   const filteredCustomers = customers.filter(
     (c) =>
@@ -67,7 +139,7 @@ export default function PlayersTab({
             <Users className="w-6 h-6 text-blue-400" /> All Gmail Logged-in Customers & Players
           </h2>
           <p className="text-xs text-gray-400">
-            ওয়েবসাইটে জিমেইল (Google Login) দিয়ে লগইন করা সকল কাস্টমারের তথ্য এবং মেসেজ রিপ্লাই প্যানেল।
+            ওয়েবসাইটে গুগল লগইন করা সকল কাস্টমারের বিবরণ, নাম, ইমেইল ও হোয়াটসঅ্যাপ কপি বোতাম, ফুল ডিটেইলস পেজ ও ওয়ালেট এডজেস্টমেন্ট।
           </p>
         </div>
 
@@ -96,46 +168,44 @@ export default function PlayersTab({
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="flex items-center gap-3 bg-[#101422] p-4 rounded-xl border border-white/10">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder={
-              viewMode === 'CUSTOMERS'
-                ? 'Search by Customer Name, Gmail Email, PUBG UID, or Phone...'
-                : 'Search match slot registrations...'
-            }
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-          />
-        </div>
-        <button
-          onClick={loadCustomers}
-          className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10"
-          title="Refresh List"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-        </button>
-      </div>
-
       {/* VIEW MODE 1: GMAIL CUSTOMERS DIRECTORY */}
       {viewMode === 'CUSTOMERS' && (
         <Card className="bg-[#101422] border-white/10 p-6 rounded-2xl space-y-4 shadow-xl">
-          <div className="flex justify-between items-center border-b border-white/10 pb-4">
+          {/* Header & Direct Name Search Bar */}
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/10 pb-4">
             <div>
               <h3 className="font-display text-xl font-black text-white uppercase flex items-center gap-2">
                 Gmail Logged-in Customer Profiles
               </h3>
               <span className="text-xs text-gray-400">
-                কাস্টমারের পাশে মেসেজ বোতামে চাপলে তার পাঠানো মেসেজ পেজে নিয়ে যাবে।
+                কাস্টমারের নাম, ইমেইল বা হোয়াটসঅ্যাপের পাশের <strong className="text-blue-400">Copy</strong> বোতামে চাপলে কপি হয়ে যাবে।
               </span>
             </div>
-            <Badge className="bg-emerald-950 text-emerald-400 border border-emerald-500/30 text-xs font-bold px-3 py-1">
-              {filteredCustomers.length} Active Profiles
-            </Badge>
+
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              {/* Dedicated Name & Profile Search Bar */}
+              <div className="relative flex-1 md:w-80">
+                <Search className="w-4 h-4 text-blue-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="🔍 Search name, email, UID, or WhatsApp..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-black/60 border border-blue-500/50 rounded-xl text-xs text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 shadow-inner"
+                />
+              </div>
+
+              <button
+                onClick={loadCustomers}
+                className="p-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10"
+                title="Refresh List"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+              <Badge className="bg-emerald-950 text-emerald-400 border border-emerald-500/30 text-xs font-bold px-3 py-2 shrink-0">
+                {filteredCustomers.length} Active Profiles
+              </Badge>
+            </div>
           </div>
 
           {loading ? (
@@ -156,7 +226,8 @@ export default function PlayersTab({
                     <th className="p-3.5">PUBG UID</th>
                     <th className="p-3.5">WhatsApp Number</th>
                     <th className="p-3.5">Wallet Balance</th>
-                    <th className="p-3.5 text-right">Support Message / Chat</th>
+                    <th className="p-3.5 text-center">Customer Details Page</th>
+                    <th className="p-3.5 text-right">Support Chat</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 font-medium">
@@ -173,42 +244,107 @@ export default function PlayersTab({
                               <img
                                 src={cust.avatarUrl}
                                 alt={cust.name}
-                                className="w-10 h-10 min-w-[40px] min-h-[40px] shrink-0 rounded-full border border-blue-500/40 object-cover shadow-md"
+                                onClick={() => handleSelectCustomer(cust)}
+                                className="w-10 h-10 min-w-[40px] min-h-[40px] shrink-0 rounded-full border border-blue-500/40 object-cover shadow-md cursor-pointer hover:border-blue-400"
                               />
                             ) : (
-                              <div className="w-10 h-10 min-w-[40px] min-h-[40px] shrink-0 rounded-full bg-blue-600 border border-blue-500 flex items-center justify-center text-white font-bold text-sm">
+                              <div
+                                onClick={() => handleSelectCustomer(cust)}
+                                className="w-10 h-10 min-w-[40px] min-h-[40px] shrink-0 rounded-full bg-blue-600 border border-blue-500 flex items-center justify-center text-white font-bold text-sm cursor-pointer hover:bg-blue-500"
+                              >
                                 {cust.name[0]?.toUpperCase()}
                               </div>
                             )}
                             <div>
-                              <span className="font-bold text-white text-sm block leading-tight">
-                                {cust.name}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  onClick={() => handleSelectCustomer(cust)}
+                                  className="font-bold text-white text-sm block leading-tight hover:text-blue-400 cursor-pointer transition-colors"
+                                >
+                                  {cust.name}
+                                </span>
+                                {/* 1-Click Copy Name Button */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleCopyField(e, cust.name, 'Name')}
+                                  className="p-1 rounded bg-white/10 hover:bg-blue-600 hover:text-white text-gray-300 transition-all shadow-sm flex items-center justify-center shrink-0"
+                                  title={`Copy name "${cust.name}"`}
+                                >
+                                  {copiedText === cust.name ? (
+                                    <Check className="w-3 h-3 text-emerald-400" />
+                                  ) : (
+                                    <Copy className="w-3 h-3" />
+                                  )}
+                                </button>
+                              </div>
                               <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 mt-0.5">
                                 <ShieldCheck className="w-3 h-3" /> VERIFIED GOOGLE USER
                               </span>
                             </div>
                           </div>
                         </td>
+
+                        {/* Gmail Email Cell with 1-Click Copy */}
                         <td className="p-3.5 text-gray-300 font-mono">
                           <span className="flex items-center gap-1.5">
                             <Mail className="w-3.5 h-3.5 text-red-500 shrink-0" />
-                            {cust.email}
+                            <span>{cust.email}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => handleCopyField(e, cust.email, 'Gmail Email')}
+                              className="p-1 rounded bg-white/5 hover:bg-red-600/30 hover:text-white text-gray-400 transition-all shrink-0"
+                              title={`Copy email ${cust.email}`}
+                            >
+                              {copiedText === cust.email ? (
+                                <Check className="w-3 h-3 text-emerald-400" />
+                              ) : (
+                                <Copy className="w-3 h-3" />
+                              )}
+                            </button>
                           </span>
                         </td>
+
+                        {/* PUBG UID Cell with 1-Click Copy */}
                         <td className="p-3.5 text-gray-300 font-mono">
                           {cust.pubgUid ? (
-                            <span className="px-2 py-0.5 bg-black/40 rounded border border-white/10 text-white font-bold">
-                              {cust.pubgUid}
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-black/40 rounded border border-white/10 text-white font-bold">
+                              <span>{cust.pubgUid}</span>
+                              <button
+                                type="button"
+                                onClick={(e) => handleCopyField(e, cust.pubgUid, 'PUBG UID')}
+                                className="p-0.5 rounded hover:bg-white/20 text-gray-400 hover:text-white transition-all shrink-0"
+                                title={`Copy UID ${cust.pubgUid}`}
+                              >
+                                {copiedText === cust.pubgUid ? (
+                                  <Check className="w-3 h-3 text-emerald-400" />
+                                ) : (
+                                  <Copy className="w-3 h-3" />
+                                )}
+                              </button>
                             </span>
                           ) : (
                             <span className="text-gray-500">Not set</span>
                           )}
                         </td>
+
+                        {/* WhatsApp Number Cell with 1-Click Copy */}
                         <td className="p-3.5 text-emerald-400 font-mono">
                           {cust.whatsappNumber ? (
-                            <span className="flex items-center gap-1">
-                              <Smartphone className="w-3.5 h-3.5" /> {cust.whatsappNumber}
+                            <span className="flex items-center gap-1.5">
+                              <Smartphone className="w-3.5 h-3.5 shrink-0" />
+                              <span>{cust.whatsappNumber}</span>
+                              <button
+                                type="button"
+                                onClick={(e) => handleCopyField(e, cust.whatsappNumber, 'WhatsApp Number')}
+                                className="p-1 rounded bg-white/5 hover:bg-emerald-600/30 hover:text-white text-gray-400 transition-all shrink-0"
+                                title={`Copy WhatsApp ${cust.whatsappNumber}`}
+                              >
+                                {copiedText === cust.whatsappNumber ? (
+                                  <Check className="w-3 h-3 text-emerald-400" />
+                                ) : (
+                                  <Copy className="w-3 h-3" />
+                                )}
+                              </button>
                             </span>
                           ) : (
                             <span className="text-gray-500">Not set</span>
@@ -218,6 +354,15 @@ export default function PlayersTab({
                           <span className="flex items-center gap-1">
                             <Wallet className="w-3.5 h-3.5" /> ৳{cust.walletBalance || 0}
                           </span>
+                        </td>
+                        <td className="p-3.5 text-center">
+                          <button
+                            onClick={() => handleSelectCustomer(cust)}
+                            className="p-1.5 h-7 w-7 rounded-lg inline-flex items-center justify-center bg-blue-600/20 text-blue-400 border border-blue-500/40 hover:bg-blue-600 hover:text-white transition-all shadow-md shrink-0 cursor-pointer"
+                            title={`View Full Profile Page of ${cust.name}`}
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
                         </td>
                         <td className="p-3.5 text-right">
                           <button
@@ -306,3 +451,5 @@ export default function PlayersTab({
     </div>
   )
 }
+
+

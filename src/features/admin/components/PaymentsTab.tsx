@@ -1,17 +1,36 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { updateRegistrationRoomCredentials, deleteRegistrationRecord, type RegistrationRecord } from '@/lib/db'
+import { getAllCustomerProfiles } from '@/lib/wallet'
+import type { CustomerProfile } from '@/types/wallet'
+import CustomerDetailPage from './CustomerDetailPage'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { RefreshCw, Smartphone, CheckCircle2, XCircle, MessageSquare, X, AlertCircle, Key, Send, Mail, Trash2 } from 'lucide-react'
+import {
+  RefreshCw,
+  Smartphone,
+  CheckCircle2,
+  XCircle,
+  MessageSquare,
+  X,
+  AlertCircle,
+  Key,
+  Send,
+  Mail,
+  Trash2,
+  Eye,
+  Copy,
+  Check,
+} from 'lucide-react'
 
 interface PaymentsTabProps {
   loading: boolean
   pendingCount: number
   filteredRegistrations: RegistrationRecord[]
   handleStatusUpdate: (id: string, newStatus: 'VERIFIED' | 'REJECTED') => void
+  onSelectUserMessage?: (userEmail: string) => void
 }
 
 export default function PaymentsTab({
@@ -19,7 +38,13 @@ export default function PaymentsTab({
   pendingCount,
   filteredRegistrations,
   handleStatusUpdate,
+  onSelectUserMessage,
 }: PaymentsTabProps) {
+  const [limit, setLimit] = useState(25)
+  const [customers, setCustomers] = useState<CustomerProfile[]>([])
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerProfile | null>(null)
+  const [copiedText, setCopiedText] = useState<string | null>(null)
+
   const [confirmModalItem, setConfirmModalItem] = useState<{ id: string; name: string; amount: number; trxId: string } | null>(null)
   const [deleteModalReg, setDeleteModalReg] = useState<{ id: string; name: string; amount: number; trxId: string } | null>(null)
 
@@ -28,6 +53,87 @@ export default function PaymentsTab({
   const [editRoomId, setEditRoomId] = useState('1234567')
   const [editRoomPassword, setEditRoomPassword] = useState('8899')
   const [savingRoom, setSavingRoom] = useState(false)
+
+  const loadCustomers = async () => {
+    try {
+      const data = await getAllCustomerProfiles()
+      setCustomers(data)
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search)
+        const emailFromUrl = params.get('email')
+        if (emailFromUrl) {
+          const matched = data.find(c => c.email.toLowerCase() === emailFromUrl.toLowerCase())
+          if (matched) {
+            setSelectedCustomer(matched)
+          } else {
+            setSelectedCustomer({
+              email: emailFromUrl,
+              name: emailFromUrl.split('@')[0],
+              pubgUid: '',
+              whatsappNumber: '',
+              walletBalance: 0,
+            })
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load customers in PaymentsTab:', err)
+    }
+  }
+
+  useEffect(() => {
+    loadCustomers()
+  }, [])
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search)
+        const emailFromUrl = params.get('email')
+        if (emailFromUrl) {
+          const matched = customers.find(c => c.email.toLowerCase() === emailFromUrl.toLowerCase())
+          if (matched) setSelectedCustomer(matched)
+        } else {
+          setSelectedCustomer(null)
+        }
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [customers])
+
+  const handleOpenCustomerDetail = (email?: string, name?: string, uid?: string, phone?: string) => {
+    const targetEmail = email || (name ? `${name.toLowerCase().replace(/\s+/g, '')}@gmail.com` : '')
+    if (!targetEmail) return
+
+    const matched = customers.find(c => c.email.toLowerCase() === targetEmail.toLowerCase())
+    const cust: CustomerProfile = matched || {
+      email: targetEmail,
+      name: name || targetEmail.split('@')[0],
+      pubgUid: uid || '',
+      whatsappNumber: phone || '',
+      walletBalance: 0,
+    }
+    setSelectedCustomer(cust)
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', `/admin/payments?email=${encodeURIComponent(cust.email)}`)
+    }
+  }
+
+  const handleBackToList = () => {
+    setSelectedCustomer(null)
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/admin/payments')
+    }
+  }
+
+  const handleCopyField = (e: React.MouseEvent, text: string, label: string) => {
+    e.stopPropagation()
+    navigator.clipboard.writeText(text)
+    toast.success(`Copied ${label} "${text}" to clipboard!`)
+    setCopiedText(text)
+    setTimeout(() => setCopiedText(null), 1500)
+  }
 
   const handleDeleteRegistration = async () => {
     if (!deleteModalReg) return
@@ -77,78 +183,156 @@ export default function PaymentsTab({
     }
   }
 
+  // If a customer profile is selected, render the FULL-PAGE details view!
+  if (selectedCustomer) {
+    return (
+      <CustomerDetailPage
+        customer={selectedCustomer}
+        registrations={filteredRegistrations}
+        onBack={handleBackToList}
+        onRefreshCustomer={loadCustomers}
+        onSelectUserMessage={onSelectUserMessage}
+      />
+    )
+  }
+
   return (
     <Card className="bg-[#101422] border-white/10 p-6 rounded-2xl space-y-4">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
         <div>
           <h3 className="font-display text-2xl font-black text-white uppercase">
-            Slot Booking Payments
+            Slot Booking Payments & Approvals
           </h3>
           <span className="text-xs text-gray-400 font-medium">
-            Verify bKash / Nagad Transaction IDs (TrxID) & Send WhatsApp Room ID
+            প্লেয়ারের নামের বোতামে চাপলে তার ফুল ডিটেইলস পেজ ওপেন হবে এবং ১-ক্লিকে TrxID, নাম ও নাম্বার কপি করা যাবে।
           </span>
         </div>
-        <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-3 py-1">
+
+        <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-3 py-2 shrink-0">
           {pendingCount} Pending Approvals
         </Badge>
       </div>
 
       {loading ? (
         <div className="text-center py-12 text-gray-400 font-bold flex items-center justify-center gap-2">
-          <RefreshCw className="w-5 h-5 animate-spin" /> Loading registrations from Supabase...
+          <RefreshCw className="w-5 h-5 animate-spin text-blue-400" /> Loading payment records from database...
         </div>
       ) : filteredRegistrations.length === 0 ? (
         <div className="text-center py-12 text-gray-400 font-bold">
-          No registration records matching query.
+          No payment records matching search query.
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-[#070910] text-gray-400 font-gaming uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="p-3.5">PUBG Player & Gmail</th>
+                <th className="p-3.5">PUBG Player Name & Profile</th>
+                <th className="p-3.5">Gmail Email</th>
                 <th className="p-3.5">PUBG UID</th>
                 <th className="p-3.5">Method</th>
-                <th className="p-3.5">TrxID</th>
+                <th className="p-3.5">TrxID & Copy</th>
                 <th className="p-3.5">Amount</th>
                 <th className="p-3.5">Status</th>
-                <th className="p-3.5 text-right">Actions</th>
+                <th className="p-3.5 text-right">Actions & Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 font-medium">
-              {filteredRegistrations.map((reg) => {
+              {filteredRegistrations.slice(0, limit).map((reg) => {
                 return (
                   <tr key={reg.id} className="hover:bg-white/5 transition-colors">
+                    {/* Player Name Cell with Copy Button & View Details link */}
                     <td className="p-3.5">
-                      <div className="font-bold text-white block text-sm flex items-center gap-1.5">
-                        <span>{reg.player1Name}</span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          onClick={() => handleOpenCustomerDetail(reg.userEmail, reg.player1Name, reg.player1Uid, reg.whatsappNumber)}
+                          className="font-bold text-white block text-sm hover:text-blue-400 cursor-pointer transition-colors"
+                        >
+                          {reg.player1Name}
+                        </span>
+                        {/* Copy Name Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => handleCopyField(e, reg.player1Name, 'Player Name')}
+                          className="p-1 rounded bg-white/10 hover:bg-blue-600 hover:text-white text-gray-300 transition-all shadow-sm flex items-center justify-center shrink-0"
+                          title={`Copy name "${reg.player1Name}"`}
+                        >
+                          {copiedText === reg.player1Name ? (
+                            <Check className="w-3 h-3 text-emerald-400" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                        </button>
                         {reg.teamName && reg.teamName !== 'SOLO PLAYER' && (
                           <span className="text-[10px] bg-red-950 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded font-bold">
                             {reg.teamName}
                           </span>
                         )}
                       </div>
+
+                      {/* WhatsApp with Copy */}
+                      <span className="text-[11px] text-emerald-400 font-mono flex items-center gap-1.5 mt-1">
+                        <Smartphone className="w-3.5 h-3.5 shrink-0" />
+                        <span>{reg.whatsappNumber}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => handleCopyField(e, reg.whatsappNumber, 'WhatsApp Number')}
+                          className="p-0.5 hover:text-white text-gray-400 transition-all shrink-0 ml-1"
+                          title={`Copy WhatsApp ${reg.whatsappNumber}`}
+                        >
+                          {copiedText === reg.whatsappNumber ? (
+                            <Check className="w-3 h-3 text-emerald-400" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                        </button>
+                      </span>
+                    </td>
+
+                    {/* Email Cell with Copy */}
+                    <td className="p-3.5 text-gray-300 font-mono">
                       {reg.userEmail ? (
-                        <span className="text-[11px] text-cyan-400 font-mono flex items-center gap-1 mt-1">
-                          <Mail className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                          {reg.userEmail}
+                        <span className="flex items-center gap-1.5 text-cyan-400">
+                          <Mail className="w-3.5 h-3.5 shrink-0" />
+                          <span>{reg.userEmail}</span>
+                          <button
+                            type="button"
+                            onClick={(e) => handleCopyField(e, reg.userEmail || '', 'Gmail Email')}
+                            className="p-0.5 hover:text-white text-gray-400 transition-all shrink-0 ml-1"
+                            title={`Copy email ${reg.userEmail}`}
+                          >
+                            {copiedText === reg.userEmail ? (
+                              <Check className="w-3 h-3 text-emerald-400" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
                         </span>
                       ) : (
-                        <span className="text-[11px] text-gray-500 font-mono flex items-center gap-1 mt-1">
-                          <Mail className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-                          No email provided
-                        </span>
+                        <span className="text-gray-500 text-[11px]">No Email</span>
                       )}
-                      <span className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
-                        <Smartphone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        {reg.whatsappNumber}
-                      </span>
                     </td>
+
+                    {/* PUBG UID Cell with Copy */}
                     <td className="p-3.5 text-gray-300 font-mono text-xs">
-                      <span className="bg-amber-500/10 text-amber-300 border border-amber-500/30 px-2 py-1 rounded-md font-bold font-mono inline-block">
-                        {reg.player1Uid}
+                      <span className="inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-300 border border-amber-500/30 px-2 py-1 rounded-md font-bold font-mono">
+                        <span>{reg.player1Uid}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => handleCopyField(e, reg.player1Uid, 'PUBG UID')}
+                          className="hover:text-white text-amber-400 transition-all"
+                          title={`Copy UID ${reg.player1Uid}`}
+                        >
+                          {copiedText === reg.player1Uid ? (
+                            <Check className="w-3 h-3 text-emerald-400" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                        </button>
                       </span>
                     </td>
+
+                    {/* Payment Method */}
                     <td className="p-3.5">
                       <Badge
                         className={
@@ -160,10 +344,30 @@ export default function PaymentsTab({
                         {reg.paymentMethod}
                       </Badge>
                     </td>
+
+                    {/* TrxID Cell with Copy */}
                     <td className="p-3.5 font-mono font-black text-amber-400 text-sm tracking-wide">
-                      {reg.trxId}
+                      <div className="flex items-center gap-1.5">
+                        <span>{reg.trxId}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => handleCopyField(e, reg.trxId, 'TrxID')}
+                          className="p-1 rounded bg-amber-500/20 hover:bg-amber-500 hover:text-black text-amber-300 transition-all shrink-0"
+                          title={`Copy TrxID ${reg.trxId}`}
+                        >
+                          {copiedText === reg.trxId ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
                     </td>
+
+                    {/* Amount */}
                     <td className="p-3.5 font-display text-base font-bold text-white">৳{reg.amount}</td>
+
+                    {/* Status */}
                     <td className="p-3.5">
                       <Badge
                         className={
@@ -177,7 +381,18 @@ export default function PaymentsTab({
                         {reg.status}
                       </Badge>
                     </td>
+
+                    {/* Actions & Details Page Button */}
                     <td className="p-3.5 text-right space-x-2">
+                      <Button
+                        onClick={() => handleOpenCustomerDetail(reg.userEmail, reg.player1Name, reg.player1Uid, reg.whatsappNumber)}
+                        size="sm"
+                        className="bg-blue-600/20 hover:bg-blue-600 border border-blue-500/40 text-blue-400 hover:text-white p-1.5 h-7 w-7 rounded-lg inline-flex items-center justify-center cursor-pointer transition-all shadow-md shrink-0"
+                        title="View Full Customer Details Page"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </Button>
+
                       {reg.status === 'PENDING' && (
                         <>
                           <Button
@@ -223,6 +438,19 @@ export default function PaymentsTab({
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {filteredRegistrations.length > limit && (
+        <div className="text-center pt-3 border-t border-white/10">
+          <Button
+            onClick={() => setLimit((prev) => prev + 25)}
+            variant="outline"
+            size="sm"
+            className="bg-white/5 hover:bg-white/10 border-white/10 text-xs font-bold text-gray-300 hover:text-white cursor-pointer"
+          >
+            More (আরও পেমেন্ট বুকিং দেখুন — {filteredRegistrations.length - limit} টি বাকি)
+          </Button>
         </div>
       )}
 

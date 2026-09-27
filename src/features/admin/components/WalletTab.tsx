@@ -9,15 +9,27 @@ import {
   deleteCustomerProfile,
 } from '@/lib/wallet'
 import type { WalletTransaction, CustomerProfile } from '@/types/wallet'
+import type { RegistrationRecord } from '@/lib/db'
+import CustomerDetailPage from './CustomerDetailPage'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Send, CheckCircle2, XCircle, Search, RefreshCw, PlusCircle, MinusCircle, X, AlertCircle, Trash2 } from 'lucide-react'
+import { Send, CheckCircle2, XCircle, Search, RefreshCw, PlusCircle, MinusCircle, X, AlertCircle, Trash2, Eye } from 'lucide-react'
 
-export default function WalletTab() {
+interface WalletTabProps {
+  registrations?: RegistrationRecord[]
+  onSelectUserMessage?: (userEmail: string) => void
+}
+
+export default function WalletTab({ registrations = [], onSelectUserMessage }: WalletTabProps) {
   const [customers, setCustomers] = useState<CustomerProfile[]>([])
   const [transactions, setTransactions] = useState<WalletTransaction[]>([])
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerProfile | null>(null)
+
+  // Pagination / Load More Limits (Default 25 each = 50 total initially)
+  const [customerLimit, setCustomerLimit] = useState(25)
+  const [txLimit, setTxLimit] = useState(25)
 
   // Send / Deduct Money Form State
   const [sendEmail, setSendEmail] = useState('')
@@ -37,6 +49,96 @@ export default function WalletTab() {
     const txs = await getWalletTransactions()
     setCustomers(custs)
     setTransactions(txs)
+
+    // Sync active customer from URL search param if present (?email=...)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const emailFromUrl = params.get('email')
+      if (emailFromUrl) {
+        const matched = custs.find(c => c.email.toLowerCase() === emailFromUrl.toLowerCase())
+        if (matched) {
+          setSelectedCustomer(matched)
+        } else {
+          setSelectedCustomer({
+            email: emailFromUrl,
+            name: emailFromUrl.split('@')[0],
+            pubgUid: '',
+            whatsappNumber: '',
+            walletBalance: 0,
+          })
+        }
+      }
+    }
+  }
+
+  useEffect(() => {
+    loadWalletData()
+
+    const handleUpdate = () => {
+      loadWalletData()
+    }
+
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search)
+        const emailFromUrl = params.get('email')
+        if (emailFromUrl) {
+          const matched = customers.find(c => c.email.toLowerCase() === emailFromUrl.toLowerCase())
+          if (matched) setSelectedCustomer(matched)
+        } else {
+          setSelectedCustomer(null)
+        }
+      }
+    }
+
+    window.addEventListener('wallet_updated', handleUpdate)
+    window.addEventListener('profile_updated', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('wallet_updated', handleUpdate)
+      window.removeEventListener('profile_updated', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [customers])
+
+  const handleOpenCustomerDetail = (email: string, name?: string, uid?: string, phone?: string) => {
+    const targetEmail = email || (name ? `${name.toLowerCase().replace(/\s+/g, '')}@gmail.com` : '')
+    if (!targetEmail) return
+    const matched = customers.find(c => c.email.toLowerCase() === targetEmail.toLowerCase())
+    const cust: CustomerProfile = matched || {
+      email: targetEmail,
+      name: name || targetEmail.split('@')[0],
+      pubgUid: uid || '',
+      whatsappNumber: phone || '',
+      walletBalance: 0,
+    }
+    setSelectedCustomer(cust)
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', `/admin/wallet?email=${encodeURIComponent(cust.email)}`)
+    }
+  }
+
+  const handleBackToList = () => {
+    setSelectedCustomer(null)
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/admin/wallet')
+    }
+  }
+
+  // If a customer is selected, render the dedicated FULL-PAGE details view!
+  if (selectedCustomer) {
+    return (
+      <CustomerDetailPage
+        customer={selectedCustomer}
+        registrations={registrations}
+        onBack={handleBackToList}
+        onRefreshCustomer={loadWalletData}
+        onSelectUserMessage={onSelectUserMessage}
+      />
+    )
   }
 
   const handleDeleteTx = async () => {
@@ -265,13 +367,28 @@ export default function WalletTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 font-medium">
-                {customers.map((c) => (
+                {customers.slice(0, customerLimit).map((c) => (
                   <tr key={c.email} className="hover:bg-white/5">
-                    <td className="p-3 font-bold text-white">{c.name}</td>
+                    <td className="p-3 font-bold text-white">
+                      <span
+                        onClick={() => handleOpenCustomerDetail(c.email, c.name, c.pubgUid, c.whatsappNumber)}
+                        className="hover:text-blue-400 cursor-pointer transition-colors"
+                      >
+                        {c.name}
+                      </span>
+                    </td>
                     <td className="p-3 text-gray-300">{c.email}</td>
                     <td className="p-3 text-red-400 font-mono">{c.pubgUid || '—'}</td>
                     <td className="p-3 font-display font-bold text-emerald-400 text-sm">৳{c.walletBalance}</td>
                     <td className="p-3 text-right space-x-1.5">
+                      <Button
+                        onClick={() => handleOpenCustomerDetail(c.email, c.name, c.pubgUid, c.whatsappNumber)}
+                        size="sm"
+                        className="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/40 p-1.5 h-7 w-7 rounded-lg inline-flex items-center justify-center cursor-pointer transition-all shrink-0"
+                        title={`View profile page of ${c.name}`}
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </Button>
                       <Button
                         onClick={() => {
                           setSendEmail(c.email)
@@ -297,6 +414,19 @@ export default function WalletTab() {
               </tbody>
             </table>
           </div>
+
+          {customers.length > customerLimit && (
+            <div className="text-center pt-2 border-t border-white/10">
+              <Button
+                onClick={() => setCustomerLimit((prev) => prev + 25)}
+                variant="outline"
+                size="sm"
+                className="bg-white/5 hover:bg-white/10 border-white/10 text-xs font-bold text-gray-300 hover:text-white cursor-pointer"
+              >
+                More (আরও দেখুন — {customers.length - customerLimit} জন বাকি)
+              </Button>
+            </div>
+          )}
         </Card>
       </div>
 
@@ -343,13 +473,18 @@ export default function WalletTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 font-medium">
-                {filteredTx.map((tx) => (
+                {filteredTx.slice(0, txLimit).map((tx) => (
                   <tr key={tx.id} className="hover:bg-white/5 transition-colors">
                     <td className="p-3.5 text-gray-400 font-mono text-[11px]">
                       {new Date(tx.createdAt).toLocaleDateString()}
                     </td>
                     <td className="p-3.5">
-                      <span className="font-bold text-white block">{tx.userName}</span>
+                      <span
+                        onClick={() => handleOpenCustomerDetail(tx.userEmail, tx.userName)}
+                        className="font-bold text-white block hover:text-blue-400 cursor-pointer transition-colors"
+                      >
+                        {tx.userName}
+                      </span>
                       <span className="text-[11px] text-gray-400">{tx.userEmail}</span>
                     </td>
                     <td className="p-3.5 font-bold">
@@ -385,6 +520,14 @@ export default function WalletTab() {
                       </Badge>
                     </td>
                     <td className="p-3.5 text-right space-x-2">
+                      <Button
+                        onClick={() => handleOpenCustomerDetail(tx.userEmail, tx.userName)}
+                        size="sm"
+                        className="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/40 p-1.5 h-7 w-7 rounded-lg inline-flex items-center justify-center cursor-pointer transition-all shrink-0"
+                        title={`View profile page of ${tx.userName || tx.userEmail}`}
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </Button>
                       {tx.status === 'PENDING' && (
                         <>
                           <Button
@@ -417,6 +560,19 @@ export default function WalletTab() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {filteredTx.length > txLimit && (
+          <div className="text-center pt-2 border-t border-white/10">
+            <Button
+              onClick={() => setTxLimit((prev) => prev + 25)}
+              variant="outline"
+              size="sm"
+              className="bg-white/5 hover:bg-white/10 border-white/10 text-xs font-bold text-gray-300 hover:text-white cursor-pointer"
+            >
+              More (আরও ট্রানজেকশন দেখুন — {filteredTx.length - txLimit} টি বাকি)
+            </Button>
           </div>
         )}
       </Card>

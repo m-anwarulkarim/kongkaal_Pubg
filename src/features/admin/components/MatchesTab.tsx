@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import type { MatchItem } from '@/types/match'
+import type { RegistrationRecord } from '@/lib/db'
+import MatchDetailPage from './MatchDetailPage'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -9,23 +11,93 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { updateMatch } from '@/lib/db'
 import { convertFileToWebP } from '@/lib/imageUtils'
-import { Plus, Trash2, Edit3, Image as ImageIcon } from 'lucide-react'
+import { Plus, Trash2, Edit3, Image as ImageIcon, Eye } from 'lucide-react'
+
+// Ordinal suffix helper: 4 -> "4th", 5 -> "5th" etc.
+function ordinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return n + (s[(v - 20) % 10] || s[v] || s[0])
+}
 
 interface MatchesTabProps {
   matches: MatchItem[]
+  registrations?: RegistrationRecord[]
   setNewMatchOpen: (open: boolean) => void
   handleDeleteMatch: (id: string) => void
   onRefreshMatches?: () => void
+  onSelectCustomer?: (email: string) => void
 }
 
 export default function MatchesTab({
   matches,
+  registrations = [],
   setNewMatchOpen,
   handleDeleteMatch,
   onRefreshMatches,
+  onSelectCustomer,
 }: MatchesTabProps) {
+  const [selectedMatch, setSelectedMatch] = useState<MatchItem | null>(null)
   const [editingMatch, setEditingMatch] = useState<MatchItem | null>(null)
   const [saving, setSaving] = useState(false)
+
+  // Sync active match from URL search param if present (?matchId=...)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && matches.length > 0) {
+      const params = new URLSearchParams(window.location.search)
+      const matchIdFromUrl = params.get('matchId')
+      if (matchIdFromUrl) {
+        const matched = matches.find((m) => m.id === matchIdFromUrl)
+        if (matched) setSelectedMatch(matched)
+      }
+    }
+  }, [matches])
+
+  // Listen for browser Back/Forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search)
+        const matchIdFromUrl = params.get('matchId')
+        if (matchIdFromUrl && matches.length > 0) {
+          const matched = matches.find((m) => m.id === matchIdFromUrl)
+          setSelectedMatch(matched || null)
+        } else {
+          setSelectedMatch(null)
+        }
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [matches])
+
+  const handleOpenMatchDetail = (match: MatchItem) => {
+    setSelectedMatch(match)
+    if (typeof window !== 'undefined') {
+      const newUrl = `/admin/matches?matchId=${encodeURIComponent(match.id)}`
+      window.history.pushState({}, '', newUrl)
+    }
+  }
+
+  const handleBackToList = () => {
+    setSelectedMatch(null)
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/admin/matches')
+    }
+  }
+
+  // If a match is selected, render the dedicated FULL-PAGE Match Details view!
+  if (selectedMatch) {
+    return (
+      <MatchDetailPage
+        match={selectedMatch}
+        registrations={registrations}
+        onBack={handleBackToList}
+        onRefreshMatch={onRefreshMatches || (() => {})}
+        onSelectCustomer={onSelectCustomer}
+      />
+    )
+  }
 
   const handleUpdateSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,11 +156,22 @@ export default function MatchesTab({
             {matches.map((m) => (
               <tr key={m.id} className="hover:bg-white/5 transition-colors">
                 <td className="p-3.5">
-                  <div className="w-14 h-10 rounded-lg overflow-hidden border border-white/10 bg-black/40">
+                  <div
+                    onClick={() => handleOpenMatchDetail(m)}
+                    className="w-14 h-10 rounded-lg overflow-hidden border border-white/10 bg-black/40 cursor-pointer hover:opacity-80 transition-opacity"
+                    title={`View match details for ${m.title}`}
+                  >
                     <img src={m.image} alt={m.title} className="w-full h-full object-cover" />
                   </div>
                 </td>
-                <td className="p-3.5 font-bold text-white text-sm">{m.title}</td>
+                <td className="p-3.5 font-bold text-white text-sm">
+                  <span
+                    onClick={() => handleOpenMatchDetail(m)}
+                    className="hover:text-purple-400 cursor-pointer transition-colors"
+                  >
+                    {m.title}
+                  </span>
+                </td>
                 <td className="p-3.5">
                   <Badge className={m.mode === 'SOLO' ? 'bg-blue-950 text-blue-400' : 'bg-purple-950 text-purple-400'}>
                     {m.mode}
@@ -113,19 +196,27 @@ export default function MatchesTab({
                 <td className="p-3.5 text-amber-400 font-bold">
                   {m.joinedSlots}/{m.maxSlots}
                 </td>
-                <td className="p-3.5 text-right space-x-2">
+                <td className="p-3.5 text-right space-x-1.5">
+                  <Button
+                    onClick={() => handleOpenMatchDetail(m)}
+                    size="sm"
+                    className="bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/40 p-1.5 h-7 w-7 rounded-lg inline-flex items-center justify-center cursor-pointer transition-all shrink-0"
+                    title={`View match details and slot list for ${m.title}`}
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                  </Button>
                   <Button
                     onClick={() => setEditingMatch(m)}
                     size="sm"
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2.5 h-auto inline-flex items-center gap-1"
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2.5 h-auto inline-flex items-center gap-1 cursor-pointer"
                   >
-                    <Edit3 className="w-3.5 h-3.5" /> Edit Match
+                    <Edit3 className="w-3.5 h-3.5" /> Edit
                   </Button>
                   <Button
                     onClick={() => handleDeleteMatch(m.id)}
                     size="sm"
                     variant="outline"
-                    className="bg-red-950 text-red-400 border-red-800 hover:bg-red-900 text-xs font-bold py-1 px-2.5 h-auto inline-flex items-center gap-1"
+                    className="bg-red-950 text-red-400 border-red-800 hover:bg-red-900 text-xs font-bold py-1 px-2.5 h-auto inline-flex items-center gap-1 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Delete
                   </Button>
@@ -325,13 +416,90 @@ export default function MatchesTab({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              {/* Extra Prize Places Controller (4th, 5th, 6th ... any positions) */}
+              <div className="bg-[#07080b] p-3 rounded-xl border border-white/10 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-emerald-400 uppercase">🎯 Extra Prize Places (4th, 5th, 6th...)</span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      const current = editingMatch.rankPrizes || []
+                      const nextRank = current.length + 4 // starts from 4th
+                      setEditingMatch({
+                        ...editingMatch,
+                        rankPrizes: [...current, { rank: `${ordinal(nextRank)} Place`, amount: 25 }]
+                      })
+                    }}
+                    className="bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/40 text-emerald-400 hover:text-white text-[10px] py-1 px-2 h-auto rounded-lg"
+                  >
+                    <Plus className="w-3 h-3 mr-1" /> Add Place
+                  </Button>
+                </div>
+
+                {(!editingMatch.rankPrizes || editingMatch.rankPrizes.length === 0) && (
+                  <p className="text-[11px] text-gray-500 italic py-1">
+                    No extra places set. "Add Place" করলে 4th Place থেকে যোগ হবে — Prize Breakdown Modal-এ দেখাবে।
+                  </p>
+                )}
+
+                {(editingMatch.rankPrizes || []).map((rp, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <Input
+                      value={rp.rank}
+                      onChange={(e) => {
+                        const updated = [...(editingMatch.rankPrizes || [])]
+                        updated[idx] = { ...updated[idx], rank: e.target.value }
+                        setEditingMatch({ ...editingMatch, rankPrizes: updated })
+                      }}
+                      placeholder="e.g. 4th Place"
+                      className="bg-[#101420] border-gray-700 text-white text-xs flex-1"
+                    />
+                    <Input
+                      type="number"
+                      value={rp.amount}
+                      onChange={(e) => {
+                        const updated = [...(editingMatch.rankPrizes || [])]
+                        updated[idx] = { ...updated[idx], amount: Number(e.target.value) }
+                        setEditingMatch({ ...editingMatch, rankPrizes: updated })
+                      }}
+                      placeholder="Amount ৳"
+                      className="bg-[#101420] border-gray-700 text-white text-xs w-24"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = (editingMatch.rankPrizes || []).filter((_, i) => i !== idx)
+                        setEditingMatch({ ...editingMatch, rankPrizes: updated })
+                      }}
+                      className="text-red-400 hover:text-red-300 p-1 rounded-lg hover:bg-red-950 transition-colors"
+                      title="Remove this place"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-white/10">
                 <div>
-                  <Label className="text-gray-300 font-bold block mb-1">Match Time</Label>
+                  <Label className="text-gray-300 font-bold block mb-1">📅 Match Date</Label>
                   <Input
+                    type="date"
+                    value={editingMatch.matchDate || ''}
+                    onChange={(e) => setEditingMatch({ ...editingMatch, matchDate: e.target.value })}
+                    className="bg-[#07080b] border-gray-700 text-white [color-scheme:dark]"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-300 font-bold block mb-1">⏰ Match Time</Label>
+                  <Input
+                    type="text"
                     value={editingMatch.time}
                     onChange={(e) => setEditingMatch({ ...editingMatch, time: e.target.value })}
-                    className="bg-[#07080b] border-gray-700 text-white"
+                    placeholder="e.g. 10:00 PM"
+                    className="bg-[#07080b] border-gray-700 text-white font-bold"
+                    required
                   />
                 </div>
                 <div>
@@ -340,27 +508,28 @@ export default function MatchesTab({
                     type="number"
                     value={editingMatch.maxSlots}
                     onChange={(e) => setEditingMatch({ ...editingMatch, maxSlots: Number(e.target.value) })}
-                    className="bg-[#07080b] border-gray-700 text-white"
+                    className="bg-[#07080b] border-gray-700 text-white font-bold"
                   />
                 </div>
-                <div>
-                  <Label className="text-gray-300 font-bold block mb-1">Status / Button</Label>
-                  <Select
-                    value={editingMatch.status || 'OPEN'}
-                    onValueChange={(v: any) => setEditingMatch({ ...editingMatch, status: v })}
-                  >
-                    <SelectTrigger className="bg-[#07080b] border-gray-700 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#101420] text-white">
-                      <SelectItem value="OPEN">🟢 OPEN (Register Now)</SelectItem>
-                      <SelectItem value="COMING_SOON">⏳ COMING SOON</SelectItem>
-                      <SelectItem value="FILLING_FAST">🔥 FILLING FAST</SelectItem>
-                      <SelectItem value="LIVE_SOON">⚡ LIVE SOON</SelectItem>
-                      <SelectItem value="COMPLETED">✅ COMPLETED</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              </div>
+
+              <div>
+                <Label className="text-gray-300 font-bold block mb-1">Status / Button</Label>
+                <Select
+                  value={editingMatch.status || 'OPEN'}
+                  onValueChange={(v: any) => setEditingMatch({ ...editingMatch, status: v })}
+                >
+                  <SelectTrigger className="bg-[#07080b] border-gray-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#101420] text-white">
+                    <SelectItem value="OPEN">🟢 OPEN (Register Now)</SelectItem>
+                    <SelectItem value="COMING_SOON">⏳ COMING SOON</SelectItem>
+                    <SelectItem value="FILLING_FAST">🔥 FILLING FAST</SelectItem>
+                    <SelectItem value="LIVE_SOON">⚡ LIVE SOON</SelectItem>
+                    <SelectItem value="COMPLETED">✅ COMPLETED</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <Button

@@ -46,7 +46,19 @@ import {
   Loader2,
 } from 'lucide-react'
 
-export const Route = createFileRoute('/dashboard')({ component: CustomerDashboardPage })
+export const Route = createFileRoute('/dashboard')({
+  head: () => ({
+    meta: [
+      { title: 'Player Dashboard & Wallet | KongKaaL Gaming' },
+      { name: 'description', content: 'Manage your PUBG Mobile tournament registrations, wallet deposit, withdrawal, and live support on KongKaaL Gaming.' },
+      { name: 'robots', content: 'noindex, follow' },
+    ],
+    links: [
+      { rel: 'canonical', href: 'https://kongkaal.com/dashboard' },
+    ],
+  }),
+  component: CustomerDashboardPage,
+})
 
 const PRESET_AVATARS = [
   'https://api.dicebear.com/7.x/bottts/svg?seed=PubgHero&backgroundColor=e50914',
@@ -90,7 +102,55 @@ function CustomerDashboardPage() {
   const [editUid, setEditUid] = useState('')
   const [editPhone, setEditPhone] = useState('')
   const [editAvatarUrl, setEditAvatarUrl] = useState('')
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  const handleOpenEditProfile = () => {
+    if (profile) {
+      setEditName(profile.name || '')
+      setEditUid(profile.pubgUid || '')
+      setEditPhone(profile.whatsappNumber || '')
+      setEditAvatarUrl(profile.avatarUrl || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '')
+    } else if (user) {
+      setEditName(user.user_metadata?.full_name || user.email?.split('@')[0] || '')
+      setEditAvatarUrl(user.user_metadata?.avatar_url || user.user_metadata?.picture || '')
+    }
+    setEditProfileOpen(true)
+  }
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSavingProfile(true)
+
+    try {
+      const emailToUse = user?.email || profile?.email
+      if (!emailToUse) {
+        toast.error('লগইন সেশন পাওয়া যায়নি!')
+        return
+      }
+
+      const currentBalance = profile?.walletBalance ?? 0
+      const currentName = editName.trim() || profile?.name || emailToUse.split('@')[0]
+
+      const updated: CustomerProfile = {
+        email: emailToUse,
+        name: currentName,
+        pubgUid: editUid.trim(),
+        whatsappNumber: editPhone.trim(),
+        walletBalance: currentBalance,
+        avatarUrl: editAvatarUrl,
+      }
+
+      await updateCustomerProfile(updated)
+      setProfile(updated)
+      setEditProfileOpen(false)
+      toast.success('প্রোফাইল তথ্য ও পাবজি আইডি সফলভাবে সেভ হয়েছে! 🎉')
+    } catch (err: any) {
+      toast.error('প্রোফাইল সেভ করতে সমস্যা হয়েছে!')
+    } finally {
+      setIsSavingProfile(false)
+    }
+  }
 
   // Support Messages State
   const [supportMessages, setSupportMessages] = useState<SupportMessage[]>([])
@@ -113,45 +173,60 @@ function CustomerDashboardPage() {
   const loadDashboardData = async () => {
     if (!user?.email) return
 
-    const userProfile = await getCustomerProfile(user.email, user.user_metadata?.full_name || user.email.split('@')[0])
-    setProfile(userProfile)
-    setEditName(userProfile.name)
-    setEditUid(userProfile.pubgUid)
-    setEditPhone(userProfile.whatsappNumber)
-    setEditAvatarUrl(userProfile.avatarUrl || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '')
+    // Execute all dashboard database queries IN PARALLEL for blazing-fast speed
+    const [profileRes, txsRes, allRegsRes, msgsRes] = await Promise.allSettled([
+      getCustomerProfile(user.email, user.user_metadata?.full_name || user.email.split('@')[0]),
+      getWalletTransactions(user.email),
+      getAllRegistrations(),
+      getUserSupportMessages(user.email),
+    ])
 
-    const txs = await getWalletTransactions(user.email)
-    setTransactions(txs)
+    let userProfile: CustomerProfile | null = null
+    if (profileRes.status === 'fulfilled') {
+      userProfile = profileRes.value
+      setProfile(userProfile)
+      setEditName(userProfile.name)
+      setEditUid(userProfile.pubgUid)
+      setEditPhone(userProfile.whatsappNumber)
+      setEditAvatarUrl(userProfile.avatarUrl || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '')
+    }
 
-    const allRegs = await getAllRegistrations()
-    const normEmail = user.email.toLowerCase().trim()
-    const normPhone = userProfile.whatsappNumber ? userProfile.whatsappNumber.trim() : ''
-    const normUid = userProfile.pubgUid ? userProfile.pubgUid.trim() : ''
-    const normName = userProfile.name ? userProfile.name.toLowerCase().trim() : ''
+    if (txsRes.status === 'fulfilled') {
+      setTransactions(txsRes.value)
+    }
 
-    const userRegs = allRegs.filter((r) => {
-      // 1. Primary check: Exact email match
-      if (r.userEmail && r.userEmail.toLowerCase().trim() === normEmail) {
-        return true
-      }
-      // 2. Exact WhatsApp phone match (only if phone exists)
-      if (normPhone && normPhone.length > 5 && r.whatsappNumber && r.whatsappNumber.trim() === normPhone) {
-        return true
-      }
-      // 3. Exact PUBG UID match (only if UID exists)
-      if (normUid && normUid.length > 3 && r.player1Uid && r.player1Uid.trim() === normUid) {
-        return true
-      }
-      // 4. Exact Player Name match (only if name exists and >= 3 chars)
-      if (normName && normName.length >= 3 && r.player1Name && r.player1Name.toLowerCase().trim() === normName) {
-        return true
-      }
-      return false
-    })
-    setMyMatches(userRegs)
+    if (allRegsRes.status === 'fulfilled') {
+      const allRegs = allRegsRes.value
+      const normEmail = user.email.toLowerCase().trim()
+      const normPhone = userProfile?.whatsappNumber ? userProfile.whatsappNumber.trim() : ''
+      const normUid = userProfile?.pubgUid ? userProfile.pubgUid.trim() : ''
+      const normName = userProfile?.name ? userProfile.name.toLowerCase().trim() : ''
 
-    const userMsgs = await getUserSupportMessages(user.email)
-    setSupportMessages(userMsgs)
+      const userRegs = allRegs.filter((r) => {
+        // 1. Primary check: Exact email match
+        if (r.userEmail && r.userEmail.toLowerCase().trim() === normEmail) {
+          return true
+        }
+        // 2. Exact WhatsApp phone match (only if phone exists)
+        if (normPhone && normPhone.length > 5 && r.whatsappNumber && r.whatsappNumber.trim() === normPhone) {
+          return true
+        }
+        // 3. Exact PUBG UID match (only if UID exists)
+        if (normUid && normUid.length > 3 && r.player1Uid && r.player1Uid.trim() === normUid) {
+          return true
+        }
+        // 4. Exact Player Name match (only if name exists and >= 3 chars)
+        if (normName && normName.length >= 3 && r.player1Name && r.player1Name.toLowerCase().trim() === normName) {
+          return true
+        }
+        return false
+      })
+      setMyMatches(userRegs)
+    }
+
+    if (msgsRes.status === 'fulfilled') {
+      setSupportMessages(msgsRes.value)
+    }
   }
 
   useEffect(() => {
@@ -226,23 +301,9 @@ function CustomerDashboardPage() {
     }
   }
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!profile) return
 
-    const updated = {
-      ...profile,
-      name: editName.trim() || profile.name,
-      pubgUid: editUid,
-      whatsappNumber: editPhone,
-      avatarUrl: editAvatarUrl,
-    }
-    await updateCustomerProfile(updated)
-    setProfile(updated)
-    setEditProfileOpen(false)
-  }
 
-  const handleDepositSubmit = (e: React.FormEvent) => {
+  const handleDepositSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user?.email || !profile || isDepSubmitting) return
 
@@ -255,38 +316,38 @@ function CustomerDashboardPage() {
     setDepMsg('')
     setIsDepSubmitting(true)
 
-    // Instant transition to Thank You page!
-    setDepSuccess(true)
-    toast.success('টাকা জমার অনুরোধ সফলভাবে পাঠানো হয়েছে!')
-
-    // Background Async Execution
     const targetEmail = user.email
     const targetName = profile.name
     const targetAmount = Number(depAmount)
     const targetMethod = depMethod
 
-    requestDeposit({
-      userEmail: targetEmail,
-      userName: targetName,
-      amount: targetAmount,
-      paymentMethod: targetMethod,
-      trxId: cleanTrx,
-    })
-      .then((res) => {
-        setIsDepSubmitting(false)
-        if (res.success) {
-          loadDashboardData()
-        } else {
-          toast.error(res.message)
-        }
+    try {
+      const res = await requestDeposit({
+        userEmail: targetEmail,
+        userName: targetName,
+        amount: targetAmount,
+        paymentMethod: targetMethod,
+        trxId: cleanTrx,
       })
-      .catch((err) => {
+
+      if (res.success) {
+        // Smooth 400ms delay to display processing feedback on button
+        await new Promise((resolve) => setTimeout(resolve, 400))
         setIsDepSubmitting(false)
-        console.error('Deposit request error:', err)
-      })
+        setDepSuccess(true)
+        toast.success('টাকা জমার অনুরোধ সফলভাবে পাঠানো হয়েছে!')
+        loadDashboardData()
+      } else {
+        setIsDepSubmitting(false)
+        toast.error(res.message || 'ডিপোজিট সাবমিট করতে সমস্যা হয়েছে!')
+      }
+    } catch (err: any) {
+      setIsDepSubmitting(false)
+      toast.error('ডিপোজিট সাবমিট করতে সমস্যা হয়েছে!')
+    }
   }
 
-  const handleWithdrawSubmit = (e: React.FormEvent) => {
+  const handleWithdrawSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user?.email || !profile || isWthSubmitting) return
 
@@ -317,35 +378,35 @@ function CustomerDashboardPage() {
     setWthMsg('')
     setIsWthSubmitting(true)
 
-    // Instant transition to Thank You page!
-    setWthSuccess(true)
-    toast.success('ক্যাশ-আউট অনুরোধ সফলভাবে পাঠানো হয়েছে!')
-
-    // Background Async Execution
     const targetEmail = user.email
     const targetName = profile.name
     const targetMethod = wthMethod
     const targetAccount = wthAccount.trim()
 
-    requestWithdraw({
-      userEmail: targetEmail,
-      userName: targetName,
-      amount: numAmount,
-      paymentMethod: targetMethod,
-      accountNumber: targetAccount,
-    })
-      .then((res) => {
-        setIsWthSubmitting(false)
-        if (res.success) {
-          loadDashboardData()
-        } else {
-          toast.error(res.message)
-        }
+    try {
+      const res = await requestWithdraw({
+        userEmail: targetEmail,
+        userName: targetName,
+        amount: numAmount,
+        paymentMethod: targetMethod,
+        accountNumber: targetAccount,
       })
-      .catch((err) => {
+
+      if (res.success) {
+        // Smooth 400ms delay to display processing feedback on button
+        await new Promise((resolve) => setTimeout(resolve, 400))
         setIsWthSubmitting(false)
-        console.error('Withdraw request error:', err)
-      })
+        setWthSuccess(true)
+        toast.success('ক্যাশ-আউট অনুরোধ সফলভাবে পাঠানো হয়েছে!')
+        loadDashboardData()
+      } else {
+        setIsWthSubmitting(false)
+        toast.error(res.message || 'উইথড্র রিকোয়েস্ট করতে সমস্যা হয়েছে!')
+      }
+    } catch (err: any) {
+      setIsWthSubmitting(false)
+      toast.error('উইথড্র রিকোয়েস্ট করতে সমস্যা হয়েছে!')
+    }
   }
 
   const userAvatar = profile?.avatarUrl || user?.user_metadata?.avatar_url || user?.user_metadata?.picture
@@ -380,7 +441,7 @@ function CustomerDashboardPage() {
               <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 w-full md:w-auto">
                   <div 
-                    onClick={() => setEditProfileOpen(true)}
+                    onClick={handleOpenEditProfile}
                     className="relative cursor-pointer group rounded-full shrink-0"
                     title="Click to edit profile avatar"
                   >
@@ -427,8 +488,8 @@ function CustomerDashboardPage() {
 
                 <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full md:w-auto">
                   <Button
-                    onClick={() => setEditProfileOpen(true)}
-                    className="flex-1 md:flex-none justify-center bg-white/10 hover:bg-white/20 text-white font-bold border border-white/20 text-xs rounded-xl px-3.5 py-2"
+                    onClick={handleOpenEditProfile}
+                    className="flex-1 md:flex-none justify-center bg-white/10 hover:bg-white/20 text-white font-bold border border-white/20 text-xs rounded-xl px-3.5 py-2 cursor-pointer"
                   >
                     Edit Profile Info
                   </Button>
@@ -866,8 +927,8 @@ function CustomerDashboardPage() {
                   >
                     {isDepSubmitting ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>প্রসেসিং হচ্ছে...</span>
+                        <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                        <span>ভেরিফাই ও প্রসেসিং হচ্ছে...</span>
                       </>
                     ) : (
                       <span>Submit Deposit Request</span>
@@ -1177,8 +1238,19 @@ function CustomerDashboardPage() {
                 />
               </div>
 
-              <Button type="submit" className="w-full bg-[#e50914] hover:bg-red-600 font-bold py-3 text-xs rounded-xl shadow-lg shadow-red-600/30">
-                Save Profile Changes
+              <Button
+                type="submit"
+                disabled={isSavingProfile}
+                className="w-full bg-[#e50914] hover:bg-red-600 disabled:opacity-50 font-bold py-3 text-xs rounded-xl shadow-lg shadow-red-600/30 cursor-pointer flex items-center justify-center gap-2"
+              >
+                {isSavingProfile ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                    <span>সেভ হচ্ছে...</span>
+                  </>
+                ) : (
+                  <span>Save Profile Changes</span>
+                )}
               </Button>
             </form>
           </div>

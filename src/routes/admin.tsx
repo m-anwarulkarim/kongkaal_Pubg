@@ -29,18 +29,66 @@ import {
   SettingsTab,
 } from '@/features/admin'
 
-export const Route = createFileRoute('/admin')({ component: AdminDashboard })
+export const Route = createFileRoute('/admin')({
+  head: () => ({
+    meta: [
+      { title: 'Admin Portal | KongKaaL Gaming' },
+      { name: 'robots', content: 'noindex, nofollow' },
+    ],
+  }),
+  component: AdminDashboard,
+})
 
-function AdminDashboard() {
+function getInitialTab(): AdminTabType {
+  if (typeof window !== 'undefined') {
+    // 1. Check path-based URL like /admin/overview, /admin/payments, /admin/wallet
+    const pathParts = window.location.pathname.toLowerCase().split('/').filter(Boolean)
+    if (pathParts[0] === 'admin' && pathParts[1]) {
+      const tabFromPath = pathParts[1].toUpperCase()
+      const validTabs: AdminTabType[] = ['OVERVIEW', 'PAYMENTS', 'WALLET', 'MATCHES', 'PLAYERS', 'LEADERBOARD', 'MESSAGES', 'SETTINGS']
+      if (validTabs.includes(tabFromPath as AdminTabType)) {
+        return tabFromPath as AdminTabType
+      }
+    }
+
+    // 2. Fallback to query param ?tab=...
+    const params = new URLSearchParams(window.location.search)
+    const tabParam = params.get('tab')?.toUpperCase()
+    const validTabs: AdminTabType[] = ['OVERVIEW', 'PAYMENTS', 'WALLET', 'MATCHES', 'PLAYERS', 'LEADERBOARD', 'MESSAGES', 'SETTINGS']
+    if (tabParam && validTabs.includes(tabParam as AdminTabType)) {
+      return tabParam as AdminTabType
+    }
+  }
+  return 'OVERVIEW'
+}
+
+export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [email, setEmail] = useState('kongkaal2026@gmail.com')
   const [password, setPassword] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
 
-  // Sidebar & Navigation State
-  const [activeTab, setActiveTab] = useState<AdminTabType>('OVERVIEW')
+  // Sidebar & Navigation State with Clean Path URL Syncing (/admin/overview, /admin/payments, etc.)
+  const [activeTab, setActiveTabState] = useState<AdminTabType>(getInitialTab)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selectedMessageEmail, setSelectedMessageEmail] = useState('')
+
+  const setActiveTab = (tab: AdminTabType) => {
+    setActiveTabState(tab)
+    if (typeof window !== 'undefined') {
+      const newPath = `/admin/${tab.toLowerCase()}`
+      window.history.pushState({}, '', newPath)
+    }
+  }
+
+  // Handle browser Back / Forward buttons for tab navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveTabState(getInitialTab())
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   // Admin Data State
   const [matches, setMatches] = useState<MatchItem[]>([])
@@ -48,7 +96,7 @@ function AdminDashboard() {
   const [walletTxs, setWalletTxs] = useState<any[]>([])
   const [supportMsgs, setSupportMsgs] = useState<any[]>([])
   const [customerCount, setCustomerCount] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   // New Match Form State
@@ -116,29 +164,77 @@ function AdminDashboard() {
     toast.info('এডমিন সেশন থেকে লগআউট হয়েছে!')
   }
 
-  const loadAdminData = async () => {
+  // Tab-scoped lazy data loading
+  const loadTabData = async (tabToLoad: AdminTabType = activeTab) => {
     setLoading(true)
-    const [matchesData, regsData, custsData, txsData, msgsData] = await Promise.all([
-      getMatches(),
-      getAllRegistrations(),
-      getAllCustomerProfiles(),
-      getWalletTransactions(),
-      getSupportMessages(),
-    ])
-    setMatches(matchesData)
-    setRegistrations(regsData)
-    setCustomerCount(custsData.length)
-    setWalletTxs(txsData)
-    setSupportMsgs(msgsData)
-    setLoading(false)
+    try {
+      if (tabToLoad === 'OVERVIEW') {
+        const [m, r, c] = await Promise.all([
+          getMatches(),
+          getAllRegistrations(),
+          getAllCustomerProfiles(),
+        ])
+        setMatches(m)
+        setRegistrations(r)
+        setCustomerCount(c.length)
+      } else if (tabToLoad === 'PAYMENTS' || tabToLoad === 'PLAYERS') {
+        const [r, c] = await Promise.all([
+          getAllRegistrations(),
+          getAllCustomerProfiles(),
+        ])
+        setRegistrations(r)
+        setCustomerCount(c.length)
+      } else if (tabToLoad === 'MATCHES') {
+        const [m, r] = await Promise.all([
+          getMatches(true),
+          getAllRegistrations(true),
+        ])
+        setMatches(m)
+        setRegistrations(r)
+      }
+    } catch (err) {
+      console.error('Failed to load tab data:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
+  // Quick background badge fetch for sidebar indicators (non-blocking)
+  const loadBadgeCounts = async () => {
+    try {
+      const [r, txs, msgs] = await Promise.all([
+        getAllRegistrations(),
+        getWalletTransactions(),
+        getSupportMessages(),
+      ])
+      setRegistrations(r)
+      setWalletTxs(txs)
+      setSupportMsgs(msgs)
+    } catch (e) {
+      console.error('Badge counts fetch error:', e)
+    }
+  }
+
+  const loadAdminData = () => {
+    loadTabData(activeTab)
+    loadBadgeCounts()
+  }
+
+  // Load data specifically for the current active tab whenever tab changes or user authenticates
   useEffect(() => {
     if (isAuthenticated) {
-      loadAdminData()
+      loadTabData(activeTab)
+    }
+  }, [isAuthenticated, activeTab])
+
+  // Initial background badge count fetch on login + subscribe to updates
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadBadgeCounts()
 
       const handleUpdate = () => {
-        loadAdminData()
+        loadTabData(activeTab)
+        loadBadgeCounts()
       }
 
       window.addEventListener('matches_updated', handleUpdate)
@@ -295,6 +391,10 @@ function AdminDashboard() {
               pendingCount={pendingCount}
               filteredRegistrations={filteredRegistrations}
               handleStatusUpdate={handleStatusUpdate}
+              onSelectUserMessage={(email) => {
+                setSelectedMessageEmail(email)
+                setActiveTab('MESSAGES')
+              }}
             />
           )}
 
@@ -303,9 +403,17 @@ function AdminDashboard() {
           {activeTab === 'MATCHES' && (
             <MatchesTab
               matches={matches}
+              registrations={registrations}
               setNewMatchOpen={setNewMatchOpen}
               handleDeleteMatch={handleDeleteMatch}
               onRefreshMatches={loadAdminData}
+              onSelectCustomer={(email) => {
+                setActiveTab('PLAYERS')
+                if (typeof window !== 'undefined') {
+                  window.history.pushState({}, '', `/admin/players?email=${encodeURIComponent(email)}`)
+                  window.dispatchEvent(new PopStateEvent('popstate'))
+                }
+              }}
             />
           )}
 

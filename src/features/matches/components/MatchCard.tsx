@@ -12,11 +12,23 @@ interface MatchCardProps {
 export default function MatchCard({ match, onSelect }: MatchCardProps) {
   const [prizeModalOpen, setPrizeModalOpen] = useState(false)
 
-  // Dynamic Date formatting (Extract day & month from match.time or fallback to current date)
-  const dateMatch = match.time.match(/(\d{1,2})\s*([A-Za-z]{3})/i)
-  const now = new Date()
-  const dayStr = dateMatch ? dateMatch[1] : now.getDate().toString()
-  const monthStr = dateMatch ? dateMatch[2].toUpperCase() : now.toLocaleString('en-US', { month: 'short' }).toUpperCase()
+  // Dynamic Date formatting — prefers matchDate field, falls back to parsing time string
+  let dayStr: string
+  let monthStr: string
+
+  if (match.matchDate) {
+    const d = new Date(match.matchDate + 'T00:00:00') // parse YYYY-MM-DD without timezone shift
+    dayStr = d.getDate().toString().padStart(2, '0')
+    monthStr = d.toLocaleString('en-US', { month: 'short' }).toUpperCase()
+  } else {
+    const dateMatch = match.time.match(/(\d{1,2})\s*([A-Za-z]{3})/i)
+    const now = new Date()
+    dayStr = dateMatch ? dateMatch[1] : now.getDate().toString()
+    monthStr = dateMatch ? dateMatch[2].toUpperCase() : now.toLocaleString('en-US', { month: 'short' }).toUpperCase()
+  }
+
+  // Extract clean time portion (just "10:00 PM" even if time has date embedded)
+  const cleanTime = match.time.includes(' at ') ? match.time.split(' at ')[1] : match.time
 
   const fillPercentage = Math.round((match.joinedSlots / match.maxSlots) * 100)
 
@@ -94,7 +106,7 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
                 <Shield className="w-3.5 h-3.5 text-red-500" /> Map: <strong className="text-gray-200">{match.map} / Asia</strong>
               </span>
               <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-[#e50914]" /> Time: <strong className="text-gray-200">{match.time.includes('at') ? match.time.split('at')[1] : '10:00 PM'}</strong>
+                <Clock className="w-3.5 h-3.5 text-[#e50914]" /> Time: <strong className="text-gray-200">{cleanTime}</strong>
               </span>
             </div>
 

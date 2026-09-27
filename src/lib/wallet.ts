@@ -14,6 +14,8 @@ if (typeof window !== 'undefined' && isSupabaseConfigured()) {
         { event: '*', schema: 'public', table: 'customer_wallets' },
         () => {
           if (typeof window !== 'undefined') {
+            // Clear SWR caches so next request fetches fresh data
+            profilesCache = null
             window.dispatchEvent(new Event('profile_updated'))
             window.dispatchEvent(new Event('wallet_updated'))
           }
@@ -24,6 +26,7 @@ if (typeof window !== 'undefined' && isSupabaseConfigured()) {
         { event: '*', schema: 'public', table: 'wallet_transactions' },
         () => {
           if (typeof window !== 'undefined') {
+            allTxsCache = null // Clear tx cache
             window.dispatchEvent(new Event('wallet_updated'))
           }
         }
@@ -190,10 +193,10 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
 
       if (data) {
         profile.walletBalance = Number(data.balance !== undefined ? data.balance : profile.walletBalance)
-        profile.name = pendingIgn || data.name || profile.name
-        profile.pubgUid = data.pubg_uid || profile.pubgUid
-        profile.whatsappNumber = pendingPhone || data.whatsapp_number || profile.whatsappNumber
-        profile.avatarUrl = data.avatar_url || profile.avatarUrl
+        profile.name = pendingIgn || profile.name || data.name || ''
+        profile.pubgUid = profile.pubgUid || data.pubg_uid || ''
+        profile.whatsappNumber = profile.whatsappNumber || pendingPhone || data.whatsapp_number || ''
+        profile.avatarUrl = profile.avatarUrl || data.avatar_url || ''
         wallets[normEmail] = profile
         saveLocalWallets(wallets)
 
@@ -205,7 +208,7 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
             whatsapp_number: profile.whatsappNumber,
             balance: profile.walletBalance,
             avatar_url: profile.avatarUrl,
-          })
+          }, { onConflict: 'email' })
         }
       } else if (!error) {
         // Upsert new profile to Supabase if not present yet
@@ -240,46 +243,28 @@ export async function updateCustomerProfile(profile: CustomerProfile): Promise<b
 
   if (isSupabaseConfigured()) {
     try {
-      const { data: existing } = await supabase
-        .from('customer_wallets')
-        .select('email')
-        .ilike('email', normEmail)
-        .maybeSingle()
-
-      if (existing) {
-        const { error } = await supabase
-          .from('customer_wallets')
-          .update({
-            name: updatedProfile.name,
-            pubg_uid: updatedProfile.pubgUid,
-            whatsapp_number: updatedProfile.whatsappNumber,
-            balance: updatedProfile.walletBalance,
-            avatar_url: updatedProfile.avatarUrl,
-          })
-          .ilike('email', normEmail)
-        if (error) console.warn('Supabase profile update error:', error.message)
-      } else {
-        const { error } = await supabase.from('customer_wallets').insert([
-          {
-            email: normEmail,
-            name: updatedProfile.name,
-            pubg_uid: updatedProfile.pubgUid,
-            whatsapp_number: updatedProfile.whatsappNumber,
-            balance: updatedProfile.walletBalance,
-            avatar_url: updatedProfile.avatarUrl,
-          },
-        ])
-        if (error) console.warn('Supabase profile insert error:', error.message)
-      }
-
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('wallet_updated'))
-        window.dispatchEvent(new Event('profile_updated'))
-      }
+      const { error } = await supabase.from('customer_wallets').upsert(
+        {
+          email: normEmail,
+          name: updatedProfile.name,
+          pubg_uid: updatedProfile.pubgUid || '',
+          whatsapp_number: updatedProfile.whatsappNumber || '',
+          balance: updatedProfile.walletBalance || 0,
+          avatar_url: updatedProfile.avatarUrl || '',
+        },
+        { onConflict: 'email' }
+      )
+      if (error) console.warn('Supabase profile update error:', error.message)
     } catch (err) {
       console.error('Supabase profile update error:', err)
     }
   }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('wallet_updated'))
+    window.dispatchEvent(new Event('profile_updated'))
+  }
+
   return true
 }
 
@@ -652,11 +637,24 @@ export async function adminApproveTransaction(
   return { success: true, message: `Transaction status updated to ${status}` }
 }
 
+// SWR In-Memory Cache for admin all-transactions (30s TTL — user queries skip cache)
+let allTxsCache: { data: WalletTransaction[]; timestamp: number } | null = null
+const TX_CACHE_TTL_MS = 30_000
+
+export function clearTxsCache() {
+  allTxsCache = null
+}
+
 // 8. Get Transactions for User or Admin
 export async function getWalletTransactions(userEmail?: string): Promise<WalletTransaction[]> {
   const normEmail = userEmail ? userEmail.trim().toLowerCase() : undefined
   const localTxs = getLocalTxs()
   let dbTxs: WalletTransaction[] = []
+
+  // Admin all-txns: use cache to avoid hammering Supabase on every tab switch
+  if (!normEmail && allTxsCache && Date.now() - allTxsCache.timestamp < TX_CACHE_TTL_MS) {
+    return allTxsCache.data
+  }
 
   if (isSupabaseConfigured()) {
     try {
@@ -690,18 +688,37 @@ export async function getWalletTransactions(userEmail?: string): Promise<WalletT
 
   const filteredLocal = normEmail ? localTxs.filter((t) => t.userEmail.toLowerCase() === normEmail) : localTxs
   filteredLocal.forEach((t) => {
-    // Check if not already present in map by id or trxId
     const exists = Array.from(txMap.values()).some((dbT) => dbT.id === t.id || (t.trxId && dbT.trxId === t.trxId))
     if (!exists) {
       txMap.set(t.id, t)
     }
   })
 
-  return Array.from(txMap.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const result = Array.from(txMap.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+  // Cache only admin (all) queries
+  if (!normEmail) {
+    allTxsCache = { data: result, timestamp: Date.now() }
+  }
+
+  return result
+}
+
+// SWR In-Memory Cache for customer profiles (30s TTL)
+let profilesCache: { data: CustomerProfile[]; timestamp: number } | null = null
+const PROFILES_CACHE_TTL_MS = 30_000
+
+export function clearProfilesCache() {
+  profilesCache = null
 }
 
 // 9. Get All Customer Profiles for Admin
 export async function getAllCustomerProfiles(): Promise<CustomerProfile[]> {
+  // Return cached if fresh
+  if (profilesCache && Date.now() - profilesCache.timestamp < PROFILES_CACHE_TTL_MS) {
+    return profilesCache.data
+  }
+
   const localWallets = getLocalWallets()
   const map: Record<string, CustomerProfile> = {}
 
@@ -730,7 +747,9 @@ export async function getAllCustomerProfiles(): Promise<CustomerProfile[]> {
     }
   }
 
-  return Object.values(map)
+  const result = Object.values(map)
+  profilesCache = { data: result, timestamp: Date.now() }
+  return result
 }
 
 // 10. Delete Wallet Transaction

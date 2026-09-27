@@ -15,6 +15,7 @@ export interface MatchItem {
   mode: GameMode
   map: MapName
   time: string
+  matchDate?: string   // ISO date string e.g. "2026-09-28" — separate from time
   entryFee: number
   winnerPrize: number
   firstPrize?: number
@@ -27,10 +28,14 @@ export interface MatchItem {
   image: string
   status: MatchStatus
   whatsappGroupLink?: string
+  roomId?: string
+  roomPassword?: string
 }
 
 export interface PlayerRegistration {
   matchId: string
+  matchTitle?: string
+  slotNumber?: number
   teamName?: string
   player1Name: string
   player1Uid: string

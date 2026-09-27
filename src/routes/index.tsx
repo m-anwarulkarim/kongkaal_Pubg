@@ -14,7 +14,23 @@ import WhatsAppFloatingButton from '../components/WhatsAppFloatingButton'
 import { useCustomerAuth } from '@/lib/auth'
 import type { MatchItem } from '@/types/match'
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute('/')({
+  head: () => ({
+    meta: [
+      { title: 'KongKaaL Gaming - Bangladesh PUBG Mobile Tournament Platform' },
+      { name: 'description', content: 'Play, Compete & Win PUBG Mobile Custom Tournaments in Bangladesh. Solo, Duo, Squad matches with instant bKash & Nagad cash prize payouts on KongKaaL Gaming!' },
+      { name: 'keywords', content: 'KongKaaL, KongKaaL Gaming, PUBG Mobile Bangladesh, PUBG Tournament BD, PUBG Custom Room BD, Play PUBG Win Cash, bKash PUBG Tournament, Nagad Gaming BD' },
+      { property: 'og:title', content: 'KongKaaL Gaming - Premier PUBG Mobile Tournament Platform in BD' },
+      { property: 'og:description', content: 'Compete in daily PUBG Mobile Solo, Duo & Squad custom matches. Win cash prizes with instant bKash & Nagad withdrawal!' },
+      { property: 'og:url', content: 'https://kongkaal.com/' },
+      { property: 'og:image', content: 'https://kongkaal.com/kongkaal_hero.webp' },
+    ],
+    links: [
+      { rel: 'canonical', href: 'https://kongkaal.com/' },
+    ],
+  }),
+  component: App,
+})
 
 function App() {
   const { user } = useCustomerAuth()

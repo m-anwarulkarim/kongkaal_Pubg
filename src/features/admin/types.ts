@@ -7,6 +7,7 @@ export interface NewMatchFormData {
   mode: 'SOLO' | 'DUO' | 'SQUAD'
   map: 'Erangel' | 'Miramar' | 'Sanhok' | 'Livik'
   time: string
+  matchDate?: string  // ISO date YYYY-MM-DD
   entryFee: number
   winnerPrize: number
   firstPrize: number
