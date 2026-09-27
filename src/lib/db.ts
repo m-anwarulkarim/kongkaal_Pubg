@@ -963,8 +963,8 @@ export interface MatchModeSettings {
 
 export const DEFAULT_MODE_SETTINGS: MatchModeSettings = {
   solo: true,
-  duo: false, // Turned off by default per user request
-  squad: false, // Turned off by default per user request
+  duo: true,
+  squad: true,
 }
 
 export function getMatchModeSettings(): MatchModeSettings {
