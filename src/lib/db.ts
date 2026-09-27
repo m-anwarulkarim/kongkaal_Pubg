@@ -431,57 +431,81 @@ export async function saveRegistration(registration: PlayerRegistration): Promis
     await incrementMatchSlots(registration.matchId, 1)
   }
 
+  const initialStatus = registration.paymentMethod === 'WALLET' ? 'VERIFIED' : 'PENDING'
+
+  const localRec: RegistrationRecord = {
+    id: 'reg-' + Date.now(),
+    matchId: registration.matchId,
+    teamName: registration.teamName || 'SOLO PLAYER',
+    player1Name: registration.player1Name,
+    player1Uid: registration.player1Uid,
+    whatsappNumber: registration.whatsappNumber,
+    userEmail: registration.userEmail,
+    player2Name: registration.player2Name,
+    player2Uid: registration.player2Uid,
+    player3Name: registration.player3Name,
+    player3Uid: registration.player3Uid,
+    player4Name: registration.player4Name,
+    player4Uid: registration.player4Uid,
+    paymentMethod: registration.paymentMethod,
+    trxId: registration.trxId,
+    amount: registration.amount,
+    status: initialStatus,
+    createdAt: new Date().toISOString(),
+  }
+
+  // Always store locally as fallback / instant cache and clear stale SWR cache
+  saveLocalRegistrationRecord(localRec)
+  clearRegistrationsCache()
+
   if (!isSupabaseConfigured()) {
+    notifyRegistrationsUpdate()
     return {
       success: true,
       message: 'Slot registration saved locally (Supabase unconfigured).',
-      id: 'local-reg-' + Date.now(),
+      id: localRec.id,
     }
   }
 
   try {
-    const { data, error } = await supabase
+    const payload: any = {
+      match_id: registration.matchId || null,
+      team_name: registration.teamName || null,
+      player1_name: registration.player1Name,
+      player1_uid: registration.player1Uid,
+      whatsapp_number: registration.whatsappNumber,
+      user_email: registration.userEmail || null,
+      player2_name: registration.player2Name || null,
+      player2_uid: registration.player2Uid || null,
+      player3_name: registration.player3Name || null,
+      player3_uid: registration.player3Uid || null,
+      player4_name: registration.player4Name || null,
+      player4_uid: registration.player4Uid || null,
+      payment_method: registration.paymentMethod,
+      trx_id: registration.trxId,
+      amount: registration.amount,
+      status: initialStatus,
+    }
+
+    let { data, error } = await supabase
       .from('registrations')
-      .insert([
-        {
-          match_id: registration.matchId && registration.matchId.length > 20 ? registration.matchId : null,
-          team_name: registration.teamName || null,
-          player1_name: registration.player1Name,
-          player1_uid: registration.player1Uid,
-          whatsapp_number: registration.whatsappNumber,
-          user_email: registration.userEmail || null,
-          player2_name: registration.player2Name || null,
-          player2_uid: registration.player2Uid || null,
-          player3_name: registration.player3Name || null,
-          player3_uid: registration.player3Uid || null,
-          player4_name: registration.player4Name || null,
-          player4_uid: registration.player4Uid || null,
-          payment_method: registration.paymentMethod,
-          trx_id: registration.trxId,
-          amount: registration.amount,
-          status: 'PENDING',
-        },
-      ])
+      .insert([payload])
       .select()
+
+    // If payload failed due to column missing (e.g. user_email), retry without user_email
+    if (error && error.message?.includes('user_email')) {
+      delete payload.user_email
+      const retry = await supabase
+        .from('registrations')
+        .insert([payload])
+        .select()
+      data = retry.data
+      error = retry.error
+    }
 
     if (error) {
       console.warn('[DB Service] Supabase registration table error, falling back to local storage:', error.message)
-      // Save locally as fallback so user is never blocked
-      const localRec: RegistrationRecord = {
-        id: 'reg-' + Date.now(),
-        matchId: registration.matchId,
-        teamName: registration.teamName || 'SOLO PLAYER',
-        player1Name: registration.player1Name,
-        player1Uid: registration.player1Uid,
-        whatsappNumber: registration.whatsappNumber,
-        userEmail: registration.userEmail,
-        paymentMethod: registration.paymentMethod,
-        trxId: registration.trxId,
-        amount: registration.amount,
-        status: 'PENDING',
-        createdAt: new Date().toISOString(),
-      }
-      saveLocalRegistrationRecord(localRec)
+      notifyRegistrationsUpdate()
       return {
         success: true,
         message: 'Slot registration saved successfully!',
@@ -489,28 +513,17 @@ export async function saveRegistration(registration: PlayerRegistration): Promis
       }
     }
 
+    clearRegistrationsCache()
+    notifyRegistrationsUpdate()
+
     return {
       success: true,
       message: 'Registration saved to Supabase successfully!',
-      id: data[0]?.id || 'reg-' + Date.now(),
+      id: data?.[0]?.id || localRec.id,
     }
   } catch (err: any) {
     console.warn('[DB Service] Registration insert exception, saving locally:', err)
-    const localRec: RegistrationRecord = {
-      id: 'reg-' + Date.now(),
-      matchId: registration.matchId,
-      teamName: registration.teamName || 'SOLO PLAYER',
-      player1Name: registration.player1Name,
-      player1Uid: registration.player1Uid,
-      whatsappNumber: registration.whatsappNumber,
-      userEmail: registration.userEmail,
-      paymentMethod: registration.paymentMethod,
-      trxId: registration.trxId,
-      amount: registration.amount,
-      status: 'PENDING',
-      createdAt: new Date().toISOString(),
-    }
-    saveLocalRegistrationRecord(localRec)
+    notifyRegistrationsUpdate()
     return { success: true, message: 'Slot registration saved successfully!', id: localRec.id }
   }
 }

@@ -201,6 +201,15 @@ function CustomerDashboardPage() {
       const normPhone = userProfile?.whatsappNumber ? userProfile.whatsappNumber.trim() : ''
       const normUid = userProfile?.pubgUid ? userProfile.pubgUid.trim() : ''
 
+      const isInvalidValue = (val: string) => {
+        if (!val) return true
+        const lower = val.toLowerCase().trim()
+        return lower === '' || lower === 'not set' || lower === 'none' || lower === 'n/a' || lower === 'null' || lower === 'undefined'
+      }
+
+      const validUid = !isInvalidValue(normUid) && normUid.length > 3 ? normUid : null
+      const validPhone = !isInvalidValue(normPhone) && normPhone.length > 5 ? normPhone : null
+
       const userRegs = allRegs.filter((r) => {
         const rEmail = r.userEmail ? r.userEmail.toLowerCase().trim() : ''
 
@@ -210,11 +219,11 @@ function CustomerDashboardPage() {
         }
 
         // 2. Legacy fallback for old records created before email field:
-        // Match ONLY if PUBG UID or WhatsApp phone number matches user profile
-        if (normUid && normUid.length > 3 && r.player1Uid && r.player1Uid.trim() === normUid) {
+        // Match ONLY if PUBG UID or WhatsApp phone number matches user profile AND is valid custom value
+        if (validUid && r.player1Uid && !isInvalidValue(r.player1Uid) && r.player1Uid.trim() === validUid) {
           return true
         }
-        if (normPhone && normPhone.length > 5 && r.whatsappNumber && r.whatsappNumber.trim() === normPhone) {
+        if (validPhone && r.whatsappNumber && !isInvalidValue(r.whatsappNumber) && r.whatsappNumber.trim() === validPhone) {
           return true
         }
 

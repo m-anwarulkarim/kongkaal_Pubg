@@ -172,8 +172,8 @@ export function AdminDashboard() {
     try {
       if (tabToLoad === 'OVERVIEW') {
         const [m, r, c] = await Promise.all([
-          getMatches(),
-          getAllRegistrations(),
+          getMatches(true),
+          getAllRegistrations(true),
           getAllCustomerProfiles(),
         ])
         setMatches(m)
@@ -181,7 +181,7 @@ export function AdminDashboard() {
         setCustomerCount(c.length)
       } else if (tabToLoad === 'PAYMENTS' || tabToLoad === 'PLAYERS' || tabToLoad === 'WALLET') {
         const [r, c] = await Promise.all([
-          getAllRegistrations(),
+          getAllRegistrations(true),
           getAllCustomerProfiles(),
         ])
         setRegistrations(r)
@@ -205,7 +205,7 @@ export function AdminDashboard() {
   const loadBadgeCounts = async () => {
     try {
       const [r, txs, msgs] = await Promise.all([
-        getAllRegistrations(),
+        getAllRegistrations(true),
         getWalletTransactions(),
         getSupportMessages(),
       ])

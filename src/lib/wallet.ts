@@ -203,8 +203,16 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
         .maybeSingle()
 
       if (data) {
+        const emailPrefix = normEmail.split('@')[0]
+        let bestName = profile.name || data.name || pendingIgn || name || emailPrefix
+        if (profile.name && profile.name.trim().toLowerCase() !== emailPrefix.toLowerCase()) {
+          bestName = profile.name
+        } else if (data.name && data.name.trim().toLowerCase() !== emailPrefix.toLowerCase()) {
+          bestName = data.name
+        }
+
         profile.walletBalance = Number(data.balance !== undefined ? data.balance : profile.walletBalance)
-        profile.name = profile.name || data.name || pendingIgn || ''
+        profile.name = bestName
         profile.pubgUid = profile.pubgUid || data.pubg_uid || pendingUid || ''
         profile.whatsappNumber = profile.whatsappNumber || data.whatsapp_number || pendingPhone || ''
         profile.avatarUrl = profile.avatarUrl || data.avatar_url || ''
@@ -827,13 +835,23 @@ export async function getAllCustomerProfiles(): Promise<CustomerProfile[]> {
       if (data && data.length > 0) {
         data.forEach((d: any) => {
           const normKey = d.email.trim().toLowerCase()
+          const localProfile = map[normKey]
+          const emailPrefix = normKey.split('@')[0]
+
+          let bestName = localProfile?.name || d.name || emailPrefix
+          if (localProfile?.name && localProfile.name.trim().toLowerCase() !== emailPrefix.toLowerCase()) {
+            bestName = localProfile.name
+          } else if (d.name && d.name.trim().toLowerCase() !== emailPrefix.toLowerCase()) {
+            bestName = d.name
+          }
+
           map[normKey] = {
             email: normKey,
-            name: d.name || normKey.split('@')[0],
-            pubgUid: d.pubg_uid || map[normKey]?.pubgUid || '',
-            whatsappNumber: d.whatsapp_number || map[normKey]?.whatsappNumber || '',
-            walletBalance: Number(d.balance !== undefined ? d.balance : (map[normKey]?.walletBalance || 0)),
-            avatarUrl: d.avatar_url || map[normKey]?.avatarUrl || '',
+            name: bestName,
+            pubgUid: localProfile?.pubgUid || d.pubg_uid || '',
+            whatsappNumber: localProfile?.whatsappNumber || d.whatsapp_number || '',
+            walletBalance: Number(d.balance !== undefined ? d.balance : (localProfile?.walletBalance || 0)),
+            avatarUrl: localProfile?.avatarUrl || d.avatar_url || '',
           }
         })
       }
