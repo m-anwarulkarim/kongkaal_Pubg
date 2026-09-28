@@ -39,9 +39,16 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
 
-  // Track site visitor on homepage load
+  // Track site visitor & capture referral code on homepage load
   useEffect(() => {
     trackVisitor()
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const refParam = params.get('ref')
+      if (refParam) {
+        localStorage.setItem('pending_referral_code', refParam.trim())
+      }
+    }
   }, [])
 
 

@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase'
-import type { WalletTransaction, CustomerProfile } from '@/types/wallet'
+import type { WalletTransaction, CustomerProfile, ReferredFriendRecord } from '@/types/wallet'
 
 const LOCAL_WALLET_KEY = 'kongkaal_customer_wallets'
 const LOCAL_TX_KEY = 'kongkaal_wallet_transactions'
@@ -230,7 +230,152 @@ export async function getCustomerProfile(email: string, name?: string, avatarUrl
     }
   }
 
+  if (!profile.referralCode) {
+    profile.referralCode = generateReferralCode(normEmail, profile.name)
+    wallets[normEmail] = profile
+    saveLocalWallets(wallets, false)
+  }
+
   return profile
+}
+export function generateReferralCode(email: string, name?: string): string {
+  const cleanEmail = (email || '').trim().toLowerCase()
+  const prefix = (name || cleanEmail.split('@')[0])
+    .replace(/[^A-Za-z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 6) || 'KONG'
+
+  let hash = 0
+  for (let i = 0; i < cleanEmail.length; i++) {
+    hash = (hash << 5) - hash + cleanEmail.charCodeAt(i)
+    hash |= 0
+  }
+  const codeNum = Math.abs(hash % 9000) + 1000
+  return `${prefix}-${codeNum}`
+}
+
+export async function processReferralRewardOnTournamentJoin(
+  friendEmail: string,
+  friendName: string,
+  tournamentTitle?: string
+): Promise<{ rewarded: boolean; bonusAmount: number; referrerEmail?: string }> {
+  if (typeof window === 'undefined') return { rewarded: false, bonusAmount: 0 }
+
+  const cleanFriendEmail = (friendEmail || '').trim().toLowerCase()
+  let refCode = (localStorage.getItem('pending_referral_code') || '').trim().toUpperCase()
+
+  const wallets = getLocalWallets()
+
+  if (!refCode && cleanFriendEmail) {
+    const friendProf = wallets[cleanFriendEmail]
+    if (friendProf && friendProf.referredBy) {
+      refCode = friendProf.referredBy.trim().toUpperCase()
+    }
+  }
+
+  if (!refCode) return { rewarded: false, bonusAmount: 0 }
+
+  // Find referrer profile matching referralCode
+  let foundReferrerEmail: string | null = null
+
+  Object.keys(wallets).forEach((emailKey) => {
+    const p = wallets[emailKey]
+    if (p.referralCode && p.referralCode.trim().toUpperCase() === refCode) {
+      foundReferrerEmail = emailKey
+    }
+  })
+
+  if (!foundReferrerEmail) return { rewarded: false, bonusAmount: 0 }
+  const referrerEmail: string = foundReferrerEmail
+
+  if (referrerEmail.toLowerCase() === cleanFriendEmail) return { rewarded: false, bonusAmount: 0 }
+
+  const referrerProfile = wallets[referrerEmail]
+  if (!referrerProfile) return { rewarded: false, bonusAmount: 0 }
+
+  // Check if friend has already been rewarded to this referrer
+  const history = referrerProfile.referredFriends || []
+  const alreadyRewarded = history.some(
+    (h) => h.friendEmail.toLowerCase() === cleanFriendEmail
+  )
+
+  if (alreadyRewarded) {
+    localStorage.removeItem('pending_referral_code')
+    return { rewarded: false, bonusAmount: 0 }
+  }
+
+  const bonusAmount = 25
+
+  // 1. Credit Referrer Wallet
+  referrerProfile.walletBalance = (referrerProfile.walletBalance || 0) + bonusAmount
+  referrerProfile.totalReferredFriends = (referrerProfile.totalReferredFriends || 0) + 1
+  referrerProfile.totalReferralEarnings = (referrerProfile.totalReferralEarnings || 0) + bonusAmount
+
+  const newRecord: ReferredFriendRecord = {
+    friendEmail: cleanFriendEmail,
+    friendName: friendName || cleanFriendEmail.split('@')[0],
+    date: new Date().toISOString(),
+    bonusAmount,
+    tournamentTitle: tournamentTitle || 'PUBG Tournament',
+  }
+
+  referrerProfile.referredFriends = [newRecord, ...history]
+  wallets[referrerEmail] = referrerProfile
+  saveLocalWallets(wallets, false)
+
+  // 2. Create Referral Bonus Transaction for Referrer
+  const txs = getLocalTxs()
+  const refTx: WalletTransaction = {
+    id: 'tx-ref-' + Date.now(),
+    userEmail: referrerEmail,
+    userName: referrerProfile.name || referrerEmail.split('@')[0],
+    type: 'REFERRAL_BONUS',
+    amount: bonusAmount,
+    paymentMethod: 'REFERRAL',
+    status: 'APPROVED',
+    createdAt: new Date().toISOString(),
+    note: `🎉 Refer & Earn Bonus: ${friendName || cleanFriendEmail} joined ${tournamentTitle || 'tournament'}!`,
+  }
+  saveLocalTxs([refTx, ...txs], true)
+
+  // Clear pending referral code so bonus is granted once per friend join
+  localStorage.removeItem('pending_referral_code')
+
+  // Save friend profile referredBy attribute
+  if (cleanFriendEmail && wallets[cleanFriendEmail]) {
+    wallets[cleanFriendEmail].referredBy = refCode
+    saveLocalWallets(wallets, false)
+  }
+
+  // Sync with Supabase if configured
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.from('customer_wallets').upsert({
+        email: referrerEmail,
+        name: referrerProfile.name,
+        balance: referrerProfile.walletBalance,
+        referral_code: referrerProfile.referralCode,
+        total_referred_friends: referrerProfile.totalReferredFriends,
+        total_referral_earnings: referrerProfile.totalReferralEarnings,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'email' })
+
+      await supabase.from('wallet_transactions').insert([{
+        user_email: referrerEmail,
+        user_name: referrerProfile.name,
+        type: 'REFERRAL_BONUS',
+        amount: bonusAmount,
+        payment_method: 'REFERRAL',
+        status: 'APPROVED',
+        note: refTx.note,
+      }])
+    } catch (err) {
+      console.warn('[Wallet Service] Supabase referral sync exception:', err)
+    }
+  }
+
+  notifyWalletUpdate()
+  return { rewarded: true, bonusAmount, referrerEmail }
 }
 
 // 2. Save / Update Customer Profile

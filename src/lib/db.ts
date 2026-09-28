@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from './supabase'
 import type { MatchItem, PlayerRegistration, LeaderboardItem } from '@/types/match'
+import { processReferralRewardOnTournamentJoin } from './wallet'
 
 
 export interface RegistrationRecord extends PlayerRegistration {
@@ -536,6 +537,12 @@ export async function saveRegistration(registration: PlayerRegistration): Promis
   clearRegistrationsCache()
 
   if (!isSupabaseConfigured()) {
+    try {
+      const friendIdentifier = registration.userEmail || registration.player1Name
+      await processReferralRewardOnTournamentJoin(friendIdentifier, registration.player1Name, registration.matchId || 'Tournament')
+    } catch (refErr) {
+      console.warn('[DB Service] Referral bonus processing error:', refErr)
+    }
     notifyRegistrationsUpdate()
     return {
       success: true,
@@ -593,6 +600,14 @@ export async function saveRegistration(registration: PlayerRegistration): Promis
     clearRegistrationsCache()
     notifyRegistrationsUpdate()
 
+    // Process referral reward (+25 BDT) if registered via referral code
+    try {
+      const friendIdentifier = registration.userEmail || registration.player1Name
+      await processReferralRewardOnTournamentJoin(friendIdentifier, registration.player1Name, registration.matchId || 'Tournament')
+    } catch (refErr) {
+      console.warn('[DB Service] Referral bonus processing error:', refErr)
+    }
+
     return {
       success: true,
       message: 'Registration saved to Supabase successfully!',
@@ -600,6 +615,15 @@ export async function saveRegistration(registration: PlayerRegistration): Promis
     }
   } catch (err: any) {
     console.warn('[DB Service] Registration insert exception, saving locally:', err)
+    
+    // Process referral reward (+25 BDT) fallback for local registration
+    try {
+      const friendIdentifier = registration.userEmail || registration.player1Name
+      await processReferralRewardOnTournamentJoin(friendIdentifier, registration.player1Name, registration.matchId || 'Tournament')
+    } catch (refErr) {
+      console.warn('[DB Service] Referral bonus processing error:', refErr)
+    }
+
     notifyRegistrationsUpdate()
     return { success: true, message: 'Slot registration saved successfully!', id: localRec.id }
   }

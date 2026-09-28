@@ -44,6 +44,9 @@ import {
   LogOut,
   CheckCircle2,
   Loader2,
+  Gift,
+  Users,
+  Share2,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/dashboard')({
@@ -562,6 +565,145 @@ function CustomerDashboardPage() {
                 <p className="text-xs text-gray-400">Deposits, Withdrawals & Prizes</p>
               </Card>
             </div>
+
+            {/* Refer & Earn Section */}
+            <Card className="bg-gradient-to-br from-[#18112b] via-[#101422] to-[#0d0f19] border border-purple-500/30 p-6 sm:p-8 rounded-3xl space-y-6 shadow-2xl relative overflow-hidden">
+              <div className="absolute -top-16 -right-16 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-500 p-0.5 shadow-lg shadow-purple-600/30">
+                    <div className="w-full h-full bg-[#101422] rounded-[14px] flex items-center justify-center text-purple-400">
+                      <Gift className="w-6 h-6 text-purple-400 animate-pulse" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-display text-xl sm:text-2xl font-black text-white uppercase tracking-wide">
+                        Refer & Earn ৳২৫ Bonus
+                      </h3>
+                      <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[10px] font-bold px-2.5 py-0.5 border-none">
+                        INSTANT CASH
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      বন্ধুকে রেফার করুন এবং সে ১ম টুর্নামেন্ট জয়েন করলেই পান ইনস্ট্যান্ট ৳২৫ বোনাস!
+                    </p>
+                  </div>
+                </div>
+
+                {/* Referral Quick Stats */}
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <div className="flex-1 sm:flex-none bg-[#161a2e] border border-purple-500/20 rounded-xl px-4 py-2 text-center">
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">মোট রেফার</span>
+                    <span className="font-display text-lg font-black text-purple-400">{profile?.totalReferredFriends || 0} জন</span>
+                  </div>
+                  <div className="flex-1 sm:flex-none bg-[#161a2e] border border-emerald-500/20 rounded-xl px-4 py-2 text-center">
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">অর্জিত বোনাস</span>
+                    <span className="font-display text-lg font-black text-emerald-400">৳{profile?.totalReferralEarnings || 0}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Referral Link & Share Buttons */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-4">
+                  <label className="text-xs text-gray-300 font-bold uppercase tracking-wider block">
+                    আপনার ইউনিক রেফারেল লিংক (Your Personal Referral Link)
+                  </label>
+                  
+                  {/* Referral Code Box */}
+                  <div className="flex flex-col sm:flex-row items-center gap-2 bg-[#090b12] p-2 rounded-2xl border border-purple-500/30 shadow-inner">
+                    <div className="flex-1 px-3 py-2 w-full font-mono text-xs sm:text-sm text-purple-300 truncate select-all">
+                      {typeof window !== 'undefined' ? `${window.location.origin}/?ref=${profile?.referralCode || ''}` : `https://kongkaal.com/?ref=${profile?.referralCode || ''}`}
+                    </div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                      <Button
+                        onClick={() => {
+                          const url = `${window.location.origin}/?ref=${profile?.referralCode || ''}`
+                          handleCopy(url, 'refLink')
+                          toast.success('রেফারেল লিংক কপি হয়েছে! বন্ধুদের সাথে শেয়ার করুন 🔥')
+                        }}
+                        className="flex-1 sm:flex-none bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl px-4 py-2.5 flex items-center justify-center gap-1.5 shadow-md shadow-purple-600/30"
+                      >
+                        {copiedId === 'refLink' ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4" /> Copy Link
+                          </>
+                        )}
+                      </Button>
+
+                      <a
+                        href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                          `🔥 KongKaaL Gaming PUBG Tournament এ যোগ দিয়ে জিতে নাও নগদ ক্যাশ প্রাইজ! এই লিংকে রেজিস্টার করো: ${typeof window !== 'undefined' ? window.location.origin : 'https://kongkaal.com'}/?ref=${profile?.referralCode || ''}`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl px-4 py-2.5 flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/30 no-underline"
+                      >
+                        <Share2 className="w-4 h-4" /> WhatsApp
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Steps instructions */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div className="bg-[#121626]/80 border border-white/5 p-3 rounded-xl space-y-1">
+                      <div className="text-[10px] font-bold text-purple-400 uppercase">Step 1: লিংক শেয়ার</div>
+                      <p className="text-[11px] text-gray-300">আপনার বন্ধুদের হোয়াটসঅ্যাপ বা ফেসবুকে লিংক পাঠান।</p>
+                    </div>
+                    <div className="bg-[#121626]/80 border border-white/5 p-3 rounded-xl space-y-1">
+                      <div className="text-[10px] font-bold text-purple-400 uppercase">Step 2: বন্ধু জয়েন করবে</div>
+                      <p className="text-[11px] text-gray-300">আপনার লিংকে ক্লিক করে যেকোনো টুর্নামেন্টে রেজিস্ট্রেশন করবে।</p>
+                    </div>
+                    <div className="bg-[#121626]/80 border border-white/5 p-3 rounded-xl space-y-1">
+                      <div className="text-[10px] font-bold text-purple-400 uppercase">Step 3: ৳২৫ ইনস্ট্যান্ট বোনাস</div>
+                      <p className="text-[11px] text-gray-300">রেজিস্ট্রেশন সম্পন্ন হলেই অটোমেটিক আপনার ওয়ালেটে ৳২৫ যোগ হবে!</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Referred Friends History List */}
+                <div className="bg-[#0b0d16] border border-white/10 rounded-2xl p-4 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                      <span className="text-xs font-bold text-white uppercase flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-purple-400" /> Referred Friends
+                      </span>
+                      <span className="text-[10px] font-bold text-purple-400 bg-purple-950/60 border border-purple-500/30 px-2 py-0.5 rounded-full">
+                        {profile?.referredFriends?.length || 0} Total
+                      </span>
+                    </div>
+
+                    {(!profile?.referredFriends || profile.referredFriends.length === 0) ? (
+                      <div className="text-center py-6 text-xs text-gray-500">
+                        এখনো কেউ আপনার রেফারেল লিংকে জয়েন করেনি। বন্ধুদের লিংক শেয়ার করুন!
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        {profile.referredFriends.map((friend, idx) => (
+                          <div key={idx} className="bg-[#141829] border border-white/5 p-2.5 rounded-xl flex justify-between items-center text-xs">
+                            <div>
+                              <div className="font-bold text-white truncate max-w-[130px]">{friend.friendName}</div>
+                              <div className="text-[10px] text-gray-400">{new Date(friend.date).toLocaleDateString('bn-BD')}</div>
+                            </div>
+                            <div className="text-right">
+                              <span className="font-bold text-emerald-400 text-xs">+৳{friend.bonusAmount}</span>
+                              <div className="text-[9px] text-purple-300">Rewarded</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
 
             {/* 3. My Matches & Room Passwords Section */}
             <Card className="bg-[#101422] border-white/10 p-6 sm:p-8 rounded-3xl space-y-6">
