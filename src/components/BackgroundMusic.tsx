@@ -5,6 +5,7 @@ export default function BackgroundMusic() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const userMutedRef = useRef<boolean>(false)
 
   useEffect(() => {
     const audio = audioRef.current
@@ -13,8 +14,13 @@ export default function BackgroundMusic() {
     audio.volume = 0.05
     audio.muted = false
 
+    const removeListeners = () => {
+      const events = ['mousemove', 'touchstart', 'pointerdown', 'scroll', 'click', 'keydown']
+      events.forEach((evt) => window.removeEventListener(evt, handleEvents))
+    }
+
     const playAudio = () => {
-      if (!audio) return
+      if (!audio || userMutedRef.current) return
       audio.volume = 0.05
       audio.muted = false
       const promise = audio.play()
@@ -23,38 +29,46 @@ export default function BackgroundMusic() {
           .then(() => {
             setIsPlaying(true)
             setIsMuted(false)
+            removeListeners()
           })
           .catch(() => {
-            // Autoplay blocked by browser on initial frame, waiting for interaction
+            // Autoplay blocked by browser on initial frame, waiting for user gesture
           })
       }
+    }
+
+    const handleEvents = (e: Event) => {
+      if (userMutedRef.current) return
+      const target = e.target as HTMLElement | null
+      if (target && target.closest('.bg-music-toggle-btn')) {
+        return
+      }
+      playAudio()
     }
 
     // Try playing immediately as page opens
     playAudio()
 
-    // Listen to mousemove, scroll, touch, pointer, click, keydown to trigger play audio instantly
-    const handleEvents = () => {
-      playAudio()
-    }
-
     const events = ['mousemove', 'touchstart', 'pointerdown', 'scroll', 'click', 'keydown']
     events.forEach((evt) => window.addEventListener(evt, handleEvents, { passive: true }))
 
     return () => {
-      events.forEach((evt) => window.removeEventListener(evt, handleEvents))
+      removeListeners()
     }
   }, [])
 
-  const toggleMusic = () => {
+  const toggleMusic = (e: React.MouseEvent) => {
+    e.stopPropagation()
     const audio = audioRef.current
     if (!audio) return
 
     if (isPlaying && !isMuted) {
+      userMutedRef.current = true
       audio.pause()
       setIsPlaying(false)
       setIsMuted(true)
     } else {
+      userMutedRef.current = false
       audio.volume = 0.05
       audio.muted = false
       audio.play().then(() => {
@@ -81,12 +95,12 @@ export default function BackgroundMusic() {
         <button
           onClick={toggleMusic}
           aria-label={isPlaying && !isMuted ? 'Mute Background Music' : 'Play Background Music'}
-          className={`relative group p-3 rounded-full border shadow-2xl transition-all duration-300 flex items-center justify-center cursor-pointer ${
+          className={`bg-music-toggle-btn relative group p-3 rounded-full border shadow-2xl transition-all duration-300 flex items-center justify-center cursor-pointer ${
             isPlaying && !isMuted
               ? 'bg-red-600/90 hover:bg-red-600 border-red-400/50 text-white shadow-red-600/40 animate-pulse'
               : 'bg-[#101422]/90 hover:bg-[#181d30] border-white/20 text-gray-300 shadow-black/60'
           }`}
-          title={isPlaying && !isMuted ? 'Mute Background Music' : 'Play Background Music'}
+          title={isPlaying && !isMuted ? 'Click to Mute Music' : 'Click to Play Music'}
         >
           {isPlaying && !isMuted ? (
             <Volume2 className="w-5 h-5 text-white animate-bounce" />
