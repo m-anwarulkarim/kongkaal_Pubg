@@ -10,11 +10,13 @@ export default function BackgroundMusic() {
     const audio = audioRef.current
     if (!audio) return
 
-    audio.volume = 0.15
+    audio.volume = 0.05
+    audio.muted = false
 
-    const tryPlay = () => {
+    const playAudio = () => {
       if (!audio) return
-      audio.volume = 0.15
+      audio.volume = 0.05
+      audio.muted = false
       const promise = audio.play()
       if (promise !== undefined) {
         promise
@@ -22,32 +24,25 @@ export default function BackgroundMusic() {
             setIsPlaying(true)
             setIsMuted(false)
           })
-          .catch((err) => {
-            console.log('[BackgroundMusic] Autoplay waiting for interaction:', err)
+          .catch(() => {
+            // Autoplay blocked by browser on initial frame, waiting for interaction
           })
       }
     }
 
-    // Attempt direct play immediately
-    tryPlay()
+    // Try playing immediately as page opens
+    playAudio()
 
-    // Add multiple interaction triggers (click, touch, scroll, pointer, keydown)
-    const handleUserGesture = () => {
-      tryPlay()
+    // Listen to mousemove, scroll, touch, pointer, click, keydown to trigger play audio instantly
+    const handleEvents = () => {
+      playAudio()
     }
 
-    window.addEventListener('click', handleUserGesture, { once: true })
-    window.addEventListener('touchstart', handleUserGesture, { once: true })
-    window.addEventListener('pointerdown', handleUserGesture, { once: true })
-    window.addEventListener('scroll', handleUserGesture, { once: true })
-    window.addEventListener('keydown', handleUserGesture, { once: true })
+    const events = ['mousemove', 'touchstart', 'pointerdown', 'scroll', 'click', 'keydown']
+    events.forEach((evt) => window.addEventListener(evt, handleEvents, { passive: true }))
 
     return () => {
-      window.removeEventListener('click', handleUserGesture)
-      window.removeEventListener('touchstart', handleUserGesture)
-      window.removeEventListener('pointerdown', handleUserGesture)
-      window.removeEventListener('scroll', handleUserGesture)
-      window.removeEventListener('keydown', handleUserGesture)
+      events.forEach((evt) => window.removeEventListener(evt, handleEvents))
     }
   }, [])
 
@@ -60,12 +55,13 @@ export default function BackgroundMusic() {
       setIsPlaying(false)
       setIsMuted(true)
     } else {
-      audio.volume = 0.15
+      audio.volume = 0.05
+      audio.muted = false
       audio.play().then(() => {
         setIsPlaying(true)
         setIsMuted(false)
       }).catch((err) => {
-        console.warn('[BackgroundMusic] Toggle play error:', err)
+        console.warn('[BackgroundMusic] Play error:', err)
       })
     }
   }
@@ -108,7 +104,7 @@ export default function BackgroundMusic() {
 
         <div className="hidden sm:flex items-center gap-1.5 bg-[#07080b]/90 border border-white/10 px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-gray-300 backdrop-blur-md shadow-lg pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
           <Music className="w-3.5 h-3.5 text-red-500" />
-          <span>The Final Circle BGM {isPlaying && !isMuted ? '(Playing)' : '(Muted)'}</span>
+          <span>The Final Circle BGM {isPlaying && !isMuted ? '(Playing 5%)' : '(Muted)'}</span>
         </div>
       </div>
     </>
