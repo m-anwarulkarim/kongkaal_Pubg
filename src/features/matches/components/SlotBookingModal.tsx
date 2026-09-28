@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import type { MatchItem } from '@/types/match'
-import { saveRegistration } from '@/lib/db'
+import { saveRegistration, isUserRegisteredForMatch } from '@/lib/db'
 import { useCustomerAuth, signInWithGoogle } from '@/lib/auth'
 import { payMatchWithWallet, getCustomerProfile, updateCustomerProfile } from '@/lib/wallet'
 import { slotRegistrationSchema, paymentTrxSchema, validateForm } from '@/lib/validations'
@@ -126,8 +126,15 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
     setTimeout(() => setCopiedNumber(null), 2000)
   }
 
+  const isAlreadyRegistered = isUserRegisteredForMatch(match.id, user?.email, player1Uid)
+
   const handleProceedToPayment = (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (isAlreadyRegistered) {
+      toast.error('আপনি ইতিমধ্যে এই ম্যাচে রেজিস্টার করেছেন! (Already Registered)')
+      return
+    }
 
     const validation = validateForm(slotRegistrationSchema, {
       player1Name,
@@ -267,6 +274,19 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
           {/* STEP 1: PLAYER & TEAM DETAILS */}
           {step === 'DETAILS' && (
             <form onSubmit={handleProceedToPayment} className="space-y-4 sm:space-y-5">
+              {/* Already Registered Alert Banner */}
+              {isAlreadyRegistered && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/90 via-[#0f241a] to-emerald-950/90 border border-emerald-500/50 shadow-xl space-y-1.5">
+                  <div className="flex items-center gap-2 font-black text-sm text-emerald-400 font-gaming uppercase">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                    <span>আপনি ইতিমধ্যে এই টুর্নামেন্টে রেজিস্টার করেছেন!</span>
+                  </div>
+                  <p className="text-xs text-gray-300 font-medium leading-relaxed">
+                    আপনার স্লট বুকিং আবেদন ইতিমধ্যেই সফলভাবে জমা হয়েছে। টুর্নামেন্টের রুম আইডি ও পাসওয়ার্ড খেলার সময়ে আপনার ড্যাশবোর্ড ও ওয়ালেট প্যানেলে দেখা যাবে।
+                  </p>
+                </div>
+              )}
+
               {/* Google Auth Suggestion Banner for Unauthenticated Users */}
               {!user ? (
                 <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-red-950/50 via-[#131726] to-[#0c0e18] border border-red-500/40 shadow-xl relative overflow-hidden group">
@@ -481,13 +501,24 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
                 </div>
               )}
 
-              <Button
-                type="submit"
-                className="w-full btn-kong-red py-3.5 rounded-xl font-gaming text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 group shadow-lg"
-              >
-                <span>পেমেন্ট ধাপে যান (PAYMENT STEP)</span>
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
+              {isAlreadyRegistered ? (
+                <Button
+                  type="button"
+                  disabled
+                  className="w-full py-3.5 rounded-xl font-gaming text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 bg-emerald-950 text-emerald-400 border border-emerald-500/40 shadow-lg cursor-not-allowed select-none"
+                >
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  <span>আপনি ইতিমধ্যে রেজিস্টার করেছেন ✅</span>
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  className="w-full btn-kong-red py-3.5 rounded-xl font-gaming text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 group shadow-lg"
+                >
+                  <span>পেমেন্ট ধাপে যান (PAYMENT STEP)</span>
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              )}
             </form>
           )}
 

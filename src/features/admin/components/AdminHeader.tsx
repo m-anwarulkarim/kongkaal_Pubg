@@ -243,28 +243,68 @@ export default function AdminHeader({
                 </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-3">
-                <div className="col-span-2">
-                  <Label className="text-xs font-bold text-gray-300">📅 Match Date</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#07080b] p-3 rounded-xl border border-white/10">
+                <div>
+                  <Label className="text-xs font-bold text-gray-300 block mb-1">📅 Match Date</Label>
                   <Input
                     type="date"
-                    value={newMatchForm.matchDate || ''}
+                    value={newMatchForm.matchDate ? newMatchForm.matchDate.split('T')[0] : ''}
                     onChange={(e) => setNewMatchForm((prev) => ({ ...prev, matchDate: e.target.value }))}
-                    className="bg-[#07080b] border-gray-700 text-white rounded-xl [color-scheme:dark]"
+                    className="bg-[#101420] border-gray-700 text-white rounded-xl [color-scheme:dark]"
                   />
+                  <div className="flex gap-1 mt-1.5 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = new Date().toISOString().split('T')[0]
+                        setNewMatchForm((prev) => ({ ...prev, matchDate: today }))
+                      }}
+                      className="text-[9px] font-bold bg-white/10 hover:bg-amber-600 text-amber-300 hover:text-white px-2 py-0.5 rounded border border-white/10"
+                    >
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
+                        setNewMatchForm((prev) => ({ ...prev, matchDate: tomorrow }))
+                      }}
+                      className="text-[9px] font-bold bg-white/10 hover:bg-amber-600 text-amber-300 hover:text-white px-2 py-0.5 rounded border border-white/10"
+                    >
+                      Tomorrow
+                    </button>
+                  </div>
                 </div>
+
                 <div>
-                  <Label className="text-xs font-bold text-gray-300">⏰ Match Time</Label>
+                  <Label className="text-xs font-bold text-gray-300 block mb-1">⏰ Match Time</Label>
                   <Input
                     value={newMatchForm.time}
                     onChange={(e) => setNewMatchForm((prev) => ({ ...prev, time: e.target.value }))}
                     required
                     placeholder="e.g. 10:00 PM"
-                    className="bg-[#07080b] border-gray-700 text-white rounded-xl"
+                    className="bg-[#101420] border-gray-700 text-white rounded-xl font-bold"
                   />
+                  <div className="flex gap-1 mt-1.5 flex-wrap">
+                    {['08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM'].map((t) => (
+                      <button
+                        type="button"
+                        key={t}
+                        onClick={() => setNewMatchForm((prev) => ({ ...prev, time: t }))}
+                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded border transition-all ${
+                          newMatchForm.time === t
+                            ? 'bg-red-600 text-white border-red-500'
+                            : 'bg-white/10 hover:bg-white/20 text-gray-300 border-white/10'
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
                 <div>
-                  <Label className="text-xs font-bold text-gray-300">Max Slots</Label>
+                  <Label className="text-xs font-bold text-gray-300 block mb-1">Max Slots</Label>
                   <Input
                     type="number"
                     value={newMatchForm.maxSlots}
@@ -272,7 +312,7 @@ export default function AdminHeader({
                       setNewMatchForm((prev) => ({ ...prev, maxSlots: Number(e.target.value) }))
                     }
                     required
-                    className="bg-[#07080b] border-gray-700 text-white rounded-xl"
+                    className="bg-[#101420] border-gray-700 text-white rounded-xl font-bold"
                   />
                 </div>
               </div>

@@ -98,42 +98,26 @@ function saveLocalTxs(txs: WalletTransaction[], notify = true) {
   }
 }
 
-// Initial Mock Seed
-if (typeof window !== 'undefined' && getLocalTxs().length === 0) {
-  saveLocalTxs([
-    {
-      id: 'tx-101',
-      userEmail: 'player1@gmail.com',
-      userName: 'RIYAD_OP',
-      type: 'DEPOSIT',
-      amount: 500,
-      paymentMethod: 'bKash',
-      trxId: 'BAX9021K9L',
-      status: 'APPROVED',
-      createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-      note: 'Initial deposit via bKash',
-    },
-    {
-      id: 'tx-102',
-      userEmail: 'player1@gmail.com',
-      userName: 'RIYAD_OP',
-      type: 'WINNING_PRIZE',
-      amount: 2000,
-      status: 'APPROVED',
-      createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
-      note: '1st Place Prize - Solo Battle Tournament',
-    },
-  ])
+// Auto-purge test user player1@gmail.com if present in local storage
+if (typeof window !== 'undefined') {
+  try {
+    const rawWallets = localStorage.getItem(LOCAL_WALLET_KEY)
+    if (rawWallets && rawWallets.includes('player1@gmail.com')) {
+      const wallets = JSON.parse(rawWallets)
+      delete wallets['player1@gmail.com']
+      localStorage.setItem(LOCAL_WALLET_KEY, JSON.stringify(wallets))
+    }
 
-  saveLocalWallets({
-    'player1@gmail.com': {
-      email: 'player1@gmail.com',
-      name: 'RIYAD_OP',
-      pubgUid: '5123456789',
-      whatsappNumber: '01700000000',
-      walletBalance: 2500,
-    },
-  })
+    const rawTxs = localStorage.getItem(LOCAL_TX_KEY)
+    if (rawTxs && rawTxs.includes('player1@gmail.com')) {
+      const txs = JSON.parse(rawTxs).filter((t: any) => t.userEmail !== 'player1@gmail.com')
+      localStorage.setItem(LOCAL_TX_KEY, JSON.stringify(txs))
+    }
+
+    localStorage.removeItem('kongkaal_customer_profile_player1@gmail.com')
+  } catch {
+    // Silently continue
+  }
 }
 
 // 1. Get or Create Customer Profile

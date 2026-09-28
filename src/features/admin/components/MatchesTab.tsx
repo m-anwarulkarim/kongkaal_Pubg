@@ -143,7 +143,7 @@ export default function MatchesTab({
               <th className="p-3.5">Title</th>
               <th className="p-3.5">Mode</th>
               <th className="p-3.5">Map</th>
-              <th className="p-3.5">Time</th>
+              <th className="p-3.5">Date & Time</th>
               <th className="p-3.5">Entry Fee</th>
               <th className="p-3.5">Prize Pool</th>
               <th className="p-3.5">Per Kill</th>
@@ -178,7 +178,16 @@ export default function MatchesTab({
                   </Badge>
                 </td>
                 <td className="p-3.5 text-gray-300">{m.map}</td>
-                <td className="p-3.5 text-gray-300 font-bold">{m.time}</td>
+                <td className="p-3.5">
+                  <div className="flex flex-col gap-0.5">
+                    {m.matchDate && (
+                      <span className="text-[10px] text-amber-400 font-mono font-bold">
+                        📅 {m.matchDate.split('T')[0]}
+                      </span>
+                    )}
+                    <span className="text-gray-200 font-bold text-xs">⏰ {m.time}</span>
+                  </div>
+                </td>
                 <td className="p-3.5 font-bold text-white">৳{m.entryFee}</td>
                 <td className="p-3.5 font-bold text-emerald-400">৳{m.winnerPrize}</td>
                 <td className="p-3.5 font-bold text-gray-300">৳{m.perKillPrize}</td>
@@ -493,34 +502,74 @@ export default function MatchesTab({
                 ))}
               </div>
 
-              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-white/10">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#07080b] p-3 rounded-xl border border-white/10">
                 <div>
-                  <Label className="text-gray-300 font-bold block mb-1">📅 Match Date</Label>
+                  <Label className="text-xs font-bold text-gray-300 block mb-1">📅 Match Date</Label>
                   <Input
                     type="date"
-                    value={editingMatch.matchDate || ''}
+                    value={editingMatch.matchDate ? editingMatch.matchDate.split('T')[0] : ''}
                     onChange={(e) => setEditingMatch({ ...editingMatch, matchDate: e.target.value })}
-                    className="bg-[#07080b] border-gray-700 text-white [color-scheme:dark]"
+                    className="bg-[#101420] border-gray-700 text-white rounded-xl [color-scheme:dark]"
                   />
+                  <div className="flex gap-1 mt-1.5 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = new Date().toISOString().split('T')[0]
+                        setEditingMatch({ ...editingMatch, matchDate: today })
+                      }}
+                      className="text-[9px] font-bold bg-white/10 hover:bg-amber-600 text-amber-300 hover:text-white px-2 py-0.5 rounded border border-white/10"
+                    >
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
+                        setEditingMatch({ ...editingMatch, matchDate: tomorrow })
+                      }}
+                      className="text-[9px] font-bold bg-white/10 hover:bg-amber-600 text-amber-300 hover:text-white px-2 py-0.5 rounded border border-white/10"
+                    >
+                      Tomorrow
+                    </button>
+                  </div>
                 </div>
+
                 <div>
-                  <Label className="text-gray-300 font-bold block mb-1">⏰ Match Time</Label>
+                  <Label className="text-xs font-bold text-gray-300 block mb-1">⏰ Match Time</Label>
                   <Input
                     type="text"
                     value={editingMatch.time}
                     onChange={(e) => setEditingMatch({ ...editingMatch, time: e.target.value })}
                     placeholder="e.g. 10:00 PM"
-                    className="bg-[#07080b] border-gray-700 text-white font-bold"
+                    className="bg-[#101420] border-gray-700 text-white rounded-xl font-bold"
                     required
                   />
+                  <div className="flex gap-1 mt-1.5 flex-wrap">
+                    {['08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM'].map((t) => (
+                      <button
+                        type="button"
+                        key={t}
+                        onClick={() => setEditingMatch({ ...editingMatch, time: t })}
+                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded border transition-all ${
+                          editingMatch.time === t
+                            ? 'bg-red-600 text-white border-red-500'
+                            : 'bg-white/10 hover:bg-white/20 text-gray-300 border-white/10'
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
                 <div>
-                  <Label className="text-gray-300 font-bold block mb-1">Max Slots</Label>
+                  <Label className="text-xs font-bold text-gray-300 block mb-1">Max Slots</Label>
                   <Input
                     type="number"
                     value={editingMatch.maxSlots}
                     onChange={(e) => setEditingMatch({ ...editingMatch, maxSlots: Number(e.target.value) })}
-                    className="bg-[#07080b] border-gray-700 text-white font-bold"
+                    className="bg-[#101420] border-gray-700 text-white rounded-xl font-bold"
                   />
                 </div>
               </div>

@@ -17,9 +17,9 @@ export interface SupportMessage {
 const INITIAL_SUPPORT_MESSAGES: SupportMessage[] = [
   {
     id: 'msg-1',
-    userId: 'player1@gmail.com',
+    userId: 'vip_shadow@gmail.com',
     userName: 'VIP_SHADOW',
-    userEmail: 'player1@gmail.com',
+    userEmail: 'vip_shadow@gmail.com',
     userAvatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=PubgHero&backgroundColor=e50914',
     subject: 'টাকা জমা সংক্রান্ত সাপোর্ট (bKash Deposit)',
     message: 'আমার বিকাশ দিয়ে ৫০০ টাকা ডিপোজিট করেছি ট্রানজেকশন আইডি: 89X7Y2Z1A3। কিন্তু ব্যালেন্স অ্যাড হতে কিছুটা দেরি হচ্ছে। দয়া করে চেক করুন।',

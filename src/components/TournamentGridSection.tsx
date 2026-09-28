@@ -24,10 +24,13 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
   useEffect(() => {
     async function loadTournamentMatches() {
       try {
+        setLoading(true)
         const data = await getMatches()
         setMatches(data)
       } catch (err) {
         console.error('Failed to load dynamic matches:', err)
+      } finally {
+        setLoading(false)
       }
     }
     loadTournamentMatches()

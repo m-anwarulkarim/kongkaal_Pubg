@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
+import { formatRelativeTime } from '@/lib/utils'
 import {
   RefreshCw,
   Smartphone,
@@ -25,6 +26,7 @@ import {
   Copy,
   Check,
   ArrowDownLeft,
+  Clock,
 } from 'lucide-react'
 
 interface PaymentsTabProps {
@@ -306,8 +308,21 @@ export default function PaymentsTab({
                     <td className="p-3 font-bold text-emerald-400 text-sm">
                       +৳{tx.amount} BDT
                     </td>
-                    <td className="p-3 text-gray-400 text-[11px]">
-                      {new Date(tx.createdAt).toLocaleString()}
+                    <td className="p-3">
+                      {(() => {
+                        const timeInfo = formatRelativeTime(tx.createdAt)
+                        return (
+                          <div className="flex flex-col gap-0.5 min-w-[110px]">
+                            <span className="font-bold text-amber-400 text-xs flex items-center gap-1 font-mono">
+                              <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                              {timeInfo.relative}
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-mono">
+                              {timeInfo.dateOnly} {timeInfo.timeOnly}
+                            </span>
+                          </div>
+                        )
+                      })()}
                     </td>
                     <td className="p-3 text-right space-x-2">
                       <button
@@ -367,6 +382,7 @@ export default function PaymentsTab({
             <thead className="bg-[#070910] text-gray-400 font-gaming uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="p-3.5">PUBG Player Name & Profile</th>
+                <th className="p-3.5">Date & Time</th>
                 <th className="p-3.5">Match Info</th>
                 <th className="p-3.5">Gmail Email</th>
                 <th className="p-3.5">PUBG UID</th>
@@ -427,6 +443,24 @@ export default function PaymentsTab({
                           )}
                         </button>
                       </span>
+                    </td>
+
+                    {/* Date & Time Cell */}
+                    <td className="p-3.5">
+                      {(() => {
+                        const timeInfo = formatRelativeTime(reg.createdAt)
+                        return (
+                          <div className="flex flex-col gap-0.5 min-w-[110px]">
+                            <span className="font-bold text-cyan-400 text-xs flex items-center gap-1 font-mono">
+                              <Clock className="w-3 h-3 text-cyan-400 shrink-0" />
+                              {timeInfo.relative}
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-mono">
+                              {timeInfo.dateOnly} {timeInfo.timeOnly}
+                            </span>
+                          </div>
+                        )
+                      })()}
                     </td>
 
                     {/* Match Info Cell */}

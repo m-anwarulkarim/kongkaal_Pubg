@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-react'
+import { formatRelativeTime } from '@/lib/utils'
 import {
   getSupportMessages,
   replySupportMessage,
@@ -402,11 +403,8 @@ export default function MessagesTab({ initialSearch = '' }: MessagesTabProps) {
                       {msg.message}
                     </p>
 
-                    <div className="text-[10px] text-gray-500 font-mono text-right mt-1">
-                      {new Date(msg.createdAt).toLocaleString('bn-BD', {
-                        dateStyle: 'short',
-                        timeStyle: 'short',
-                      })}
+                    <div className="text-[10px] text-amber-400 font-mono text-right mt-1 font-bold">
+                      {formatRelativeTime(msg.createdAt).full}
                     </div>
                   </div>
                 )

@@ -15,7 +15,8 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Send, CheckCircle2, XCircle, Search, RefreshCw, PlusCircle, MinusCircle, X, AlertCircle, Trash2, Eye, Loader2 } from 'lucide-react'
+import { formatRelativeTime } from '@/lib/utils'
+import { Send, CheckCircle2, XCircle, Search, RefreshCw, PlusCircle, MinusCircle, X, AlertCircle, Trash2, Eye, Loader2, Clock } from 'lucide-react'
 
 interface WalletTabProps {
   registrations?: RegistrationRecord[]
@@ -265,7 +266,7 @@ export default function WalletTab({ registrations = [], onSelectUserMessage }: W
               <label className="text-gray-300 font-bold block mb-1">Customer Email / ID</label>
               <Input
                 type="email"
-                placeholder="e.g. player1@gmail.com"
+                placeholder="e.g. customer@gmail.com"
                 value={sendEmail}
                 onChange={(e) => setSendEmail(e.target.value)}
                 className="bg-[#080a12] border-white/10 text-white"
@@ -450,7 +451,7 @@ export default function WalletTab({ registrations = [], onSelectUserMessage }: W
             <table className="w-full text-left text-xs">
               <thead className="bg-[#070910] text-gray-400 uppercase tracking-wider text-[11px]">
                 <tr>
-                  <th className="p-3.5">Date</th>
+                  <th className="p-3.5">Date & Time</th>
                   <th className="p-3.5">Customer</th>
                   <th className="p-3.5">Type</th>
                   <th className="p-3.5">Method & TrxID / Account</th>
@@ -462,8 +463,21 @@ export default function WalletTab({ registrations = [], onSelectUserMessage }: W
               <tbody className="divide-y divide-white/5 font-medium">
                 {filteredTx.slice(0, txLimit).map((tx) => (
                   <tr key={tx.id} className="hover:bg-white/5 transition-colors">
-                    <td className="p-3.5 text-gray-400 font-mono text-[11px]">
-                      {new Date(tx.createdAt).toLocaleDateString()}
+                    <td className="p-3.5">
+                      {(() => {
+                        const timeInfo = formatRelativeTime(tx.createdAt)
+                        return (
+                          <div className="flex flex-col gap-0.5 min-w-[110px]">
+                            <span className="font-bold text-amber-400 text-xs flex items-center gap-1 font-mono">
+                              <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                              {timeInfo.relative}
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-mono">
+                              {timeInfo.dateOnly} {timeInfo.timeOnly}
+                            </span>
+                          </div>
+                        )
+                      })()}
                     </td>
                     <td className="p-3.5">
                       <span

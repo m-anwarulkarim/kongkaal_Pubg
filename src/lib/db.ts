@@ -297,51 +297,77 @@ export async function updateMatch(match: MatchItem): Promise<{ success: boolean;
   // 1. Invalidate cache
   clearMatchesCache()
 
+  // Ensure matchDate is formatted cleanly (YYYY-MM-DD)
+  let cleanDate = match.matchDate ? match.matchDate.trim().split('T')[0] : ''
+  if (!cleanDate) {
+    cleanDate = new Date().toISOString().split('T')[0]
+  }
+
+  const updatedMatch: MatchItem = {
+    ...match,
+    matchDate: cleanDate,
+  }
+
   // 2. Save locally
   const local = getLocalMatches()
-  const exists = local.some((m) => m.id === match.id)
-  const updated = exists ? local.map((m) => (m.id === match.id ? match : m)) : [match, ...local]
+  const exists = local.some((m) => m.id === updatedMatch.id)
+  const updated = exists ? local.map((m) => (m.id === updatedMatch.id ? updatedMatch : m)) : [updatedMatch, ...local]
   saveLocalMatches(updated, true)
 
   // 3. Sync to Supabase if configured
   if (isSupabaseConfigured()) {
     try {
       const payload: Record<string, any> = {
-        title: match.title,
-        mode: match.mode,
-        map: match.map,
-        time: match.time,
-        match_date: match.matchDate || null,
-        entry_fee: Number(match.entryFee) || 0,
-        winner_prize: Number(match.winnerPrize) || 0,
-        first_prize: match.firstPrize !== undefined ? Number(match.firstPrize) : (Number(match.winnerPrize) || 0),
-        second_prize: Number(match.secondPrize) || 0,
-        third_prize: Number(match.thirdPrize) || 0,
-        per_kill_prize: Number(match.perKillPrize) || 0,
-        joined_slots: Number(match.joinedSlots) || 0,
-        max_slots: Number(match.maxSlots) || 100,
-        image: match.image,
-        status: match.status || 'OPEN',
-        whatsapp_group_link: match.whatsappGroupLink || '',
-        room_id: match.roomId || '',
-        room_password: match.roomPassword || '',
+        title: updatedMatch.title,
+        mode: updatedMatch.mode,
+        map: updatedMatch.map,
+        time: updatedMatch.time,
+        match_date: updatedMatch.matchDate,
+        entry_fee: Number(updatedMatch.entryFee) || 0,
+        winner_prize: Number(updatedMatch.winnerPrize) || 0,
+        first_prize: updatedMatch.firstPrize !== undefined ? Number(updatedMatch.firstPrize) : (Number(updatedMatch.winnerPrize) || 0),
+        second_prize: Number(updatedMatch.secondPrize) || 0,
+        third_prize: Number(updatedMatch.thirdPrize) || 0,
+        per_kill_prize: Number(updatedMatch.perKillPrize) || 0,
+        joined_slots: Number(updatedMatch.joinedSlots) || 0,
+        max_slots: Number(updatedMatch.maxSlots) || 100,
+        image: updatedMatch.image,
+        status: updatedMatch.status || 'OPEN',
+        whatsapp_group_link: updatedMatch.whatsappGroupLink || '',
+        room_id: updatedMatch.roomId || '',
+        room_password: updatedMatch.roomPassword || '',
       }
 
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(match.id)
       let isUpdated = false
 
-      if (isUuid) {
-        const { data, error } = await supabase.from('matches').update(payload).eq('id', match.id).select()
-        if (!error && data && data.length > 0) isUpdated = true
+      // First attempt: update by id
+      const { data: byIdData, error: byIdErr } = await supabase
+        .from('matches')
+        .update(payload)
+        .eq('id', updatedMatch.id)
+        .select()
+
+      if (!byIdErr && byIdData && byIdData.length > 0) {
+        isUpdated = true
       }
 
+      // Second attempt: update by title and mode
       if (!isUpdated) {
-        const { data, error } = await supabase.from('matches').update(payload).eq('title', match.title).eq('mode', match.mode).select()
-        if (!error && data && data.length > 0) isUpdated = true
+        const { data: byTitleData, error: byTitleErr } = await supabase
+          .from('matches')
+          .update(payload)
+          .eq('title', updatedMatch.title)
+          .eq('mode', updatedMatch.mode)
+          .select()
+
+        if (!byTitleErr && byTitleData && byTitleData.length > 0) {
+          isUpdated = true
+        }
       }
 
+      // Third attempt: insert record
       if (!isUpdated) {
-        if (isUuid) payload.id = match.id
+        payload.id = updatedMatch.id
         await supabase.from('matches').insert([payload])
       }
     } catch (err: any) {
@@ -410,9 +436,72 @@ export function saveLocalRegistrationRecord(record: RegistrationRecord) {
   notifyRegistrationsUpdate()
 }
 
+export function isUserRegisteredForMatch(
+  matchId: string,
+  userEmail?: string,
+  pubgUid?: string
+): boolean {
+  if (!matchId || typeof window === 'undefined') return false
+
+  const cleanEmail = (userEmail || '').trim().toLowerCase()
+  const cleanUid = (pubgUid || '').trim()
+
+  if (!cleanEmail && !cleanUid) return false
+
+  const allRegs = getLocalRegistrationRecords()
+  return allRegs.some((r) => {
+    if (r.matchId !== matchId || r.status === 'REJECTED') return false
+
+    const rEmail = (r.userEmail || '').trim().toLowerCase()
+    const rUid = (r.player1Uid || '').trim()
+
+    if (cleanEmail && rEmail && rEmail === cleanEmail) return true
+    if (cleanUid && rUid && rUid === cleanUid) return true
+    return false
+  })
+}
+
+export function getUserRegisteredMatchIds(
+  userEmail?: string,
+  pubgUid?: string
+): string[] {
+  if (typeof window === 'undefined') return []
+
+  const cleanEmail = (userEmail || '').trim().toLowerCase()
+  const cleanUid = (pubgUid || '').trim()
+
+  if (!cleanEmail && !cleanUid) return []
+
+  const allRegs = getLocalRegistrationRecords()
+  const registeredIds = new Set<string>()
+
+  allRegs.forEach((r) => {
+    if (r.status === 'REJECTED') return
+    const rEmail = (r.userEmail || '').trim().toLowerCase()
+    const rUid = (r.player1Uid || '').trim()
+
+    if ((cleanEmail && rEmail && rEmail === cleanEmail) || (cleanUid && rUid && rUid === cleanUid)) {
+      if (r.matchId) registeredIds.add(r.matchId)
+    }
+  })
+
+  return Array.from(registeredIds)
+}
+
 // 4. Save Player Slot Registration & Payment TrxID
 export async function saveRegistration(registration: PlayerRegistration): Promise<{ success: boolean; message: string; id?: string }> {
   console.log('[DB Service] Saving slot registration:', registration)
+
+  // Prevent duplicate registration for the same match
+  if (
+    registration.matchId &&
+    isUserRegisteredForMatch(registration.matchId, registration.userEmail, registration.player1Uid)
+  ) {
+    return {
+      success: false,
+      message: 'আপনি ইতিমধ্যে এই টুর্নামেন্টে রেজিস্টার করেছেন!',
+    }
+  }
 
   // Auto-increment slot count for this match
   if (registration.matchId) {
@@ -515,37 +604,6 @@ export async function saveRegistration(registration: PlayerRegistration): Promis
     return { success: true, message: 'Slot registration saved successfully!', id: localRec.id }
   }
 }
-
-const INITIAL_MOCK_REGISTRATIONS: RegistrationRecord[] = [
-  {
-    id: 'reg-001',
-    matchId: 'solo-12sep',
-    teamName: 'VAMPIRE SQUAD',
-    player1Name: 'RIYAD_OP',
-    player1Uid: '5123456789',
-    whatsappNumber: '01700000000',
-    userEmail: 'riyad.vampire@gmail.com',
-    paymentMethod: 'bKash',
-    trxId: 'BAX9021K9L',
-    amount: 200,
-    status: 'PENDING',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'reg-002',
-    matchId: 'duo-13sep',
-    teamName: 'DEADLY DUO',
-    player1Name: 'SHAKIB_BD',
-    player1Uid: '5987654321',
-    whatsappNumber: '01800000000',
-    userEmail: 'shakib.bd@gmail.com',
-    paymentMethod: 'Nagad',
-    trxId: 'NGD8821M0P',
-    amount: 100,
-    status: 'VERIFIED',
-    createdAt: new Date().toISOString(),
-  },
-]
 
 // SWR In-Memory Cache for registrations (30s TTL for high-traffic scale)
 let registrationsCache: { data: RegistrationRecord[]; timestamp: number } | null = null
@@ -923,7 +981,7 @@ export const DEFAULT_HERO_SETTINGS: HeroBannerSettings = {
   liveStatusText: 'Tournament Ongoing',
   activePlayersCount: 128,
   heroVideoUrl: '/hero_bg.mp4',
-  youtubeVideoUrl: 'https://www.youtube.com/watch?v=L6P3nI6VnlY',
+  youtubeVideoUrl: 'https://www.youtube.com/watch?v=7rgCNNz6MWY',
 }
 
 export function getHeroBannerSettings(): HeroBannerSettings {
@@ -935,7 +993,7 @@ export function getHeroBannerSettings(): HeroBannerSettings {
     if (!parsed.heroVideoUrl || parsed.heroVideoUrl.includes('mixkit') || parsed.heroVideoUrl.includes('uCd6tbLv6XY')) {
       parsed.heroVideoUrl = '/hero_bg.mp4'
     }
-    if (!parsed.youtubeVideoUrl) {
+    if (!parsed.youtubeVideoUrl || parsed.youtubeVideoUrl === 'https://www.youtube.com/watch?v=L6P3nI6VnlY') {
       parsed.youtubeVideoUrl = DEFAULT_HERO_SETTINGS.youtubeVideoUrl
     }
     return { ...DEFAULT_HERO_SETTINGS, ...parsed }

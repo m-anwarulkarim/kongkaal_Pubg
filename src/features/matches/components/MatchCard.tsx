@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import type { MatchItem } from '@/types/match'
-import { Shield, Clock, ArrowRight, Trophy } from 'lucide-react'
+import { Shield, Clock, ArrowRight, Trophy, CheckCircle2 } from 'lucide-react'
 import Image from '@/components/ui/Image'
 import PrizeBreakdownModal from '@/components/PrizeBreakdownModal'
-import { getPrizeBreakdownSettings } from '@/lib/db'
+import { getPrizeBreakdownSettings, isUserRegisteredForMatch } from '@/lib/db'
+import { useCustomerAuth } from '@/lib/auth'
 
 interface MatchCardProps {
   match: MatchItem
@@ -11,8 +13,10 @@ interface MatchCardProps {
 }
 
 export default function MatchCard({ match, onSelect }: MatchCardProps) {
+  const { user } = useCustomerAuth()
   const [prizeModalOpen, setPrizeModalOpen] = useState(false)
   const [globalBreakdownEnabled, setGlobalBreakdownEnabled] = useState(() => getPrizeBreakdownSettings().enableGlobalModal)
+  const [isRegistered, setIsRegistered] = useState(false)
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -21,6 +25,18 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
     window.addEventListener('prize_breakdown_settings_updated', handleUpdate)
     return () => window.removeEventListener('prize_breakdown_settings_updated', handleUpdate)
   }, [])
+
+  useEffect(() => {
+    const checkRegistration = () => {
+      const email = user?.email || ''
+      const uid = typeof window !== 'undefined' ? localStorage.getItem('pending_pubg_uid') || '' : ''
+      setIsRegistered(isUserRegisteredForMatch(match.id, email, uid))
+    }
+
+    checkRegistration()
+    window.addEventListener('registrations_updated', checkRegistration)
+    return () => window.removeEventListener('registrations_updated', checkRegistration)
+  }, [match.id, user])
 
   const isBreakdownAllowed = globalBreakdownEnabled && match.showPrizeBreakdown !== false
 
@@ -74,27 +90,27 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-[#10131a] via-transparent to-black/40 z-10" />
 
           {/* Date Badge Top Right & Status Badge Left */}
-          {match.status === 'COMING_SOON' && (
+          {isRegistered && match.status !== 'COMPLETED' ? (
+            <div className="absolute top-3 left-3 bg-emerald-950/90 text-emerald-400 border border-emerald-500/50 backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
+              <span>REGISTERED ✅</span>
+            </div>
+          ) : match.status === 'COMING_SOON' ? (
             <div className="absolute top-3 left-3 bg-amber-500/90 text-black backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
               <span>COMING SOON ⏳</span>
             </div>
-          )}
-          {match.status === 'FILLING_FAST' && (
+          ) : match.status === 'FILLING_FAST' ? (
             <div className="absolute top-3 left-3 bg-red-600/90 text-white backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1 animate-pulse">
               <span>FILLING FAST 🔥</span>
             </div>
-          )}
-          {match.status === 'LIVE_SOON' && (
+          ) : match.status === 'LIVE_SOON' ? (
             <div className="absolute top-3 left-3 bg-cyan-600/90 text-white backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
               <span>LIVE SOON ⚡</span>
             </div>
-          )}
-          {match.status === 'COMPLETED' && (
+          ) : match.status === 'COMPLETED' ? (
             <div className="absolute top-3 left-3 bg-emerald-700/90 text-white backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
               <span>COMPLETED ✅</span>
             </div>
-          )}
-          {match.status === 'OPEN' && (
+          ) : (
             <div className="absolute top-3 left-3 bg-emerald-500/90 text-black backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
               <span>OPEN 🟢</span>
             </div>
@@ -216,7 +232,15 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
               />
             </div>
 
-            {match.status === 'COMING_SOON' ? (
+            {isRegistered && match.status !== 'COMPLETED' ? (
+              <button
+                onClick={() => toast.info('আপনি ইতিমধ্যে এই টুর্নামেন্টে রেজিস্টার করেছেন! (Already Registered)')}
+                className="w-full py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-950 text-emerald-400 border border-emerald-500/50 shadow-lg shadow-emerald-500/20 hover:bg-emerald-900 transition-all cursor-pointer"
+              >
+                <span>ALREADY REGISTERED ✅</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              </button>
+            ) : match.status === 'COMING_SOON' ? (
               <button
                 disabled
                 className="w-full py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500/20 via-amber-600/30 to-amber-500/20 text-amber-400 border border-amber-500/40 shadow-lg shadow-amber-500/10 cursor-not-allowed select-none"

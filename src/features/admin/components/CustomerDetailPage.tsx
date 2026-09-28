@@ -8,6 +8,7 @@ import {
   adminApproveTransaction,
   deleteWalletTransaction,
 } from '@/lib/wallet'
+import { formatRelativeTime } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -574,14 +575,21 @@ export default function CustomerDetailPage({
                       <td className="p-3.5 text-gray-300 max-w-xs truncate">
                         {tx.note || '—'}
                       </td>
-                      <td className="p-3.5 text-gray-400 text-[11px]">
-                        {new Date(tx.createdAt).toLocaleString('en-BD', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                      <td className="p-3.5">
+                        {(() => {
+                          const timeInfo = formatRelativeTime(tx.createdAt)
+                          return (
+                            <div className="flex flex-col gap-0.5 min-w-[110px]">
+                              <span className="font-bold text-amber-400 text-xs flex items-center gap-1 font-mono">
+                                <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                                {timeInfo.relative}
+                              </span>
+                              <span className="text-[10px] text-gray-400 font-mono">
+                                {timeInfo.dateOnly} {timeInfo.timeOnly}
+                              </span>
+                            </div>
+                          )
+                        })()}
                       </td>
                       <td className="p-3.5">
                         <StatusBadge status={tx.status} />

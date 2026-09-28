@@ -8,6 +8,7 @@ import {
   adminApproveTransaction,
   deleteWalletTransaction,
 } from '@/lib/wallet'
+import { formatRelativeTime } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -293,11 +294,8 @@ export default function CustomerDetailDrawer({ customer, onClose, onRefresh }: C
                           <span className={`font-display text-base font-black ${color}`}>
                             {tx.type === 'WITHDRAW' || tx.type === 'ENTRY_FEE' ? '−' : '+'}৳{tx.amount}
                           </span>
-                          <p className="text-[9px] text-gray-500 mt-0.5">
-                            {new Date(tx.createdAt).toLocaleString('en-BD', {
-                              day: '2-digit', month: 'short', year: 'numeric',
-                              hour: '2-digit', minute: '2-digit'
-                            })}
+                          <p className="text-[10px] font-bold text-amber-400 mt-0.5 font-mono">
+                            {formatRelativeTime(tx.createdAt).full}
                           </p>
                         </div>
                       </div>
