@@ -1,5 +1,6 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { Toaster } from 'sonner'
+import BackgroundMusic from '@/components/BackgroundMusic'
 import appCss from '../styles.css?url'
 
 const structuredData = {
@@ -117,6 +118,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="font-sans antialiased bg-[#07080b] text-gray-100 selection:bg-red-600/30 selection:text-red-200 min-h-screen">
         {children}
+        <BackgroundMusic />
         <Toaster position="top-center" richColors theme="dark" />
         <Scripts />
       </body>

@@ -7,8 +7,13 @@ const LOCAL_TX_KEY = 'kongkaal_wallet_transactions'
 // Subscribe to Realtime DB events for wallets & transactions
 if (typeof window !== 'undefined' && isSupabaseConfigured()) {
   try {
+    const channelName = 'kongkaal_wallet_realtime_changes'
+    const existing = supabase.getChannels().find((c) => c.topic === `realtime:${channelName}`)
+    if (existing) {
+      supabase.removeChannel(existing)
+    }
     supabase
-      .channel('kongkaal_wallet_realtime_changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'customer_wallets' },

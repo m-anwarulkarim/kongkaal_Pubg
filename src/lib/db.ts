@@ -102,8 +102,13 @@ export function clearMatchesCache() {
 // Subscribe to Realtime DB events for instant live updates across all devices & tabs
 if (typeof window !== 'undefined' && isSupabaseConfigured()) {
   try {
+    const channelName = 'kongkaal_realtime_db_changes'
+    const existing = supabase.getChannels().find((c) => c.topic === `realtime:${channelName}`)
+    if (existing) {
+      supabase.removeChannel(existing)
+    }
     supabase
-      .channel('kongkaal_realtime_db_changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'matches' },
