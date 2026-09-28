@@ -4,55 +4,49 @@ import { Volume2, VolumeX, Music } from 'lucide-react'
 export default function BackgroundMusic() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
-  const [hasInteracted, setHasInteracted] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-
-  useEffect(() => {
-    // Check local storage for mute preference
-    if (typeof window !== 'undefined') {
-      const savedMute = localStorage.getItem('kongkaal_bg_music_muted')
-      if (savedMute === 'true') {
-        setIsMuted(true)
-      }
-    }
-  }, [])
 
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
 
-    // Set initial volume low (15%) for subtle background music
-    audio.volume = 0.15
+    audio.volume = 0.05
+    const savedMute = typeof window !== 'undefined' && localStorage.getItem('kongkaal_bg_music_muted') === 'true'
 
-    const handleFirstInteraction = () => {
-      if (hasInteracted) return
-      setHasInteracted(true)
-
-      const savedMute = localStorage.getItem('kongkaal_bg_music_muted')
-      if (savedMute !== 'true') {
-        audio.play().then(() => {
-          setIsPlaying(true)
-        }).catch((err) => {
-          console.warn('[BackgroundMusic] Auto-play prevented by browser:', err)
-        })
-      }
-
-      // Cleanup listener after first interaction
-      window.removeEventListener('click', handleFirstInteraction)
-      window.removeEventListener('touchstart', handleFirstInteraction)
-      window.removeEventListener('keydown', handleFirstInteraction)
+    if (savedMute) {
+      setIsMuted(true)
+      return
     }
 
-    window.addEventListener('click', handleFirstInteraction)
-    window.addEventListener('touchstart', handleFirstInteraction)
-    window.addEventListener('keydown', handleFirstInteraction)
-
-    return () => {
-      window.removeEventListener('click', handleFirstInteraction)
-      window.removeEventListener('touchstart', handleFirstInteraction)
-      window.removeEventListener('keydown', handleFirstInteraction)
+    const startPlay = () => {
+      audio.volume = 0.05
+      audio.play().then(() => {
+        setIsPlaying(true)
+        setIsMuted(false)
+      }).catch(() => {})
     }
-  }, [hasInteracted])
+
+    startPlay()
+
+    const handleInteraction = () => {
+      startPlay()
+      removeListeners()
+    }
+
+    const removeListeners = () => {
+      window.removeEventListener('click', handleInteraction)
+      window.removeEventListener('touchstart', handleInteraction)
+      window.removeEventListener('pointerdown', handleInteraction)
+      window.removeEventListener('scroll', handleInteraction)
+    }
+
+    window.addEventListener('click', handleInteraction)
+    window.addEventListener('touchstart', handleInteraction)
+    window.addEventListener('pointerdown', handleInteraction)
+    window.addEventListener('scroll', handleInteraction)
+
+    return () => removeListeners()
+  }, [])
 
   const toggleMusic = () => {
     const audio = audioRef.current
@@ -64,27 +58,19 @@ export default function BackgroundMusic() {
       setIsMuted(true)
       localStorage.setItem('kongkaal_bg_music_muted', 'true')
     } else {
-      audio.volume = 0.15
+      audio.volume = 0.05
       audio.play().then(() => {
         setIsPlaying(true)
         setIsMuted(false)
         localStorage.setItem('kongkaal_bg_music_muted', 'false')
-      }).catch((err) => {
-        console.warn('[BackgroundMusic] Play failed:', err)
-      })
+      }).catch(() => {})
     }
   }
 
   return (
     <>
-      <audio
-        ref={audioRef}
-        src="/The_Final_Circle.mp3"
-        loop
-        preload="auto"
-      />
+      <audio ref={audioRef} src="/The_Final_Circle.mp3" loop autoPlay preload="auto" />
 
-      {/* Floating Audio Control Button */}
       <div className="fixed bottom-6 left-6 z-50 flex items-center gap-2">
         <button
           onClick={toggleMusic}
@@ -94,7 +80,7 @@ export default function BackgroundMusic() {
               ? 'bg-red-600/90 hover:bg-red-600 border-red-400/50 text-white shadow-red-600/40 animate-pulse'
               : 'bg-[#101422]/90 hover:bg-[#181d30] border-white/20 text-gray-300 shadow-black/60'
           }`}
-          title={isPlaying && !isMuted ? 'Mute Background Music (The Final Circle)' : 'Play Background Music'}
+          title={isPlaying && !isMuted ? 'Mute Background Music' : 'Play Background Music'}
         >
           {isPlaying && !isMuted ? (
             <Volume2 className="w-5 h-5 text-white animate-bounce" />
@@ -102,7 +88,6 @@ export default function BackgroundMusic() {
             <VolumeX className="w-5 h-5 text-gray-400" />
           )}
 
-          {/* Equalizer Bars Effect when playing */}
           {isPlaying && !isMuted && (
             <span className="absolute -top-1 -right-1 flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -111,10 +96,9 @@ export default function BackgroundMusic() {
           )}
         </button>
 
-        {/* Tooltip / Label */}
         <div className="hidden sm:flex items-center gap-1.5 bg-[#07080b]/90 border border-white/10 px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-gray-300 backdrop-blur-md shadow-lg pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
           <Music className="w-3.5 h-3.5 text-red-500" />
-          <span>The Final Circle BGM {isPlaying && !isMuted ? '(Playing 15%)' : '(Muted)'}</span>
+          <span>The Final Circle BGM {isPlaying && !isMuted ? '(5%)' : '(Muted)'}</span>
         </div>
       </div>
     </>
