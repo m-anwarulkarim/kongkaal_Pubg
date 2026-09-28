@@ -10,42 +10,45 @@ export default function BackgroundMusic() {
     const audio = audioRef.current
     if (!audio) return
 
-    audio.volume = 0.05
-    const savedMute = typeof window !== 'undefined' && localStorage.getItem('kongkaal_bg_music_muted') === 'true'
+    audio.volume = 0.15
 
-    if (savedMute) {
-      setIsMuted(true)
-      return
+    const tryPlay = () => {
+      if (!audio) return
+      audio.volume = 0.15
+      const promise = audio.play()
+      if (promise !== undefined) {
+        promise
+          .then(() => {
+            setIsPlaying(true)
+            setIsMuted(false)
+          })
+          .catch((err) => {
+            console.log('[BackgroundMusic] Autoplay waiting for interaction:', err)
+          })
+      }
     }
 
-    const startPlay = () => {
-      audio.volume = 0.05
-      audio.play().then(() => {
-        setIsPlaying(true)
-        setIsMuted(false)
-      }).catch(() => {})
+    // Attempt direct play immediately
+    tryPlay()
+
+    // Add multiple interaction triggers (click, touch, scroll, pointer, keydown)
+    const handleUserGesture = () => {
+      tryPlay()
     }
 
-    startPlay()
+    window.addEventListener('click', handleUserGesture, { once: true })
+    window.addEventListener('touchstart', handleUserGesture, { once: true })
+    window.addEventListener('pointerdown', handleUserGesture, { once: true })
+    window.addEventListener('scroll', handleUserGesture, { once: true })
+    window.addEventListener('keydown', handleUserGesture, { once: true })
 
-    const handleInteraction = () => {
-      startPlay()
-      removeListeners()
+    return () => {
+      window.removeEventListener('click', handleUserGesture)
+      window.removeEventListener('touchstart', handleUserGesture)
+      window.removeEventListener('pointerdown', handleUserGesture)
+      window.removeEventListener('scroll', handleUserGesture)
+      window.removeEventListener('keydown', handleUserGesture)
     }
-
-    const removeListeners = () => {
-      window.removeEventListener('click', handleInteraction)
-      window.removeEventListener('touchstart', handleInteraction)
-      window.removeEventListener('pointerdown', handleInteraction)
-      window.removeEventListener('scroll', handleInteraction)
-    }
-
-    window.addEventListener('click', handleInteraction)
-    window.addEventListener('touchstart', handleInteraction)
-    window.addEventListener('pointerdown', handleInteraction)
-    window.addEventListener('scroll', handleInteraction)
-
-    return () => removeListeners()
   }, [])
 
   const toggleMusic = () => {
@@ -56,20 +59,27 @@ export default function BackgroundMusic() {
       audio.pause()
       setIsPlaying(false)
       setIsMuted(true)
-      localStorage.setItem('kongkaal_bg_music_muted', 'true')
     } else {
-      audio.volume = 0.05
+      audio.volume = 0.15
       audio.play().then(() => {
         setIsPlaying(true)
         setIsMuted(false)
-        localStorage.setItem('kongkaal_bg_music_muted', 'false')
-      }).catch(() => {})
+      }).catch((err) => {
+        console.warn('[BackgroundMusic] Toggle play error:', err)
+      })
     }
   }
 
   return (
     <>
-      <audio ref={audioRef} src="/The_Final_Circle.mp3" loop autoPlay preload="auto" />
+      <audio
+        ref={audioRef}
+        src="/The_Final_Circle.mp3"
+        loop
+        autoPlay
+        playsInline
+        preload="auto"
+      />
 
       <div className="fixed bottom-6 left-6 z-50 flex items-center gap-2">
         <button
@@ -98,7 +108,7 @@ export default function BackgroundMusic() {
 
         <div className="hidden sm:flex items-center gap-1.5 bg-[#07080b]/90 border border-white/10 px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-gray-300 backdrop-blur-md shadow-lg pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
           <Music className="w-3.5 h-3.5 text-red-500" />
-          <span>The Final Circle BGM {isPlaying && !isMuted ? '(5%)' : '(Muted)'}</span>
+          <span>The Final Circle BGM {isPlaying && !isMuted ? '(Playing)' : '(Muted)'}</span>
         </div>
       </div>
     </>
