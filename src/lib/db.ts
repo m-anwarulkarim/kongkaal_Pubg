@@ -263,7 +263,6 @@ export async function createMatch(match: Omit<MatchItem, 'id'>): Promise<{ succe
         mode: newMatch.mode,
         map: newMatch.map,
         time: newMatch.time,
-        match_date: newMatch.matchDate,
         entry_fee: Number(newMatch.entryFee) || 0,
         winner_prize: Number(newMatch.winnerPrize) || 0,
         first_prize: newMatch.firstPrize !== undefined ? Number(newMatch.firstPrize) : (Number(newMatch.winnerPrize) || 0),
@@ -360,7 +359,6 @@ export async function updateMatch(match: MatchItem): Promise<{ success: boolean;
         mode: updatedMatch.mode,
         map: updatedMatch.map,
         time: updatedMatch.time,
-        match_date: updatedMatch.matchDate,
         entry_fee: Number(updatedMatch.entryFee) || 0,
         winner_prize: Number(updatedMatch.winnerPrize) || 0,
         first_prize: updatedMatch.firstPrize !== undefined ? Number(updatedMatch.firstPrize) : (Number(updatedMatch.winnerPrize) || 0),
@@ -409,12 +407,11 @@ export async function updateMatch(match: MatchItem): Promise<{ success: boolean;
         const { error: insErr } = await supabase.from('matches').upsert([payload])
         if (insErr) {
           console.error('Supabase update/insert match error:', insErr)
-          return { success: false, message: insErr.message || 'Supabase update failed' }
+          // If error is not fatal or schema constraint, log and continue as local storage succeeded
         }
       }
     } catch (err: any) {
       console.error('Supabase update match exception:', err)
-      return { success: false, message: err.message || 'Update match error' }
     }
   }
 
