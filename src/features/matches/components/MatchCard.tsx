@@ -94,6 +94,14 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
             <div className="absolute top-3 left-3 bg-emerald-950/90 text-emerald-400 border border-emerald-500/50 backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
               <span>REGISTERED ✅</span>
             </div>
+          ) : match.status === 'COMPLETED' ? (
+            <div className="absolute top-3 left-3 bg-emerald-700/90 text-white backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
+              <span>COMPLETED ✅</span>
+            </div>
+          ) : match.status === 'CLOSED' || match.joinedSlots >= match.maxSlots ? (
+            <div className="absolute top-3 left-3 bg-rose-900/90 text-rose-200 border border-rose-500/50 backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
+              <span>SLOTS FULL / CLOSED 🛑</span>
+            </div>
           ) : match.status === 'COMING_SOON' ? (
             <div className="absolute top-3 left-3 bg-amber-500/90 text-black backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
               <span>COMING SOON ⏳</span>
@@ -105,10 +113,6 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
           ) : match.status === 'LIVE_SOON' ? (
             <div className="absolute top-3 left-3 bg-cyan-600/90 text-white backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
               <span>LIVE SOON ⚡</span>
-            </div>
-          ) : match.status === 'COMPLETED' ? (
-            <div className="absolute top-3 left-3 bg-emerald-700/90 text-white backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
-              <span>COMPLETED ✅</span>
             </div>
           ) : (
             <div className="absolute top-3 left-3 bg-emerald-500/90 text-black backdrop-blur-md px-2.5 py-1 rounded-xl font-gaming text-[10px] font-black uppercase tracking-wider z-20 shadow-lg flex items-center gap-1">
@@ -210,7 +214,10 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
               {match.status === 'COMPLETED' && (
                 <span className="text-emerald-400 font-bold text-[11px]">Completed ✅</span>
               )}
-              {match.status === 'OPEN' && (
+              {(match.status === 'CLOSED' || match.joinedSlots >= match.maxSlots) && (
+                <span className="text-rose-400 font-bold text-[11px]">Closed / Full 🛑</span>
+              )}
+              {match.status === 'OPEN' && match.joinedSlots < match.maxSlots && (
                 <span className="text-emerald-400 font-bold text-[11px]">Open 🟢</span>
               )}
             </div>
@@ -226,6 +233,8 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
                     ? 'bg-cyan-500'
                     : match.status === 'COMPLETED'
                     ? 'bg-emerald-600'
+                    : match.status === 'CLOSED' || match.joinedSlots >= match.maxSlots
+                    ? 'bg-rose-600'
                     : progressBg
                 }`}
                 style={{ width: `${fillPercentage}%` }}
@@ -239,6 +248,21 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
               >
                 <span>ALREADY REGISTERED ✅</span>
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              </button>
+            ) : match.status === 'COMPLETED' ? (
+              <button
+                disabled
+                className="w-full py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-950/40 via-emerald-900/30 to-emerald-950/40 text-emerald-400 border border-emerald-500/30 shadow-lg cursor-not-allowed select-none opacity-80"
+              >
+                <span>MATCH COMPLETED ✅</span>
+                <Trophy className="w-3.5 h-3.5 text-emerald-400" />
+              </button>
+            ) : match.status === 'CLOSED' || match.joinedSlots >= match.maxSlots ? (
+              <button
+                disabled
+                className="w-full py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-rose-950/40 text-rose-300 border border-rose-500/30 shadow-lg cursor-not-allowed select-none opacity-80"
+              >
+                <span>REGISTRATION CLOSED 🛑</span>
               </button>
             ) : match.status === 'COMING_SOON' ? (
               <button
@@ -255,14 +279,6 @@ export default function MatchCard({ match, onSelect }: MatchCardProps) {
               >
                 <span>MATCH STARTING SOON</span>
                 <Clock className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-              </button>
-            ) : match.status === 'COMPLETED' ? (
-              <button
-                disabled
-                className="w-full py-2.5 rounded-xl font-gaming text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-950/40 via-emerald-900/30 to-emerald-950/40 text-emerald-400 border border-emerald-500/30 shadow-lg cursor-not-allowed select-none"
-              >
-                <span>MATCH COMPLETED</span>
-                <Trophy className="w-3.5 h-3.5 text-emerald-400" />
               </button>
             ) : match.status === 'FILLING_FAST' ? (
               <button

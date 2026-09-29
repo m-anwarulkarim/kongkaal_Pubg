@@ -588,6 +588,7 @@ export default function MatchesTab({
                     <SelectItem value="COMING_SOON">⏳ COMING SOON</SelectItem>
                     <SelectItem value="FILLING_FAST">🔥 FILLING FAST</SelectItem>
                     <SelectItem value="LIVE_SOON">⚡ LIVE SOON</SelectItem>
+                    <SelectItem value="CLOSED">🛑 CLOSED / FULL</SelectItem>
                     <SelectItem value="COMPLETED">✅ COMPLETED</SelectItem>
                   </SelectContent>
                 </Select>

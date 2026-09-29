@@ -481,6 +481,7 @@ export default function MatchDetailPage({
                 { status: 'FILLING_FAST', label: 'FILLING FAST (খুব দ্রুত স্লট ফুল হচ্ছে)', color: 'bg-red-600/20 text-red-400 border-red-500/40' },
                 { status: 'LIVE_SOON', label: 'LIVE SOON (রুম খুলে দেওয়া হয়েছে)', color: 'bg-cyan-600/20 text-cyan-400 border-cyan-500/40' },
                 { status: 'COMING_SOON', label: 'COMING SOON (শিগগিরই শুরু হবে)', color: 'bg-amber-600/20 text-amber-400 border-amber-500/40' },
+                { status: 'CLOSED', label: 'CLOSED (স্লট বুকিং বন্ধ করা হয়েছে)', color: 'bg-rose-950/40 text-rose-400 border-rose-500/40' },
                 { status: 'COMPLETED', label: 'COMPLETED (ম্যাচ শেষ হয়েছে)', color: 'bg-emerald-600/20 text-emerald-400 border-emerald-500/40' },
               ].map((st) => (
                 <button

@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import Header from '../components/Header'
 import HeroSection from '../components/HeroSection'
 import TournamentGridSection, { KONGKAAL_MATCHES } from '../components/TournamentGridSection'
@@ -12,7 +13,7 @@ import ContactSection from '../components/ContactSection'
 import Footer from '../components/Footer'
 import WhatsAppFloatingButton from '../components/WhatsAppFloatingButton'
 import { useCustomerAuth } from '@/lib/auth'
-import { trackVisitor } from '@/lib/db'
+import { trackVisitor, getLocalMatches } from '@/lib/db'
 import type { MatchItem } from '@/types/match'
 
 export const Route = createFileRoute('/')({
@@ -53,7 +54,24 @@ function App() {
 
 
   const handleOpenBooking = (match?: MatchItem) => {
-    const target = match || KONGKAAL_MATCHES[0]
+    const localMatches = getLocalMatches()
+    let target = match
+    if (!target) {
+      target = localMatches.find((m) => m.status === 'OPEN' || m.status === 'FILLING_FAST') || localMatches[0] || KONGKAAL_MATCHES[0]
+    }
+
+    if (
+      target &&
+      (target.status === 'COMPLETED' ||
+        target.status === 'CLOSED' ||
+        target.status === 'LIVE_SOON' ||
+        target.status === 'COMING_SOON' ||
+        (target.joinedSlots || 0) >= (target.maxSlots || 100))
+    ) {
+      toast.error('এই টুর্নামেন্টের রেজিস্ট্রেশন বন্ধ হয়ে গেছে বা টুর্নামেন্টটি সম্পন্ন হয়েছে!')
+      return
+    }
+
     setSelectedMatch(target)
 
     if (!user) {

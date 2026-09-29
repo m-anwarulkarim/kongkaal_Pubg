@@ -128,8 +128,20 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
   const isAlreadyRegistered = isUserRegisteredForMatch(match.id, user?.email, player1Uid)
 
+  const isMatchClosedOrFull =
+    match.status === 'COMPLETED' ||
+    match.status === 'CLOSED' ||
+    match.status === 'LIVE_SOON' ||
+    match.status === 'COMING_SOON' ||
+    (match.joinedSlots || 0) >= (match.maxSlots || 100)
+
   const handleProceedToPayment = (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (isMatchClosedOrFull) {
+      toast.error('এই টুর্নামেন্টের রেজিস্ট্রেশন বন্ধ হয়ে গেছে বা টুর্নামেন্টটি ইতিমধ্যে সম্পন্ন হয়েছে!')
+      return
+    }
 
     if (isAlreadyRegistered) {
       toast.error('আপনি ইতিমধ্যে এই ম্যাচে রেজিস্টার করেছেন! (Already Registered)')
@@ -174,6 +186,11 @@ export default function SlotBookingModal({ match, open, onClose }: SlotBookingMo
 
   const handleConfirmPayment = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (isMatchClosedOrFull) {
+      toast.error('এই টুর্নামেন্টের রেজিস্ট্রেশন বন্ধ হয়ে গেছে বা টুর্নামেন্টটি ইতিমধ্যে সম্পন্ন হয়েছে!')
+      return
+    }
 
     if (paymentMethod === 'WALLET') {
       if (!user?.email) {

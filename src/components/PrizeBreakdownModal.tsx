@@ -130,24 +130,48 @@ export default function PrizeBreakdownModal({
           </div>
 
           {/* Action Join Button */}
-          <div className="pt-2 flex gap-3">
-            <button
-              onClick={() => {
-                onClose()
-                if (onJoinClick) onJoinClick()
-              }}
-              className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold text-xs uppercase font-gaming flex items-center justify-center gap-2 shadow-lg shadow-red-600/30 cursor-pointer"
-            >
-              <span>JOIN TOURNAMENT NOW</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            <button
-              onClick={onClose}
-              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 font-bold text-xs"
-            >
-              Close
-            </button>
-          </div>
+          {(() => {
+            const isClosedOrFull =
+              match.status === 'COMPLETED' ||
+              match.status === 'CLOSED' ||
+              match.status === 'LIVE_SOON' ||
+              match.status === 'COMING_SOON' ||
+              (match.joinedSlots || 0) >= (match.maxSlots || 100)
+
+            return (
+              <div className="pt-2 flex gap-3">
+                {isClosedOrFull ? (
+                  <button
+                    disabled
+                    className="flex-1 py-3 px-4 rounded-xl bg-gray-800 text-gray-400 font-bold text-xs uppercase font-gaming flex items-center justify-center gap-2 border border-white/10 cursor-not-allowed opacity-80"
+                  >
+                    <span>
+                      {match.status === 'COMPLETED'
+                        ? 'MATCH COMPLETED ✅'
+                        : 'REGISTRATION CLOSED 🛑'}
+                    </span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      onClose()
+                      if (onJoinClick) onJoinClick()
+                    }}
+                    className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold text-xs uppercase font-gaming flex items-center justify-center gap-2 shadow-lg shadow-red-600/30 cursor-pointer"
+                  >
+                    <span>JOIN TOURNAMENT NOW</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 font-bold text-xs"
+                >
+                  Close
+                </button>
+              </div>
+            )
+          })()}
 
         </div>
 

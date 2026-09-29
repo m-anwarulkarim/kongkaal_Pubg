@@ -87,9 +87,10 @@ function saveLocalMatches(matches: MatchItem[], notify = true) {
     localStorage.setItem('kongkaal_matches', JSON.stringify(matches))
     if (notify) {
       window.dispatchEvent(new Event('matches_updated'))
+      dbBroadcastChannel?.postMessage('matches_updated')
     }
   }
-  matchesCache = null
+  matchesCache = { data: matches, timestamp: Date.now() }
 }
 
 let matchesCache: { data: MatchItem[]; timestamp: number } | null = null
@@ -219,9 +220,29 @@ export async function getMatches(forceFetch = false): Promise<MatchItem[]> {
       roomPassword: m.room_password,
     }))
 
-    matchesCache = { data: sbMatches, timestamp: Date.now() }
-    saveLocalMatches(sbMatches, false)
-    return sbMatches
+    // Merge with local storage matches to ensure newly created local matches aren't erased
+    const local = getLocalMatches()
+    const mergedMap = new Map<string, MatchItem>()
+
+    for (const m of sbMatches) {
+      mergedMap.set(m.id, m)
+    }
+
+    for (const lm of local) {
+      if (!mergedMap.has(lm.id)) {
+        const existingKey = Array.from(mergedMap.keys()).find(
+          (k) => mergedMap.get(k)?.title === lm.title && mergedMap.get(k)?.mode === lm.mode
+        )
+        if (!existingKey) {
+          mergedMap.set(lm.id, lm)
+        }
+      }
+    }
+
+    const finalMatches = Array.from(mergedMap.values())
+    matchesCache = { data: finalMatches, timestamp: Date.now() }
+    saveLocalMatches(finalMatches, false)
+    return finalMatches
   } catch (err) {
     console.error('[DB Service] Supabase query failed:', err)
     const local = getLocalMatches()
@@ -232,60 +253,87 @@ export async function getMatches(forceFetch = false): Promise<MatchItem[]> {
 
 // 2. Create / Add New Tournament Match
 export async function createMatch(match: Omit<MatchItem, 'id'>): Promise<{ success: boolean; message: string; id?: string }> {
-  const newMatch: MatchItem = {
-    id: 'match-' + Date.now(),
+  let cleanDate = match.matchDate ? match.matchDate.trim().split('T')[0] : ''
+  if (!cleanDate) {
+    cleanDate = new Date().toISOString().split('T')[0]
+  }
+
+  const generatedId = 'match-' + Date.now()
+  let newMatch: MatchItem = {
+    id: generatedId,
     ...match,
+    matchDate: cleanDate,
     joinedSlots: match.joinedSlots || 0,
+    maxSlots: match.maxSlots || 100,
+    status: match.status || 'OPEN',
+    image: match.image || '/squad_showdown.webp',
   }
 
+  // 1. Save locally first & update memory cache
   const local = getLocalMatches()
-  const updated = [newMatch, ...local]
-  saveLocalMatches(updated)
+  let updated = [newMatch, ...local]
+  saveLocalMatches(updated, true)
 
-  if (!isSupabaseConfigured()) {
-    return { success: true, message: 'Match created successfully!', id: newMatch.id }
-  }
+  // 2. Sync to Supabase if configured
+  if (isSupabaseConfigured()) {
+    try {
+      const payload: Record<string, any> = {
+        id: generatedId,
+        title: newMatch.title,
+        mode: newMatch.mode,
+        map: newMatch.map,
+        time: newMatch.time,
+        match_date: newMatch.matchDate,
+        entry_fee: Number(newMatch.entryFee) || 0,
+        winner_prize: Number(newMatch.winnerPrize) || 0,
+        first_prize: newMatch.firstPrize !== undefined ? Number(newMatch.firstPrize) : (Number(newMatch.winnerPrize) || 0),
+        second_prize: Number(newMatch.secondPrize) || 0,
+        third_prize: Number(newMatch.thirdPrize) || 0,
+        per_kill_prize: Number(newMatch.perKillPrize) || 0,
+        joined_slots: Number(newMatch.joinedSlots) || 0,
+        max_slots: Number(newMatch.maxSlots) || 100,
+        image: newMatch.image,
+        status: newMatch.status || 'OPEN',
+        whatsapp_group_link: newMatch.whatsappGroupLink || '',
+        room_id: newMatch.roomId || '',
+        room_password: newMatch.roomPassword || '',
+      }
 
-  try {
-    const { data, error } = await supabase
-      .from('matches')
-      .insert([
-        {
-          title: match.title,
-          mode: match.mode,
-          map: match.map,
-          time: match.time,
-          match_date: match.matchDate || null,
-          entry_fee: match.entryFee,
-          winner_prize: match.winnerPrize,
-          first_prize: match.firstPrize !== undefined ? match.firstPrize : match.winnerPrize,
-          second_prize: match.secondPrize || 0,
-          third_prize: match.thirdPrize || 0,
-          per_kill_prize: match.perKillPrize,
-          joined_slots: match.joinedSlots || 0,
-          max_slots: match.maxSlots || 100,
-          image: match.image,
-          status: match.status || 'OPEN',
-          whatsapp_group_link: match.whatsappGroupLink || '',
-        },
-      ])
-      .select()
+      const { data, error } = await supabase
+        .from('matches')
+        .insert([payload])
+        .select()
 
-    if (error) {
-      console.warn('Supabase create match error:', error)
+      if (!error && data && data.length > 0) {
+        if (data[0].id && data[0].id !== generatedId) {
+          newMatch = { ...newMatch, id: data[0].id }
+          updated = [newMatch, ...local]
+          saveLocalMatches(updated, true)
+        }
+      } else if (error) {
+        console.warn('Supabase create match error:', error)
+      }
+    } catch (err: any) {
+      console.warn('Supabase create match exception:', err)
     }
-
-    return { success: true, message: 'Match created successfully!', id: data?.[0]?.id || newMatch.id }
-  } catch (err: any) {
-    return { success: true, message: 'Match created successfully!', id: newMatch.id }
   }
+
+  // Lock newly created match in cache so immediate getMatches(true) returns it
+  matchesCache = { data: updated, timestamp: Date.now() }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('matches_updated'))
+    dbBroadcastChannel?.postMessage('matches_updated')
+  }
+
+  return { success: true, message: 'Match created successfully!', id: newMatch.id }
 }
 
 // 3. Delete Match
 export async function deleteMatch(id: string): Promise<{ success: boolean; message: string }> {
   const local = getLocalMatches()
   const updated = local.filter((m) => m.id !== id)
-  saveLocalMatches(updated)
+  saveLocalMatches(updated, true)
 
   if (isSupabaseConfigured()) {
     try {
@@ -295,14 +343,18 @@ export async function deleteMatch(id: string): Promise<{ success: boolean; messa
     }
   }
 
+  matchesCache = { data: updated, timestamp: Date.now() }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('matches_updated'))
+    dbBroadcastChannel?.postMessage('matches_updated')
+  }
+
   return { success: true, message: 'Match deleted successfully' }
 }
 
 // 3b. Update Existing Match (Title, Image Picture, Entry Fee, Prize, Time, Date, etc.)
 export async function updateMatch(match: MatchItem): Promise<{ success: boolean; message: string }> {
-  // 1. Invalidate cache
-  clearMatchesCache()
-
   // Ensure matchDate is formatted cleanly (YYYY-MM-DD)
   let cleanDate = match.matchDate ? match.matchDate.trim().split('T')[0] : ''
   if (!cleanDate) {
@@ -314,13 +366,13 @@ export async function updateMatch(match: MatchItem): Promise<{ success: boolean;
     matchDate: cleanDate,
   }
 
-  // 2. Save locally
+  // 1. Save locally and update cache immediately
   const local = getLocalMatches()
   const exists = local.some((m) => m.id === updatedMatch.id)
   const updated = exists ? local.map((m) => (m.id === updatedMatch.id ? updatedMatch : m)) : [updatedMatch, ...local]
   saveLocalMatches(updated, true)
 
-  // 3. Sync to Supabase if configured
+  // 2. Sync to Supabase if configured
   if (isSupabaseConfigured()) {
     try {
       const payload: Record<string, any> = {
@@ -381,9 +433,13 @@ export async function updateMatch(match: MatchItem): Promise<{ success: boolean;
     }
   }
 
+  // 3. Ensure memory cache preserves the newly updated matches list
+  matchesCache = { data: updated, timestamp: Date.now() }
+
   // 4. Dispatch instant UI update event across app
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('matches_updated'))
+    dbBroadcastChannel?.postMessage('matches_updated')
   }
 
   return { success: true, message: 'Match updated successfully!' }
@@ -500,6 +556,31 @@ export function getUserRegisteredMatchIds(
 // 4. Save Player Slot Registration & Payment TrxID
 export async function saveRegistration(registration: PlayerRegistration): Promise<{ success: boolean; message: string; id?: string }> {
   console.log('[DB Service] Saving slot registration:', registration)
+
+  // Validate target match status & max slots limit
+  if (registration.matchId) {
+    const matches = getLocalMatches()
+    const targetMatch = matches.find((m) => m.id === registration.matchId)
+    if (targetMatch) {
+      if (
+        targetMatch.status === 'COMPLETED' ||
+        targetMatch.status === 'CLOSED' ||
+        targetMatch.status === 'LIVE_SOON' ||
+        targetMatch.status === 'COMING_SOON'
+      ) {
+        return {
+          success: false,
+          message: 'এই টুর্নামেন্টের রেজিস্ট্রেশন বন্ধ হয়ে গেছে বা টুর্নামেন্টটি সম্পন্ন হয়েছে!',
+        }
+      }
+      if ((targetMatch.joinedSlots || 0) >= (targetMatch.maxSlots || 100)) {
+        return {
+          success: false,
+          message: 'এই টুর্নামেন্টের সকল স্লট পূর্ণ হয়ে গেছে! আর কোনো প্লেয়ার যুক্ত হতে পারবে না।',
+        }
+      }
+    }
+  }
 
   // Prevent duplicate registration for the same match
   if (
