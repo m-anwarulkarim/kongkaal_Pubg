@@ -22,30 +22,31 @@ export default function TournamentGridSection({ onSelectMatch }: TournamentGridS
   const sliderRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    async function loadTournamentMatches() {
+    async function loadTournamentMatches(silent = false) {
       try {
-        setLoading(true)
-        const data = await getMatches()
+        if (!silent) setLoading(true)
+        const data = await getMatches(true)
         setMatches(data)
       } catch (err) {
         console.error('Failed to load dynamic matches:', err)
       } finally {
-        setLoading(false)
+        if (!silent) setLoading(false)
       }
     }
-    loadTournamentMatches()
-
+    loadTournamentMatches(false)
 
     const handleUpdate = () => {
-      loadTournamentMatches()
+      loadTournamentMatches(true)
       setModeSettings(getMatchModeSettings())
     }
 
     window.addEventListener('matches_updated', handleUpdate)
+    window.addEventListener('registrations_updated', handleUpdate)
     window.addEventListener('mode_settings_updated', handleUpdate)
     window.addEventListener('storage', handleUpdate)
     return () => {
       window.removeEventListener('matches_updated', handleUpdate)
+      window.removeEventListener('registrations_updated', handleUpdate)
       window.removeEventListener('mode_settings_updated', handleUpdate)
       window.removeEventListener('storage', handleUpdate)
     }

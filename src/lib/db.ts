@@ -394,6 +394,8 @@ export async function updateMatch(match: MatchItem): Promise<{ success: boolean;
 export async function incrementMatchSlots(matchId?: string | null, count = 1): Promise<void> {
   if (!matchId) return
 
+  clearMatchesCache()
+
   // Update local storage
   const local = getLocalMatches()
   const updated = local.map((m) => {
@@ -407,7 +409,7 @@ export async function incrementMatchSlots(matchId?: string | null, count = 1): P
   saveLocalMatches(updated)
 
   // Update Supabase if configured
-  if (isSupabaseConfigured() && matchId && matchId.length > 20) {
+  if (isSupabaseConfigured() && matchId) {
     try {
       const { data: current } = await supabase.from('matches').select('joined_slots, max_slots').eq('id', matchId).single()
       if (current) {
@@ -421,6 +423,7 @@ export async function incrementMatchSlots(matchId?: string | null, count = 1): P
 
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('matches_updated'))
+    dbBroadcastChannel?.postMessage('matches_updated')
   }
 }
 
