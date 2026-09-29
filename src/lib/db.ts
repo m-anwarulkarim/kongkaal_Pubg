@@ -274,8 +274,6 @@ export async function createMatch(match: Omit<MatchItem, 'id'>): Promise<{ succe
         image: newMatch.image,
         status: newMatch.status || 'OPEN',
         whatsapp_group_link: newMatch.whatsappGroupLink || '',
-        room_id: newMatch.roomId || '',
-        room_password: newMatch.roomPassword || '',
       }
 
       const { data, error } = await supabase
@@ -370,8 +368,6 @@ export async function updateMatch(match: MatchItem): Promise<{ success: boolean;
         image: updatedMatch.image,
         status: updatedMatch.status || 'OPEN',
         whatsapp_group_link: updatedMatch.whatsappGroupLink || '',
-        room_id: updatedMatch.roomId || '',
-        room_password: updatedMatch.roomPassword || '',
       }
 
       let isUpdated = false
@@ -407,7 +403,6 @@ export async function updateMatch(match: MatchItem): Promise<{ success: boolean;
         const { error: insErr } = await supabase.from('matches').upsert([payload])
         if (insErr) {
           console.error('Supabase update/insert match error:', insErr)
-          // If error is not fatal or schema constraint, log and continue as local storage succeeded
         }
       }
     } catch (err: any) {
