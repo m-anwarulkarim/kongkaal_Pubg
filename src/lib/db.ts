@@ -220,29 +220,9 @@ export async function getMatches(forceFetch = false): Promise<MatchItem[]> {
       roomPassword: m.room_password,
     }))
 
-    // Merge with local storage matches to ensure newly created local matches aren't erased
-    const local = getLocalMatches()
-    const mergedMap = new Map<string, MatchItem>()
-
-    for (const m of sbMatches) {
-      mergedMap.set(m.id, m)
-    }
-
-    for (const lm of local) {
-      if (!mergedMap.has(lm.id)) {
-        const existingKey = Array.from(mergedMap.keys()).find(
-          (k) => mergedMap.get(k)?.title === lm.title && mergedMap.get(k)?.mode === lm.mode
-        )
-        if (!existingKey) {
-          mergedMap.set(lm.id, lm)
-        }
-      }
-    }
-
-    const finalMatches = Array.from(mergedMap.values())
-    matchesCache = { data: finalMatches, timestamp: Date.now() }
-    saveLocalMatches(finalMatches, false)
-    return finalMatches
+    matchesCache = { data: sbMatches, timestamp: Date.now() }
+    saveLocalMatches(sbMatches, false)
+    return sbMatches
   } catch (err) {
     console.error('[DB Service] Supabase query failed:', err)
     const local = getLocalMatches()
@@ -423,13 +403,18 @@ export async function updateMatch(match: MatchItem): Promise<{ success: boolean;
         }
       }
 
-      // Third attempt: insert record
+      // Third attempt: upsert record if not found
       if (!isUpdated) {
         payload.id = updatedMatch.id
-        await supabase.from('matches').insert([payload])
+        const { error: insErr } = await supabase.from('matches').upsert([payload])
+        if (insErr) {
+          console.error('Supabase update/insert match error:', insErr)
+          return { success: false, message: insErr.message || 'Supabase update failed' }
+        }
       }
     } catch (err: any) {
-      console.warn('Supabase update match exception:', err)
+      console.error('Supabase update match exception:', err)
+      return { success: false, message: err.message || 'Update match error' }
     }
   }
 
