@@ -13,6 +13,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { blockUser, unblockUser, isUserBlocked } from '@/lib/blacklist'
 import {
   ArrowLeft,
   Wallet,
@@ -38,6 +39,9 @@ import {
   Copy,
   Check,
   Loader2,
+  Ban,
+  ShieldAlert,
+  Globe,
 } from 'lucide-react'
 
 interface CustomerDetailPageProps {
@@ -90,6 +94,11 @@ export default function CustomerDetailPage({
   const [txFilter, setTxFilter] = useState<string>('ALL')
   const [txSearch, setTxSearch] = useState<string>('')
   const [copiedText, setCopiedText] = useState<string | null>(null)
+  const [blockedState, setBlockedState] = useState<{ blocked: boolean; reason?: string; type?: 'EMAIL' | 'IP'; value?: string }>({ blocked: false })
+  const [showBlockModal, setShowBlockModal] = useState(false)
+  const [blockTargetType, setBlockTargetType] = useState<'EMAIL' | 'IP'>('EMAIL')
+  const [blockReasonText, setBlockReasonText] = useState('Fake transaction / Suspicious activity')
+  const [blockingLoading, setBlockingLoading] = useState(false)
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
@@ -105,11 +114,51 @@ export default function CustomerDetailPage({
     setLoading(false)
   }
 
+  const checkBlacklistStatus = async () => {
+    const ip = customer?.userIp || (registrations || []).find((r) => r?.userIp)?.userIp || '103.205.132.1'
+    const res = await isUserBlocked(customer.email, ip)
+    setBlockedState(res)
+  }
+
   useEffect(() => {
     if (customer?.email) {
       loadTxs()
+      checkBlacklistStatus()
     }
   }, [customer?.email])
+
+  const handleOpenBlockModal = (type: 'EMAIL' | 'IP') => {
+    setBlockTargetType(type)
+    setShowBlockModal(true)
+  }
+
+  const handleConfirmBlock = async () => {
+    setBlockingLoading(true)
+    const ip = customer?.userIp || (registrations || []).find((r) => r?.userIp)?.userIp || '103.205.132.1'
+    const targetValue = blockTargetType === 'EMAIL' ? customer.email : ip
+    const res = await blockUser(blockTargetType, targetValue, blockReasonText)
+    setBlockingLoading(false)
+    setShowBlockModal(false)
+    if (res.success) {
+      toast.success(res.message)
+      checkBlacklistStatus()
+    } else {
+      toast.error(res.message)
+    }
+  }
+
+  const handleUnblockUser = async () => {
+    if (!blockedState.value) return
+    setBlockingLoading(true)
+    const res = await unblockUser(blockedState.value)
+    setBlockingLoading(false)
+    if (res.success) {
+      toast.success(res.message)
+      checkBlacklistStatus()
+    } else {
+      toast.error(res.message)
+    }
+  }
 
   const customerName = (customer?.name || '').toLowerCase().trim()
   const customerUid = (customer?.pubgUid || '').trim()
@@ -289,8 +338,57 @@ export default function CustomerDetailPage({
                     </button>
                   </span>
                 )}
+                <span className="flex items-center gap-1.5 text-purple-400 bg-black/30 px-2 py-1 rounded-lg border border-white/5">
+                  <Globe className="w-4 h-4" /> IP: {customer?.userIp || (customerRegistrations || []).find((r) => r?.userIp)?.userIp || '103.205.132.1'}
+                </span>
               </div>
             </div>
+          </div>
+
+          {/* Security & Blacklist Control Panel */}
+          <div className="w-full lg:w-auto bg-[#090b12] border border-white/10 rounded-2xl p-4 px-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 shadow-2xl shrink-0">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
+                <ShieldAlert className="w-3.5 h-3.5 text-red-500" /> Account Security Status
+              </span>
+              {blockedState.blocked ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge className="bg-red-950 text-red-400 border border-red-500/40 text-xs font-bold px-3 py-1 flex items-center gap-1.5">
+                    <Ban className="w-3.5 h-3.5" /> BLOCKED ({blockedState.type})
+                  </Badge>
+                  <button
+                    onClick={handleUnblockUser}
+                    disabled={blockingLoading}
+                    className="px-3 py-1 rounded-lg bg-emerald-600/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-600 hover:text-white text-xs font-bold transition-all"
+                  >
+                    {blockingLoading ? 'Processing...' : 'Unblock User'}
+                  </button>
+                </div>
+              ) : (
+                <span className="text-xs font-bold text-emerald-400 flex items-center gap-1 mt-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Account Active & Clear
+                </span>
+              )}
+            </div>
+
+            {!blockedState.blocked && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleOpenBlockModal('EMAIL')}
+                  className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-950/60 border border-red-500/40 text-red-400 hover:bg-red-600 hover:text-white text-xs font-bold transition-all shadow-md"
+                >
+                  <Ban className="w-3.5 h-3.5" /> Block Gmail
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleOpenBlockModal('IP')}
+                  className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-950/60 border border-purple-500/40 text-purple-300 hover:bg-purple-600 hover:text-white text-xs font-bold transition-all shadow-md"
+                >
+                  <Globe className="w-3.5 h-3.5" /> Block IP
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Current Wallet Balance Card */}
@@ -692,6 +790,66 @@ export default function CustomerDetailPage({
           </div>
         )}
       </Card>
+
+      {/* ── Block User Confirmation Modal ── */}
+      {showBlockModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-[#101422] border border-red-500/40 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+              <div className="p-2 rounded-xl bg-red-600/20 border border-red-500/30 text-red-400">
+                <Ban className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white uppercase tracking-tight">
+                  Confirm {blockTargetType === 'EMAIL' ? 'Gmail' : 'IP'} Block
+                </h3>
+                <span className="text-xs text-red-400 font-mono">
+                  {blockTargetType === 'EMAIL'
+                    ? customer.email
+                    : customer?.userIp || (customerRegistrations || []).find((r) => r?.userIp)?.userIp || '103.205.132.1'}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-300 leading-relaxed">
+              আপনি কি নিশ্চিত যে এই কাস্টমারের{' '}
+              <strong className="text-white">{blockTargetType === 'EMAIL' ? 'Gmail ইমেইল' : 'IP Address'}</strong> কে সিস্টেমে
+              ব্লক করতে চান? ব্লক করা হলে ইনি কোনো টুর্নামেন্টে রেজিস্টার করতে পারবেন না।
+            </p>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-gray-300 uppercase tracking-wider block">
+                Reason for Blocking (ব্লক করার কারণ):
+              </label>
+              <Input
+                value={blockReasonText}
+                onChange={(e) => setBlockReasonText(e.target.value)}
+                placeholder="e.g. Fake TRX, Cheating, Multi-account spam"
+                className="bg-[#070910] border-white/15 text-white text-xs py-2"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowBlockModal(false)}
+                className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 text-xs font-bold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmBlock}
+                disabled={blockingLoading}
+                className="flex items-center gap-2 px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all shadow-lg shadow-red-600/30"
+              >
+                {blockingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />}
+                Confirm Block
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

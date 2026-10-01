@@ -13,6 +13,7 @@ export interface WalletTransaction {
   status: TransactionStatus
   createdAt: string
   note?: string
+  userIp?: string
 }
 
 export interface ReferredFriendRecord {
@@ -32,6 +33,7 @@ export interface CustomerProfile {
   avatarUrl?: string
   referralCode?: string
   referredBy?: string
+  userIp?: string
   totalReferredFriends?: number
   totalReferralEarnings?: number
   referredFriends?: ReferredFriendRecord[]

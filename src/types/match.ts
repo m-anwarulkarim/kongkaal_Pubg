@@ -51,6 +51,7 @@ export interface PlayerRegistration {
   paymentMethod: 'bKash' | 'Nagad' | 'Rocket' | 'WALLET'
   trxId: string
   amount: number
+  userIp?: string
 }
 
 export interface LeaderboardItem {

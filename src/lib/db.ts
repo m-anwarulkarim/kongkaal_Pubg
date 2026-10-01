@@ -1,12 +1,13 @@
 import { supabase, isSupabaseConfigured } from './supabase'
 import type { MatchItem, PlayerRegistration, LeaderboardItem } from '@/types/match'
 import { processReferralRewardOnTournamentJoin } from './wallet'
-
+import { isUserBlocked, getClientIp } from './blacklist'
 
 export interface RegistrationRecord extends PlayerRegistration {
   id: string
   status: 'PENDING' | 'VERIFIED' | 'REJECTED'
   createdAt: string
+  userIp?: string
   roomId?: string
   roomPassword?: string
 }
@@ -460,6 +461,43 @@ export async function incrementMatchSlots(matchId?: string | null, count = 1): P
   }
 }
 
+// 3.6 Decrement Match Joined Slots Count (Restores slot when rejected)
+export async function decrementMatchSlots(matchId?: string | null, count = 1): Promise<void> {
+  if (!matchId) return
+
+  clearMatchesCache()
+
+  // Update local storage
+  const local = getLocalMatches()
+  const updated = local.map((m) => {
+    if (m.id === matchId) {
+      const newJoined = Math.max(0, (m.joinedSlots || 0) - count)
+      const newStatus = m.status === 'FILLING_FAST' && newJoined < (m.maxSlots || 100) ? 'OPEN' : m.status
+      return { ...m, joinedSlots: newJoined, status: newStatus }
+    }
+    return m
+  })
+  saveLocalMatches(updated)
+
+  // Update Supabase if configured
+  if (isSupabaseConfigured() && matchId) {
+    try {
+      const { data: current } = await supabase.from('matches').select('joined_slots, max_slots').eq('id', matchId).single()
+      if (current) {
+        const nextJoined = Math.max(0, (current.joined_slots || 0) - count)
+        await supabase.from('matches').update({ joined_slots: nextJoined }).eq('id', matchId)
+      }
+    } catch (err) {
+      console.warn('Could not decrement match slots in Supabase:', err)
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('matches_updated'))
+    dbBroadcastChannel?.postMessage('matches_updated')
+  }
+}
+
 // Helper to manage local registration records
 export function getLocalRegistrationRecords(): RegistrationRecord[] {
   if (typeof window === 'undefined') return []
@@ -534,6 +572,18 @@ export function getUserRegisteredMatchIds(
 export async function saveRegistration(registration: PlayerRegistration): Promise<{ success: boolean; message: string; id?: string }> {
   console.log('[DB Service] Saving slot registration:', registration)
 
+  // Fetch client IP if not passed
+  const clientIp = registration.userIp || (await getClientIp())
+
+  // Check if Gmail or IP is blacklisted
+  const blockCheck = await isUserBlocked(registration.userEmail, clientIp)
+  if (blockCheck.blocked) {
+    return {
+      success: false,
+      message: `🚫 রেজিস্ট্রেশন ব্যর্থ হয়েছে! আপনার ${blockCheck.type === 'EMAIL' ? 'Gmail' : 'IP Address'} নিরাপত্তাজনিত কারণে ব্লক করা হয়েছে। (${blockCheck.reason || 'Blocked'})`,
+    }
+  }
+
   // Validate target match status & max slots limit
   if (registration.matchId) {
     const matches = getLocalMatches()
@@ -595,6 +645,7 @@ export async function saveRegistration(registration: PlayerRegistration): Promis
     trxId: registration.trxId,
     amount: registration.amount,
     status: initialStatus,
+    userIp: clientIp,
     createdAt: new Date().toISOString(),
   }
 
@@ -767,7 +818,20 @@ export async function getAllRegistrations(forceFetch = false): Promise<Registrat
 
 // 6. Update Registration Status (Approve/Reject)
 export async function updateRegistrationStatus(id: string, status: 'VERIFIED' | 'REJECTED'): Promise<{ success: boolean; message: string }> {
-  // Update local storage record if present
+  let matchId: string | undefined
+  let prevStatus: string | undefined
+
+  // Retrieve current record locally or via Supabase
+  if (typeof window !== 'undefined') {
+    const current = getLocalRegistrationRecords()
+    const target = current.find(r => r.id === id)
+    if (target) {
+      matchId = target.matchId
+      prevStatus = target.status
+    }
+  }
+
+  // Update local storage record
   if (typeof window !== 'undefined') {
     const current = getLocalRegistrationRecords()
     const updated = current.map(r => r.id === id ? { ...r, status } : r)
@@ -776,6 +840,14 @@ export async function updateRegistrationStatus(id: string, status: 'VERIFIED' | 
 
   if (isSupabaseConfigured()) {
     try {
+      if (!matchId) {
+        const { data: existing } = await supabase.from('registrations').select('status, match_id').eq('id', id).single()
+        if (existing) {
+          matchId = existing.match_id
+          prevStatus = existing.status
+        }
+      }
+
       const { error } = await supabase
         .from('registrations')
         .update({ status })
@@ -787,6 +859,16 @@ export async function updateRegistrationStatus(id: string, status: 'VERIFIED' | 
     } catch (err: any) {
       console.warn('Supabase update registration status exception:', err)
     }
+  }
+
+  // Slot release / restore logic:
+  // If moving to REJECTED from PENDING or VERIFIED -> decrement (release slot)
+  if (status === 'REJECTED' && prevStatus !== 'REJECTED' && matchId) {
+    await decrementMatchSlots(matchId, 1)
+  } 
+  // If moving back to VERIFIED from REJECTED -> increment (re-book slot)
+  else if (status === 'VERIFIED' && prevStatus === 'REJECTED' && matchId) {
+    await incrementMatchSlots(matchId, 1)
   }
 
   if (typeof window !== 'undefined') {
