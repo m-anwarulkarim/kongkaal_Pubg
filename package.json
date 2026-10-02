@@ -10,7 +10,8 @@
     "generate-routes": "tsr generate",
     "build": "vite build && node scripts/postbuild.js",
     "preview": "vite preview",
-    "deploy": "wrangler pages deploy dist/client"
+    "deploy": "wrangler pages deploy dist/client",
+    "backup": "node scripts/backup-db.js"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

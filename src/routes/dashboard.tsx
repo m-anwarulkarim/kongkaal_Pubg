@@ -121,6 +121,33 @@ function CustomerDashboardPage() {
     setEditProfileOpen(true)
   }
 
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('অনুগ্রহ করে একটি ছবি (Image) ফাইল নির্বাচন করুন!')
+      return
+    }
+
+    setIsUploadingAvatar(true)
+    toast.info('ছবিকে ১৫-২০ KB WebP ফরম্যাটে কম্প্রেস করা হচ্ছে...')
+    try {
+      // Compress image to 300px max width and target size <= 20 KB (WebP format)
+      const webpBase64 = await convertFileToWebP(file, 0.75, 300, 20 * 1024)
+      setEditAvatarUrl(webpBase64)
+      const estimatedKb = Math.round((webpBase64.length * 3) / 4 / 1024)
+      toast.success(`ছবিটি WebP ফরম্যাটে রূপান্তর সফল! (সাইজ: ~${estimatedKb} KB)`)
+    } catch (err) {
+      console.error('Avatar WebP conversion error:', err)
+      toast.error('ছবি ফাইল প্রক্রিয়াকরণ করতে সমস্যা হয়েছে!')
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSavingProfile(true)
@@ -291,23 +318,6 @@ function CustomerDashboardPage() {
     navigator.clipboard.writeText(text)
     setCopiedId(label)
     setTimeout(() => setCopiedId(null), 2000)
-  }
-
-  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('ছবি ৫ MB এর ছোট হতে হবে!')
-        return
-      }
-      try {
-        const webpDataUrl = await convertFileToWebP(file, 0.85)
-        setEditAvatarUrl(webpDataUrl)
-        toast.success('প্রোফাইল ছবি  WebP ফরম্যাটে কনভার্ট হয়েছে!')
-      } catch (err) {
-        toast.error('ছবি কনভার্ট করতে ব্যর্থ হয়েছে!')
-      }
-    }
   }
 
 
@@ -1308,16 +1318,26 @@ function CustomerDashboardPage() {
                 </div>
 
                 {/* Upload Button */}
-                <div className="flex justify-center gap-2 pt-1">
-                  <label className="cursor-pointer bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-red-600/20">
-                    <Upload className="w-3.5 h-3.5" /> Upload from Device
+                <div className="flex flex-col items-center justify-center gap-1.5 pt-1">
+                  <label className={`cursor-pointer bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-red-600/20 transition-all ${isUploadingAvatar ? 'opacity-50 pointer-events-none' : ''}`}>
+                    {isUploadingAvatar ? (
+                      <span>কম্প্রেস হচ্ছে (WebP)...</span>
+                    ) : (
+                      <>
+                        <Upload className="w-3.5 h-3.5" /> Upload Photo (Auto WebP ~15-20KB)
+                      </>
+                    )}
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleAvatarFileChange}
+                      disabled={isUploadingAvatar}
                       className="hidden"
                     />
                   </label>
+                  <span className="text-[10px] text-emerald-400 font-medium">
+                    ⚡ যেকোনো ফটো স্বয়ংক্রিয়ভাবে ১৫-২০ KB WebP সাইজে কনভার্ট হবে।
+                  </span>
                 </div>
 
                 {/* Preset Avatars */}
